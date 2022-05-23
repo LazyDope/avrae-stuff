@@ -9,7 +9,7 @@ if not busivar:
 c=character()
 business = load_json(busivar)
 score = business['scores']
-scorelist = {"inf":["Influence",0,"inf"],"mig":["Might",0,"mig"],"tre":["Treasure",0,"tre"],"ter":["Territory",0,"ter"],"sov":["Sovereignty",0,"sov"]}
+scorelist = {"inf":["Influence", 0, "inf"],"mig":["Might", 0, "mig"],"tre":["Treasure", 0, "tre"],"ter":["Territory", 0, "ter"],"sov":["Sovereignty", 0, "sov"]}
 for x in scorelist.keys():
     if x == 'mig':
         c.create_cc_nx("Might",0,proficiencyBonus-1,dispType = "bubble")

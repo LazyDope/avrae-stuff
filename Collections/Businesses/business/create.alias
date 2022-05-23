@@ -26,8 +26,8 @@ pouch = bagsLoaded[0] if bagsLoaded else []
 if free:
     out.append(f"""-footer "You got this business for free! If this was a mistake, manually deduct {amount} gp" """)
 elif pouch:
-    coinTypes=["cp","sp","ep","gp","pp"]
-    coinRates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+    coinTypes=["cp", "sp", "ep", "gp", "pp"]
+    coinRates={"cp":100, "sp":10, "ep":2, "gp":1, "pp":0.1}
     settings=load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","autoCoins":False,"compactCoins":False})))
     pouch[1].update({'cp':pouch[1]['cp']-amount*100})
     for coin in coinTypes[:-1]:
