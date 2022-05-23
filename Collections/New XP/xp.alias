@@ -1,14 +1,18 @@
 embed <drac2>
+#Load constants and arguments
 c = character()
 args = [x for x in &ARGS&]
 ptargs = "&*&"
-subcs={'chart':False,'log':False,'set':False,'help?':False,'options':False}
 n='\n'
+counter="xp"
+
+#Define sub commands
+subcs={'chart':False,'log':False,'set':False,'help?':False,'options':False}
 if args:
     for subc in subcs.keys():
         subcs[subc]=subc in args[0].lower() or args[0].lower() in subc
-counter="xp"
-#Load custom variables
+    
+#Load user defined variables
 totals = [int(x) for x in (get_svar("xptotals") or get("xptotals",default="0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000")).split(",")]
 xp_name = get_svar("xpname") or get("xpname",default="Experience")
 c.set_cvar('xpname',xp_name) if get_svar("xpname") else ()
@@ -133,7 +137,6 @@ Use a cvar or uvar called `log_entries` to choose how many lines per page in the
 Use a cvar or svar called `log_method` to choose how logs longer than 10,000 characters are handled. `discard` will delete the oldest logs to make room for the new ones, displaying which log was removed, this is the default. `keep` will keep the logs by splitting them into multiple cvars. This also has a limit at about 150,000 - 200,000, at which point it will behave like discard, deleting oldest log to make room, but is still much larger than the standard log. Prefers user choice, unless the server prefixes their choice with `O:` like so `O:keep` to override the user choice.＂""" if subcs['options'] else f"""-desc 'Your {xp_name} total needs to be at least {required:,} to match your current level!'""" if total<totals[min(len(totals),level)-1] else f'''-desc "{"Don't forget"*ding or "You need"} to update your sheet with your proper level and run `!update`."''' if level<len(totals) and total>=(totals[min(len(totals)-1,level)]) else ""]
 
 out+=[f'''-f ＂Log Entry Added:| **<t:{timestamp*60+t_since}:D>:** {' '.join(([f"Total set to"]+ptargs.split(" ")[1:]) if subcs['set'] else [ptargs])}＂''' if gain else '']
-
 
 next=next+ding
 c.set_cvar(counter,str(gain))if subcs['set'] else gain and c.set_cvar(counter,str(xp+gain))
