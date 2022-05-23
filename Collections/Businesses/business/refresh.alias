@@ -1,0 +1,22 @@
+<drac2>
+args = &ARGS&
+busivar = get("business")
+if not busivar:
+    return("""embed -title "You have no business" -desc "Create one with `!business create`" -thumb "https://i2.wp.com/nypost.com/wp-content/uploads/sites/2/2018/08/trashing-trash.jpg" """)
+pargs = argparse(args)
+c = character()
+business = load_json(busivar)
+score = business['scores']
+scorelist = {"inf":["Influence",0,"inf"],"mig":["Might",0,"mig"],"tre":["Treasure",0,"tre"],"ter":["Territory",0,"ter"],"sov":["Sovereignty",0,"sov"]}
+out = []
+for x in scorelist.keys():
+    if x == 'mig':
+        scorelist[x][1] = proficiencyBonus-1 - c.get_cc(scorelist[x][0])
+        c.create_cc(scorelist[x][0],0,proficiencyBonus-1,dispType = "bubble")
+        out.append(f"""-f "{scorelist[x][0]}|{c.cc_str(scorelist[x][0])} (+{scorelist[x][1]})|inline" """)
+    elif score[x] > 0:
+        scorelist[x][1] = score[x] - c.get_cc(scorelist[x][0])
+        c.create_cc(scorelist[x][0],0,score[x],dispType = "bubble")
+        out.append(f"""-f "{scorelist[x][0]}|{c.cc_str(scorelist[x][0])} (+{scorelist[x][1]})|inline" """)
+return(f"""embed -title "{c.name} starts a new cycle." -desc "{business['desc']}" -thumb "{business['image']}" {' '.join(out)} """)
+</drac2> 

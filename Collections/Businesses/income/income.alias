@@ -1,0 +1,94 @@
+<drac2>
+args = &ARGS&
+if not args:
+    return(f"help {ctx.alias} -here")
+busivar = get("business")
+if not busivar:
+    return("""embed -title "You have no business" -desc "Create one with `!business create`" -thumb "https://i2.wp.com/nypost.com/wp-content/uploads/sites/2/2018/08/trashing-trash.jpg" """)
+pargs = argparse(args)
+c = character()
+business = load_json(busivar)
+score = business['scores']
+scorelist = {"inf":["Influence",0,"inf"],"mig":["Might",0,"mig"],"tre":["Treasure",0,"tre"],"ter":["Territory",0,"ter"],"sov":["Sovereignty",0,"sov"]}
+for x in scorelist.keys():
+    if x == 'mig':
+        c.create_cc_nx("Might",0,proficiencyBonus-1,dispType = "bubble")
+        migdiff = c.get_cc_max("Might") - c.get_cc("Might")
+        c.create_cc("Might",0,proficiencyBonus-1,dispType = "bubble")
+        scorelist[x][1] = c.mod_cc("Might",migdiff)
+    elif score[x] > 0:
+        c.create_cc_nx(scorelist[x][0],0,score[x],dispType = "bubble")
+        scorelist[x][1] = c.get_cc(scorelist[x][0])
+stat = [None,None]
+if args[0] == 'max':
+    sortscore = [[x[1],x[2]] for x in scorelist.values()]
+    sortscore.sort(reverse=True)
+    stat[0] = scorelist[sortscore[0][1]]
+    stat[1] = scorelist[sortscore[1][1]]
+elif args[0] in scorelist.keys():
+    stat[0] = scorelist[args[0]]
+    if len(args) > 1 and args[1] in scorelist.keys(): 
+        stat[1] = scorelist[args[1]]
+else:
+    return("""embed -title "Insufficient arguments" -desc "Please include 2 appropriate stats or `max` when running this command." """)
+rolls = [None,None,None]
+bonus = 0
+if pargs.get("b"):
+    bonus = sum([int(x) for x in pargs.get("b") if x.isdigit()])
+    rolls[2] = vroll(f"{bonus}d10")
+if stat[0] and stat[0][1] > 0:
+    rolls[0] = vroll(f"{stat[0][1]}d10")
+    c.mod_cc(stat[0][0],-1)
+if stat[1] and stat[1][1] > 0:
+    rolls[1] = vroll(f"{stat[1][1]}d10")
+    c.mod_cc(stat[1][0],-1)
+thedice = ([int(x.values[0]) for x in rolls[0].raw.roll.values] if rolls[0] else [])+([int(x.values[0]) for x in rolls[1].raw.roll.values] if rolls[1] else [])+([int(x.values[0]) for x in rolls[2].raw.roll.values] if rolls[2] else [])
+if not thedice:
+    return("""embed -title "Insufficient arguments" -desc "Stats provided are not rollable. Wait until next month before using these again or upgrade your business." """)
+results = [-250,0,0,500,500,1500,1500,2500,2500,5000]
+pairs = {}
+total = 0
+for i in range (1,11):
+    pair = thedice.count(i)//2
+    pairs[i] = pair
+    total += pair*results[i-1]
+if not sum(pairs.values()):
+    total = -500
+n="\n"
+pairtext = f"""-f "Pairs|{', '.join([(str(pairs[x]*2) + f" {str(x)}s") for x in pairs.keys() if pairs[x]>0])}{n}{str(total).strip("+-")} gp {"earned" if total>0 else "lost" if total<0 else ":("}" """
+
+out = ""
+bags = get("bags")
+bagsLoaded = [x for x in load_json(bags) if x[0]=="Coin Pouch"] if bags else []
+pouch = bagsLoaded[0] if bagsLoaded else []
+if pouch:
+    coinTypes=["cp","sp","ep","gp","pp"]
+    coinRates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+    settings=load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","autoCoins":False,"compactCoins":False})))
+    pouch[1].update({'cp':pouch[1]['cp']+total*100}) if total < 0 else pouch[1].update({'gp':pouch[1]['gp']+total})
+    for coin in coinTypes[:-1]:
+        larger = coinTypes[coinTypes.index(coin)+1]
+        rate = int(coinRates[coin]/coinRates[larger])
+        p = pouch[1][coin]//rate
+        if pouch[1][coin] < 0:
+            pouch[1].update({larger:pouch[1][larger]+p,coin:pouch[1][coin]-p*rate})
+    if settings.autoCoins:
+        for coin in coinTypes[1:]:
+            smaller = coinTypes[coinTypes.index(coin)-1]
+            rate = int(coinRates[smaller]/coinRates[coin])
+            p = pouch[1][smaller]//rate
+            if pouch[1][smaller] >= rate:
+                pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
+    error=[x for x in pouch[1]if pouch[1][x]<0]
+    error or set_cvar("bags",dump_json(bagsLoaded))
+    if error:
+        out = f"""-footer "{str(total).strip("+-")} gp deducted unsuccessfully, and you have gone into dept" """
+    elif total!=0:
+        out = f"""-footer "{str(total).strip("+-")} gp {"added" if total > 0 else "deducted"} automatically" """
+elif c.coinpurse.total < -total:
+    out = f"""-footer "{str(total).strip("+-")} gp deducted unsuccessfully, and you have gone into dept" """
+else:
+    c.coinpurse.modify_coins(gp=total)
+    out = f"""-footer "{str(total).strip("+-")} gp {"added" if total > 0 else "deducted"} automatically" """
+return(f"""embed -title "{c.name} rolls profit for {business['name']}" -desc "{business['desc']}" -thumb "{business['image']}" {f'''-f "{stat[0][0]}|{f'{rolls[0].dice}{n}{c.cc_str(stat[0][0])} (-1)' if rolls[0] else "Stat invalid"}|inline" ''' if stat[0] else ""} {f'''-f "{stat[1][0]}|{f'{rolls[1].dice}{n}{c.cc_str(stat[1][0])} (-1)' if rolls[1] else "Stat invalid"}|inline" ''' if stat[1] else ""} {f'''-f "Bonus Dice|{f'{rolls[2].dice}' if rolls[2] else "Bonus invalid"}|inline" ''' if bonus else ""} {pairtext} {out}""")
+</drac2>

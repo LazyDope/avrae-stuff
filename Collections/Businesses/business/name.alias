@@ -1,0 +1,26 @@
+<drac2>
+args = &ARGS&
+if not args:
+    return(f"help {ctx.alias} image -here")
+busivar = get("business")
+if not busivar:
+    return("""embed -title "You have no business" -desc "Create one with `!business create`" -thumb "https://i2.wp.com/nypost.com/wp-content/uploads/sites/2/2018/08/trashing-trash.jpg" """)
+c = character()
+business = load_json(busivar)
+score = business['scores']
+scorelist = {"inf":["Influence",0,"inf"],"mig":["Might",0,"mig"],"tre":["Treasure",0,"tre"],"ter":["Territory",0,"ter"],"sov":["Sovereignty",0,"sov"]}
+for x in scorelist.keys():
+    if x == 'mig':
+        c.create_cc_nx("Might",0,proficiencyBonus-1,dispType = "bubble")
+        migdiff = c.get_cc_max("Might") - c.get_cc("Might")
+        c.create_cc("Might",0,proficiencyBonus-1,dispType = "bubble")
+        scorelist[x][1] = c.mod_cc("Might",migdiff)
+    elif score[x] > 0:
+        c.create_cc_nx(scorelist[x][0],0,score[x],dispType = "bubble")
+        scorelist[x][1] = c.get_cc(scorelist[x][0])
+oldname = business['name']
+business['name'] = " ".join(args)
+out = f"""embed -title "{randchoice([oldname+' becomes '+business['name'],business['name']+' is rebranded',business['name']+' births from the chaos of '+oldname])}." -desc "{business['desc']}" -thumb "{business['image']}" """
+c.set_cvar("business",dump_json(business))
+return(out)
+</drac2> 
