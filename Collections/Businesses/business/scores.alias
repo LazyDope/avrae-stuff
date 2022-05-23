@@ -1,0 +1,81 @@
+<drac2>
+args = &ARGS&
+pargs = argparse(args)
+if not args:
+    return(f"help {ctx.alias} scores -here")
+busivar = get("business")
+if not busivar:
+    return("""-title "You have no business" -desc "Create one with `!business create`" -thumb "https://i2.wp.com/nypost.com/wp-content/uploads/sites/2/2018/08/trashing-trash.jpg" """)
+c=character()
+business = load_json(busivar)
+score = business['scores']
+scorelist = {"inf":["Influence",0,"inf"],"mig":["Might",0,"mig"],"tre":["Treasure",0,"tre"],"ter":["Territory",0,"ter"],"sov":["Sovereignty",0,"sov"]}
+for x in scorelist.keys():
+    if x == 'mig':
+        c.create_cc_nx("Might",0,proficiencyBonus-1,dispType = "bubble")
+        migdiff = c.get_cc_max("Might") - c.get_cc("Might")
+        c.create_cc("Might",0,proficiencyBonus-1,dispType = "bubble")
+        scorelist[x][1] = c.mod_cc("Might",migdiff)
+    elif score[x] > 0:
+        c.create_cc_nx(scorelist[x][0],0,score[x],dispType = "bubble")
+        scorelist[x][1] = c.get_cc(scorelist[x][0])
+out = ["embed"]
+cost = {'ter':500,'tre':3000,'sov':6000,'inf':6000}
+in_score = args[0]
+if not in_score in cost.keys():
+    return("""embed -title "Invalid arguments" -desc "Please include an appropriate stat when running this command." """)
+is_set = args[1] == 'set'
+if not args[2 if is_set else 1].strip("+-").isdigit():
+    return("""embed -title "Invalid arguments" -desc "Please input a valid number (do not put commas or periods in number)." """)
+in_val = int(args[2 if is_set else 1])
+newval = min(5,in_val) if is_set else min(5,score[in_score]+in_val)
+diff = newval - score[in_score]
+if not diff:
+    return("""embed -title "Invalid arguments" -desc "Please input a number that is not 0 or equal to the current value if being set. The new value must also be no greater than 5." """)
+amount = -diff*cost[in_score]
+out.append(f"""-title "{business['name']} {"upgraded" if diff > 0 else "downgraded"}" -desc "{business['desc']}" -thumb "{business['image']}" """)
+
+bags = get("bags")
+bagsLoaded = [x for x in load_json(bags) if x[0]=="Coin Pouch"] if bags else []
+pouch = bagsLoaded[0] if bagsLoaded else []
+if is_set:
+    out.append(f"""-footer "Set used, no money deduced. If this was an error, {"add" if amount > 0 else "deduct"} {str(amount).strip("+-")} gp" """)
+elif pouch:
+    coinTypes=["cp","sp","ep","gp","pp"]
+    coinRates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+    settings=load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","autoCoins":False,"compactCoins":False})))
+    pouch[1].update({'cp':pouch[1]['cp']+amount*100}) if amount < 0 else pouch[1].update({'gp':pouch[1]['gp']+amount})
+    for coin in coinTypes[:-1]:
+        larger = coinTypes[coinTypes.index(coin)+1]
+        rate = int(coinRates[coin]/coinRates[larger])
+        p = pouch[1][coin]//rate
+        if pouch[1][coin] < 0:
+            pouch[1].update({larger:pouch[1][larger]+p,coin:pouch[1][coin]-p*rate})
+    if settings.autoCoins:
+        for coin in coinTypes[1:]:
+            smaller = coinTypes[coinTypes.index(coin)-1]
+            rate = int(coinRates[smaller]/coinRates[coin])
+            p = pouch[1][smaller]//rate
+            if pouch[1][smaller] >= rate:
+                pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
+    error=[x for x in pouch[1]if pouch[1][x]<0]
+    error or set_cvar("bags",dump_json(bagsLoaded))
+    if error:
+        return("""embed -title "Business not updated." -desc "Not enough coin, business not updated." """)
+    else:
+        out.append(f"""-footer "{str(amount).strip("+-")} gp {"added" if amount > 0 else "deducted"}, business updated." """)
+elif c.coinpurse.total < amount:
+    return("""embed -title "Business not updated." -desc "Not enough coin, business not updated." """)
+else:
+    c.coinpurse.modify_coins(gp=-amount)
+    out.append(f"""-footer "{str(amount).strip("+-")} gp {"added" if amount > 0 else "deducted"}, business updated." """)
+business['scores'][in_score] = newval
+scorename = scorelist[in_score][0]
+cdiff = (c.get_cc_max(scorename) - c.get_cc(scorename)) if c.cc_exists(scorename) else 0
+c.create_cc(scorename,0,newval,dispType = "bubble")
+might = c.mod_cc(scorename,cdiff)
+c.set_cvar("business",dump_json(business))
+n="\n"
+out.append(f"""-f "{scorename}|{newval} ({diff:+g}){n}{c.cc_str(scorename)} ({diff:+g})" """)
+return(' '.join(out))
+</drac2> 

@@ -1,0 +1,62 @@
+<drac2>
+args = &ARGS&
+pargs = argparse(args)
+name = args[0]
+force = pargs.get("force",False,type_=bool) and not name == 'force'
+if not args:
+    return(f"help {ctx.alias} create -here")
+busivar = get("business")
+if busivar and not force:
+    business = load_json(busivar)
+    return(f"""embed -title "You already own a business" -desc "Add the `force` argument to delete {business['name']}" """)
+c=character()
+out = ["embed"]
+ter = int(args[1]) if len(args)>1 and args[1].isdigit() else 1
+randbiz = load_json(get_gvar("c8ad4f3e-cfc9-4e5b-afdf-ee9e39d713db"))[ter-1]
+image,desc = randchoice(randbiz)
+business = {"name": name,"scores": {"inf": 0, "tre": 0, "ter": ter, "sov": 0}, 'desc': desc, "image": image}
+c.set_cvar("business",dump_json(business))
+amount = ter*500
+out.append(f"""-title "{name} created" -desc "{desc}" -thumb "{image}" """)
+
+free = pargs.get("free",False,type_=bool) and not name == 'free'
+bags = get("bags")
+bagsLoaded = [x for x in load_json(bags) if x[0]=="Coin Pouch"] if bags else []
+pouch = bagsLoaded[0] if bagsLoaded else []
+if free:
+    out.append(f"""-footer "You got this business for free! If this was a mistake, manually deduct {amount} gp" """)
+elif pouch:
+    coinTypes=["cp","sp","ep","gp","pp"]
+    coinRates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+    settings=load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","autoCoins":False,"compactCoins":False})))
+    pouch[1].update({'cp':pouch[1]['cp']-amount*100})
+    for coin in coinTypes[:-1]:
+        larger = coinTypes[coinTypes.index(coin)+1]
+        rate = int(coinRates[coin]/coinRates[larger])
+        p = pouch[1][coin]//rate
+        if pouch[1][coin] < 0:
+            pouch[1].update({larger:pouch[1][larger]+p,coin:pouch[1][coin]-p*rate})
+    if settings.autoCoins:
+        for coin in coinTypes[1:]:
+            smaller = coinTypes[coinTypes.index(coin)-1]
+            rate = int(coinRates[smaller]/coinRates[coin])
+            p = pouch[1][smaller]//rate
+            if pouch[1][smaller] >= rate:
+                pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
+    error=[x for x in pouch[1]if pouch[1][x]<0]
+    error or set_cvar("bags",dump_json(bagsLoaded))
+    if error:
+        return("""embed -title "Business not created." -desc "Not enough coin, business not created." """)
+    else:
+        out.append(f"""-footer "{amount} gp deducted, business created" """)
+elif c.coinpurse.total < amount:
+    return("""embed -title "Business not created." -desc "Not enough coin, business not created." """)       
+else:
+    c.coinpurse.modify_coins(gp=-amount)
+    out.append(f"""-footer "{amount} gp deducted, business created" """)
+c.create_cc_nx("Might",0,proficiencyBonus-1,dispType = "bubble")
+migdiff = c.get_cc_max("Might") - c.get_cc("Might")
+c.create_cc("Might",0,proficiencyBonus-1,dispType = "bubble")
+might = c.mod_cc("Might",migdiff)
+return(' '.join(out))
+</drac2> 
