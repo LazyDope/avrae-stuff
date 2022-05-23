@@ -1,0 +1,146 @@
+embed <drac2>
+c = character()
+args = [x for x in &ARGS&]
+ptargs = "&*&"
+subcs={'chart':False,'log':False,'set':False,'help?':False,'options':False}
+n='\n'
+if args:
+    for subc in subcs.keys():
+        subcs[subc]=subc in args[0].lower() or args[0].lower() in subc
+counter="xp"
+#Load custom variables
+totals = [int(x) for x in (get_svar("xptotals") or get("xptotals",default="0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000")).split(",")]
+xp_name = get_svar("xpname") or get("xpname",default="Experience")
+c.set_cvar('xpname',xp_name) if get_svar("xpname") else ()
+c.set_cvar('xptotals',",".join([str(x) for x in totals])) if get_svar("xptotals") else ()
+if c.cc_exists("Experience"):
+    c.set_cvar_nx(counter,str(c.get_cc("Experience")))
+    c.delete_cc("Experience")
+c.set_cvar_nx(counter,"0")
+cmd = ctx.prefix+ctx.alias
+out = []
+check_args = int(subcs['set']) or ((len(args) > 1) and int(subcs['log']))
+xp,gain,next=float(get(counter,default="0")),round(float(args and ('.'.join(args[check_args].split('.')[:2]) if all([x.isnumeric() for x in args[check_args].strip("+-").split(".")[:2]]) else "") or "0"), 2) if args and not (subcs['chart'] or subcs['help?'] or subcs['options']) else 0,int(min(len(totals),level+1))
+
+#Current Time
+t_since = 18262*24*60*60
+timestamp=round(time() - t_since)//60
+
+#Setup Calendar
+calendar=load_json(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
+monthLengths=[x.length for x in calendar.months]
+hourOffset=int(calendar.get('hourOffset',0))+int(get('timezone',0))
+
+#Load xp log
+log = load_yaml(get('xplog','{}'))
+if log == {} and 'xplog0' in c.cvars:
+    i = 0
+    templog = ''
+    while f'xplog{i}' in c.cvars:
+        templog += get(f'xplog{i}','')
+        i += 1
+    log = load_yaml(templog)
+
+#Convert old log
+if log and typeof(list(log)[0]) == "str":
+    newlog = {}
+    for x in log:
+        log_time = x.split(" ")
+        clock = None
+        if len(log_time) == 2:
+            date, clock = log_time
+        else:
+            date = log_time[0]
+        day, month, year = date.split(".")
+        if clock:
+            hour, minute, second = clock.strip("()").split(":")
+        else:
+            hour, minute, second = (0, 0, 0)
+        t = int(second) + int(minute) * 60 + (int(hour) - hourOffset) * 3600 + int(day) * 24 * 3600
+        t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
+        t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
+        t = int(round(float(t) / 60.0))
+        newlog.update({t: log[x]})
+    log = newlog
+    c.set_cvar('xplog',dump_yaml(log))
+
+#Update log
+log_text = ' '.join(([f"Total set to"]+args[1:]) if subcs['set'] else args)
+if timestamp in log:
+    log_text = log[timestamp] + "; " + log_text
+while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_text}))) > 200000:
+    out += [f"""-f ＂Log entry automatically removed|**<t:{list(log)[0]*60+t_since}:D>:** {log[list(log)[0]]}＂"""]
+    log.pop(list(log)[0])
+log.update({timestamp:log_text}) if ((subcs['set'] or gain) and not (subcs['log'] or subcs['chart'] or subcs['help?'] or subcs['options'])) else ""
+listed=[f'**<t:{x*60+t_since}:D>:** {log[x]}' for x in log]
+
+#Paginate log
+pages = []
+page = 0
+if "log_entires" in c.cvars:
+    c.set_cvar("log_entries",get("log_entires"))
+    c.delete_cvar("log_entires")
+maxlen = int(get("log_entries")) if get("log_entries","").isnumeric() else 15
+for x in listed:
+    pages.append([]) if len(pages) == page else ()
+    if len(pages[page]) < maxlen and len("\n".join(pages[page])) <= 2000:
+        pages[page].append(x)
+    else:
+        pages.append([]) if len(pages) == (page := page + 1) else ()
+        pages[page].append(x)
+pages = pages or [["No entries found."]]
+calledPage=int(gain) if gain else len(pages)
+
+#Check log is safe to dump in chosen way
+if len(dump_yaml(log)) > 9999:
+    valid_met = ['discard', 'keep']
+    server_met = get_svar("log_method", "discard")
+    user_met = get("log_method", "")
+    override = server_met.split(":")[0] == "O"
+    server_met = (server_met.split(":")[1] if len(server_met.split(":")) > 1 else server_met)
+    server_met = server_met if server_met in valid_met else 'discard'
+    user_met = user_met if user_met in valid_met else ''
+    log_method = override and server_met or user_met or server_met
+    if log_method == 'keep':
+        c.delete_cvar('xplog')
+        for i in range((len(dump_yaml(log))-1)//9999 + 1):
+            c.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)-1])
+    else:
+        while len(dump_yaml(log)) > 9999:
+            out += [f"""-f ＂Log entry automatically removed|**<t:{list(log)[0]*60+t_since}:D>:** {log[list(log)[0]]}＂"""]
+            log.pop(list(log)[0])
+        c.set_cvar('xplog',dump_yaml(log))
+else:
+    c.set_cvar('xplog',dump_yaml(log))
+
+#Nullify gain if loading log, to avoid presenting the wrong message
+gain = 0 if subcs['log'] else gain
+
+#Calculate total xp and xp needed for level up, as well as if level up has been reached
+total = xp*(not subcs['set'])+gain if not (subcs['chart'] or subcs['log'] or subcs['help?'] or subcs['options']) else 0
+required=totals[min(len(totals),level)-1]
+ding=int(gain and total>=totals[level]) if level<len(totals) else 0
+
+#Add appropriate title, description, and footer
+out+=[f"""-title "{name} """+(f"""{f'sets their {xp_name} total to'*subcs['set'] or 'gains'*(gain>0) or 'loses'} {gain:,} points""".replace('-','')+(f" and levels up to {next}{'nd'*(next==2) or 'rd'*(next==3) or 'th'} level"*ding) if gain else "checks the level chart" if subcs['chart'] else f"checks their {xp_name} Log" if subcs['log'] else "wants more than what's in the footer" if subcs['help?'] or subcs['options'] else f"is currently {level}{'st'*(level==1) or 'nd'*(level==2) or 'rd'*(level==3) or 'th'} level")+"""!" """]
+
+out+=[f"""-desc ＂{n.join(pages[calledPage-1])+(f"{n}{n}Page {calledPage}/{len(pages)}{n}Use `{cmd} log #` to view another page." if len(pages)>1 else "") if subcs['log'] else ""}＂""" if subcs['log'] else f"""-desc '{"`"*3}py{n}Level | Required {xp_name}{n}{"-"*(17+len(xp_name))}{n}{n.join([f"{totals.index(x)+1:5} | {x}" for x in totals])}{"`"*3}'""" if subcs['chart'] else f"""-desc "`{cmd}` - Run without any arguments, this displays your current total and amount until next level.{n}`{cmd} # [notes]` - Adds to your {xp_name} total. You can include notes to be entered into the log. I will warn you that it is possible to make your log inaccessible if you enter detailed notes. You won't be able to manually access the cvar (`xplog`) once it gets above 2000 characters long (which is around the time it will overflow onto a second page in the alias) and if you get it to the point where it would go over 10,000 characters long, the alias will start deleting old logs unless cvar/svar `log_method` = `keep` is set. So keep your notes brief if you add them.{n}`{cmd} -# [notes]` - Removes {xp_name} from your total. Same deal with the notes.{n}`{cmd} set # [notes]` - Sets your {xp_name} total to the number provided. Shows up in the log with `set` included.{n}`{cmd} chart` - Pulls up a reference chart for the {xp_name} total required per level.{n}`{cmd} log` - Displays a log of all your {xp_name} gains, losses, and sets.{n}`{cmd} options` - displays the new options available to customize your xp display." """ if subcs['help?'] else """-desc ＂Use a cvar or svar called `xptotals` to change XP totals required for level up. Increase or decrease the number of entries on this list to increase or decrease the level cap respectively. Use a comma separated list like so `1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20`. Prefers server choice. 
+    (Default: `0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000`)
+Use a cvar or svar called `xpname` to change the name of your XP system. Prefers server choice.
+    (Default: `Experience`)
+Use a cvar or uvar called `log_entries` to choose how many lines per page in the log.
+    (Default: `15`)
+Use a cvar or svar called `log_method` to choose how logs longer than 10,000 characters are handled. `discard` will delete the oldest logs to make room for the new ones, displaying which log was removed, this is the default. `keep` will keep the logs by splitting them into multiple cvars. This also has a limit at about 150,000 - 200,000, at which point it will behave like discard, deleting oldest log to make room, but is still much larger than the standard log. Prefers user choice, unless the server prefixes their choice with `O:` like so `O:keep` to override the user choice.＂""" if subcs['options'] else f"""-desc 'Your {xp_name} total needs to be at least {required:,} to match your current level!'""" if total<totals[min(len(totals),level)-1] else f'''-desc "{"Don't forget"*ding or "You need"} to update your sheet with your proper level and run `!update`."''' if level<len(totals) and total>=(totals[min(len(totals)-1,level)]) else ""]
+
+out+=[f'''-f ＂Log Entry Added:| **<t:{timestamp*60+t_since}:D>:** {' '.join(([f"Total set to"]+ptargs.split(" ")[1:]) if subcs['set'] else [ptargs])}＂''' if gain else '']
+
+
+next=next+ding
+c.set_cvar(counter,str(gain))if subcs['set'] else gain and c.set_cvar(counter,str(xp+gain))
+out+=['' if subcs['chart'] or subcs['log'] or subcs['help?'] or subcs['options'] else f'''-f "Current {xp_name}|{f"{round(total,2):,}".rstrip("0").rstrip(".")}"''']
+nexttotal=totals[int(next-1)] if level<len(totals) and next<=len(totals) else 0
+out+=[f'-f "Next Level: {next}|{nexttotal:,} *({f"{round(nexttotal-total,2):,}".rstrip("0").rstrip(".")} remaining)*"' if nexttotal and not (subcs['chart'] or subcs['log'] or subcs['help?'] or subcs['options']) else ""]
+out+=[f"-footer '{cmd} | {cmd} # | {cmd} -# | {cmd} set # | {cmd} chart | {cmd} log | {cmd} help | {cmd} options'"]
+return(' '.join(out))
+</drac2>
+-color <color> -thumb <image>
