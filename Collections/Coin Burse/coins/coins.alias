@@ -2,7 +2,7 @@
 bags = load_json(get('bags', '[]'))
 bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
-additive = get('coinbouch_additive')
+additive = get('coinburse_additive')
 if coins:
     if additive:
         character().coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
@@ -16,7 +16,7 @@ if coins:
     bagsDict.pop('Coin Pouch')
     character().set_cvar('bags', dump_json(list(bagsDict.items())))
     
-character().set_cvar('coinbouch_additive','Do not remove this or I will overwrite your coinpurse')
+character().set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
 
 if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and bs.openMode=='None':
     n = '\n'
