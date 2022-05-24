@@ -28,5 +28,5 @@ if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and
             out.append(f"{' '.join(character().coinpurse.coin_str(coinType).split()[::2])}: ({delta[coinType]:+})")
     return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
 else:
-    return 'game coins'
+    return 'game coins &*&'
 </drac2> 
