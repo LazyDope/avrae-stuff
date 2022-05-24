@@ -9,7 +9,7 @@ if coins:
     else:
         character().coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     if len(coins) > 0:
-        bagsDict['Old Coin Pouch'].update(coins)
+        bagsDict['Old Coin Pouch'].update(coins) if 'Old Coin Pouch' in bagsDict else (bagsDict['Old Coin Pouch'] := coins)
     bagsDict.pop('Coin Pouch')
     character().set_cvar('bags', dump_json(list(bagsDict.items())))
     
