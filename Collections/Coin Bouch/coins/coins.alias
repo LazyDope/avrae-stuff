@@ -5,9 +5,11 @@ coins = bagsDict.get('Coin Pouch')
 additive = bool(get('coinbouch_additive','False'))
 if coins:
     if additive:
-        character().coinpurse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+        character().coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     else:
-        character().coinpurse.set_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+        character().coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
+    if len(coins) > 0:
+        bagsDict['Old Coin Pouch'] = coins
     bagsDict.pop('Coin Pouch')
     character().set_cvar('bags', dump_json(list(bagsDict.items())))
     
