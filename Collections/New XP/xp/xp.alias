@@ -69,7 +69,7 @@ if log and typeof(list(log)[0]) == "str":
     c.set_cvar('xplog',dump_yaml(log))
 
 #Update log
-log_text = ' '.join(([f"Total set to"]+args[1:]) if subcs['set'] else args)
+log_text = ' '.join(([f"Total set to"]+ptargs.split(" ")[1:]) if subcs['set'] else [ptargs])
 if timestamp in log:
     log_text = log[timestamp] + "; " + log_text
 while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_text}))) > 200000:
