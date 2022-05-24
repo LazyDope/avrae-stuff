@@ -1,0 +1,27 @@
+<drac2>
+bags = load_json(get('bags', '[]'))
+bagsDict = dict(bags)
+coins = bagsDict.get('Coin Pouch')
+additive = bool(get('coinbouch_additive','False'))
+if coins:
+    if additive:
+        character().coinpurse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+    else:
+        character().coinpurse.set_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+    bagsDict.pop('Coin Pouch')
+    character().set_cvar('bags', dump_json(list(bagsDict.items())))
+    
+character().set_cvar('coinbouch_additive','True')
+
+if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and bs.openMode=='None':
+    n = '\n'
+    out = []
+    delta = parse_coins("&*&")
+    character().coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
+    for coinType in delta:
+        if delta[coinType] and coinType!='total':
+            out.append(f"{' '.join(character().coinpurse.coin_str(coinType).split()[::2])}: ({delta[coinType]:+})")
+    return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
+else:
+    return 'g coins &*&'
+</drac2> 
