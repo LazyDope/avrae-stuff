@@ -24,7 +24,7 @@ c.set_cvar_nx(counter,"0")
 cmd = ctx.prefix+ctx.alias
 out = []
 check_args = int(subcs['set']) or ((len(args) > 1) and int(subcs['log']))
-xp,gain,next=float(get(counter,default="0")),round(float(args and ('.'.join(args[check_args].split('.')[:2]) if all([x.isdecimal() for x in args[check_args].strip("+-").split(".")[:2]]) else "") or "0"), 2) if args and not (subcs['chart'] or subcs['help?'] or subcs['options']) else 0,int(min(len(totals),level+1))
+xp,gain,next=float(get(counter,default="0")),round(float(args and ('.'.join(args[check_args].replace(",","").split('.')[:2]) if all([x.isdecimal() for x in args[check_args].replace(",","").strip("+-").split(".")[:2]]) else "") or "0"), 2) if args and not (subcs['chart'] or subcs['help?'] or subcs['options']) else 0,int(min(len(totals),level+1))
 
 #Calculate Current Time
 t_since = 18262*24*60*60
