@@ -7,7 +7,8 @@ bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
 coin_types = ['cp','sp','ep','gp','pp']
 coin_rates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
-compat = get('coinburse_compat')
+compat = get_svar('coinburse_compat') or get('coinburse_compat')
+c.set_cvar('coinburse_compat',compat) if get_svar("coinburse_compat") else ()
 ch = character()
 delta = parse_coins(ptargs) if ptargs else {}
 
