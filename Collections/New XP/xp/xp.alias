@@ -84,7 +84,7 @@ page = 0
 if "log_entires" in c.cvars:
     c.set_cvar("log_entries",get("log_entires"))
     c.delete_cvar("log_entires")
-maxlen = int(get("log_entries")) if get("log_entries","").isnumeric() else 15
+maxlen = int(get("log_entries")) if get("log_entries","").isdecimal() else 15
 for x in listed:
     pages.append([]) if len(pages) == page else ()
     if len(pages[page]) < maxlen and len("\n".join(pages[page])) <= 2000:
