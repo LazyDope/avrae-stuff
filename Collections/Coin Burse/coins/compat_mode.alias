@@ -1,0 +1,17 @@
+echo <drac2>
+args = &ARGS&
+if 'user' in args:
+    if uvar_exists('coinburse_compat'):
+        delete_uvar('coinburse_compat')
+        return 'Compatibility mode unset for user'
+    else:
+        set_uvar('coinburse_compat','delete this uvar to disable compat mode')
+        return 'Compatibility mode set for user'
+else:
+    if 'coinburse_compat' in character().cvars:
+        character().delete_cvar('coinburse_compat')
+        return f'Compatibility mode unset for {name}'
+    else:
+        character().set_cvar('coinburse_compat','delete this cvar to disable compat mode')
+        return f'Compatibility mode set for {name}'
+</drac2>

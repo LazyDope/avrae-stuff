@@ -1,31 +1,65 @@
 <drac2>
+additive = get('coinburse_additive')
+args = &ARGS&
+ptargs = "&*&"
 bags = load_json(get('bags', '[]'))
 bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
-additive = get('coinburse_additive')
-if coins:
+coin_types = ['cp','sp','ep','gp','pp']
+coin_rates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+compat = get('coinburse_compat')
+ch = character()
+delta = parse_coins(ptargs) if ptargs else {}
+
+if coins and not compat:
     if additive:
-        character().coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
+        ch.coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     else:
-        character().coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
+        ch.coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     if len(coins) > 0:
         if 'Old Coin Pouch' in bagsDict:
             bagsDict['Old Coin Pouch'].update(coins)
         else:
             bagsDict['Old Coin Pouch'] = coins
     bagsDict.pop('Coin Pouch')
-    character().set_cvar('bags', dump_json(list(bagsDict.items())))
+    ch.set_cvar('bags', dump_json(list(bagsDict.items())))
     
-character().set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
+ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
+    
+if compat:
+    coin_bag = coins or {coin_type: ch.coinpurse[coin_type] for coin_type in coin_types}
+    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin_type] for coin_type in coin_types}
+    new_coins = {}
+    for coin_type in coin_types:
+        new_coins[coin_type] = ch.coinpurse[coin_type] + coin_bag[coin_type] - last_coins[coin_type]
+    if sum([new_coins[coin]*coin_rates[coin] for coin in new_coins]) < 0:
+        return f"""echo You are already in debt by {sum([float(new_coins[coin])/coin_rates[coin] for coin in new_coins])} gp, please resolve this manually with `!g coins` before continuing."""
+    ch.coinpurse.set_coins(new_coins['pp'],new_coins['gp'],new_coins['ep'],new_coins['sp'],new_coins['cp'])
+    for coin_type in delta:
+        if delta[coin_type] and coin_type!='total':
+            new_coins[coin_type] += delta[coin_type]
+            
+    for coin in coin_types[:-1]:
+        larger = coin_types[coin_types.index(coin)+1]
+        rate = int(coin_rates[coin]/coin_rates[larger])
+        p = new_coins[coin]//rate
+        if new_coins[coin] < 0:
+            new_coins.update({larger:new_coins[larger]+p,coin:new_coins[coin]-p*rate})
+    
+    if coins:
+        coins.update(new_coins)
+    else:
+        bagsDict['Coin Pouch'] = new_coins
+    ch.set_cvar('bags', dump_json(list(bagsDict.items())))
+    ch.set_cvar('coinburse_last_coins', dump_json(new_coins))
 
 if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and bs.openMode=='None':
     n = '\n'
     out = []
-    delta = parse_coins("&*&")
-    character().coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
-    for coinType in delta:
-        if delta[coinType] and coinType!='total':
-            out.append(f"{' '.join(character().coinpurse.coin_str(coinType).split()[::2])}: ({delta[coinType]:+})")
+    ch.coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
+    for coin_type in delta:
+        if delta[coin_type] and coin_type!='total':
+            out.append(f"{' '.join(ch.coinpurse.coin_str(coin_type).split()[::2])}: ({delta[coin_type]:+})")
     return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
 else:
     return 'game coins &*&'
