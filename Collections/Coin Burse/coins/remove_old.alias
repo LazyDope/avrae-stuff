@@ -1,6 +1,4 @@
 echo <drac2>
-additive = get('coinburse_additive')
-args = &ARGS&
 bags = load_json(get('bags', '[]'))
 bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
