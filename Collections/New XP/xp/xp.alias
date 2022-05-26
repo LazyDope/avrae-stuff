@@ -133,6 +133,8 @@ out+=[f"""-desc ＂{n.join(pages[calledPage-1])+(f"{n}{n}Page {calledPage}/{len(
     (Default: `0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000`)
 Use a cvar or svar called `xpname` to change the name of your XP system. Prefers server choice.
     (Default: `Experience`)
+Use a cvar or svar called `xp_ccname` to change the name of the cc for your old XP system. Prefers server choice.
+    (Default: `Experience`)
 Use a cvar or uvar called `log_entries` to choose how many lines per page in the log.
     (Default: `15`)
 Use a cvar or svar called `log_method` to choose how logs longer than 10,000 characters are handled. `discard` will delete the oldest logs to make room for the new ones, displaying which log was removed, this is the default. `keep` will keep the logs by splitting them into multiple cvars. This also has a limit at about 150,000 - 200,000, at which point it will behave like discard, deleting oldest log to make room, but is still much larger than the standard log. Prefers user choice, unless the server prefixes their choice with `O:` like so `O:keep` to override the user choice.＂""" if subcs['options'] else f"""-desc 'Your {xp_name} total needs to be at least {required:,} to match your current level!'""" if total<totals[min(len(totals),level)-1] else f'''-desc "{"Don't forget"*ding or "You need"} to update your sheet with your proper level and run `!update`."''' if level<len(totals) and total>=(totals[min(len(totals)-1,level)]) else ""]
