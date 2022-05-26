@@ -1,0 +1,25 @@
+echo <drac2>
+additive = get('coinburse_additive')
+args = &ARGS&
+bags = load_json(get('bags', '[]'))
+bagsDict = dict(bags)
+coins = bagsDict.get('Coin Pouch')
+ch = character()
+
+if coins:
+    coins.pop('pp')
+    coins.pop('gp')
+    coins.pop('ep')
+    coins.pop('sp')
+    coins.pop('cp')
+    if len(coins) > 0:
+        if 'Old Coin Pouch' in bagsDict:
+            bagsDict['Old Coin Pouch'].update(coins)
+        else:
+            bagsDict['Old Coin Pouch'] = coins
+    bagsDict.pop('Coin Pouch')
+    ch.set_cvar('bags', dump_json(list(bagsDict.items())))
+    
+ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
+return "Coin Pouch cleanly removed."
+</drac2>
