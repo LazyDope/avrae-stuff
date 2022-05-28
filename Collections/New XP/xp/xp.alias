@@ -19,6 +19,9 @@ cc_name = get_svar("xp_ccname") or get("xp_ccname",default="Experience")
 c.set_cvar('xpname',xp_name) if get_svar("xpname") else ()
 c.set_cvar('xptotals',",".join([str(x) for x in totals])) if get_svar("xptotals") else ()
 if c.cc_exists(cc_name):
+    if not get('xp_firstrun'):
+        c.set_cvar('xp_firstrun','Delete me if you want to see another warning :)')
+        return(f"-title 'Warning' -desc 'Running this command again will convert CC named `{cc_name}` into a cvar named `xp`. Ignore this warning if you are not using other older aliases to handle experience.'")
     c.set_cvar_nx(counter,str(c.get_cc(cc_name)))
     c.delete_cc(cc_name)
 c.set_cvar_nx(counter,"0")
