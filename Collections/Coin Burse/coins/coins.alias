@@ -12,6 +12,7 @@ compat = get_svar('coinburse_compat') or get('coinburse_compat')
 ch = character()
 ch.set_cvar('coinburse_compat',compat) if get_svar("coinburse_compat") else ()
 delta = parse_coins(ptargs) if ptargs else {}
+n = "\n"
 
 if coins and not compat:
     if additive:
@@ -19,7 +20,7 @@ if coins and not compat:
     else:
         if not get('coinburse_firstrun'):
             ch.set_cvar('coinburse_firstrun','Delete me if you want to see another warning :)')
-            return(f"embed -title 'Warning' -desc 'Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}`. If you have not used `!g coins` then you can ignore this warning. If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
+            return(f"embed -title 'Warning' -desc 'Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}`.{n*2}If you have not used `!g coins` then you can ignore this warning.{n*2}If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
         ch.coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     if len(coins) > 0:
         if f'Old {coinpouch_name}' in bagsDict:
