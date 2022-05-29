@@ -17,10 +17,10 @@ n = "\n"
 if coins and not compat:
     if additive:
         ch.coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
+    elif not get('coinburse_firstrun') and not all([ch.coinpurse[coin] == coins[coin] for coin in coin_types]):
+        ch.set_cvar('coinburse_firstrun','Delete me if you want to see another warning :)')
+        return(f"embed -title 'Warning' -desc 'Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}`.{n*2}If you have not used `!g coins` then you can ignore this warning.{n*2}If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
     else:
-        if not get('coinburse_firstrun'):
-            ch.set_cvar('coinburse_firstrun','Delete me if you want to see another warning :)')
-            return(f"embed -title 'Warning' -desc 'Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}`.{n*2}If you have not used `!g coins` then you can ignore this warning.{n*2}If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
         ch.coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     if len(coins) > 0:
         if f'Old {coinpouch_name}' in bagsDict:
@@ -33,15 +33,15 @@ if coins and not compat:
 ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
     
 if compat:
-    coin_bag = coins or {coin_type: ch.coinpurse[coin_type] for coin_type in coin_types}
-    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin_type] for coin_type in coin_types}
+    coin_bag = coins or {coin_type: ch.coinpurse[coin_type] for coin in coin_types}
+    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin_type] for coin in coin_types}
     new_coins = {}
-    for coin_type in coin_types:
+    for coin in coin_types:
         new_coins[coin_type] = ch.coinpurse[coin_type] + coin_bag[coin_type] - last_coins[coin_type]
     if sum([new_coins[coin]*coin_rates[coin] for coin in new_coins]) < 0:
         return f"""echo You are already in debt by {sum([float(new_coins[coin])/coin_rates[coin] for coin in new_coins])} gp, please resolve this manually with `!g coins` before continuing."""
     ch.coinpurse.set_coins(new_coins['pp'],new_coins['gp'],new_coins['ep'],new_coins['sp'],new_coins['cp'])
-    for coin_type in delta:
+    for coin in delta:
         if delta[coin_type] and coin_type!='total':
             new_coins[coin_type] += delta[coin_type]
             
@@ -63,7 +63,7 @@ if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and
     n = '\n'
     out = []
     ch.coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
-    for coin_type in delta:
+    for coin in delta:
         if delta[coin_type] and coin_type!='total':
             out.append(f"{' '.join(ch.coinpurse.coin_str(coin_type).split()[::2])}: ({delta[coin_type]:+})")
     return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
