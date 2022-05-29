@@ -41,10 +41,19 @@ if compat:
     if sum([new_coins[coin]*coin_rates[coin] for coin in new_coins]) < 0:
         return f"""echo You are already in debt by {sum([float(new_coins[coin])/coin_rates[coin] for coin in new_coins])} gp, please resolve this manually with `!g coins` before continuing."""
     ch.coinpurse.set_coins(new_coins['pp'],new_coins['gp'],new_coins['ep'],new_coins['sp'],new_coins['cp'])
+    
     for coin in delta:
         if delta[coin_type] and coin_type!='total':
             new_coins[coin_type] += delta[coin_type]
             
+    if args[0] == 'convert':
+        for coin in coin_types[1:]:
+            smaller = coin_types[coin_types.index(coin)-1]
+            rate = int(coin_rates[smaller]/coin_rates[coin])
+            p = new_coins[1][smaller]//rate
+            if new_coins[1][smaller] >= rate:
+                new_coins[1].update({smaller:new_coins[1][smaller]-p*rate,new_coins:pouch[1][coin]+p})
+                
     for coin in coin_types[:-1]:
         larger = coin_types[coin_types.index(coin)+1]
         rate = int(coin_rates[coin]/coin_rates[larger])
