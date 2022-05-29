@@ -11,7 +11,7 @@ coin_rates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
 compat = get_svar('coinburse_compat') or get('coinburse_compat')
 ch = character()
 ch.set_cvar('coinburse_compat',compat) if get_svar("coinburse_compat") else ()
-delta = parse_coins(ptargs) if ptargs else {}
+delta = parse_coins(ptargs) if ptargs and 'convert' not in ptargs else {}
 n = "\n"
 
 if coins and not compat:
