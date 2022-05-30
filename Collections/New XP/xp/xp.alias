@@ -21,7 +21,7 @@ c.set_cvar('xptotals',",".join([str(x) for x in totals])) if get_svar("xptotals"
 if c.cc_exists(cc_name):
     if not get('xp_firstrun'):
         c.set_cvar('xp_firstrun','Delete me if you want to see another warning :)')
-        return(f"-title 'Warning' -desc 'Running this command again will convert CC named `{cc_name}` into a cvar named `xp` and convert your xp log into a format incompatible with the old alias (although it is more compact).{n*2}Ignore this warning if you are not using other older aliases to handle experience.'")
+        return(f"-title 'Warning' -desc '**No changes made.**{n}Running this command again will convert CC named `{cc_name}` into a cvar named `xp` and convert your xp log into a format incompatible with the old alias (although it is more compact).{n*2}Ignore this warning if you are not using other older aliases to handle experience.'")
     elif c.get_cc(cc_name) > 0:
         c.set_cvar_nx(counter,str(c.get_cc(cc_name)))
     c.delete_cc(cc_name)
