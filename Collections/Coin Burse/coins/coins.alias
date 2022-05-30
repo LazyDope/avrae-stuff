@@ -33,8 +33,8 @@ if coins and not compat:
 ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
     
 if compat:
-    coin_bag = coins or {coin_type: ch.coinpurse[coin] for coin in coin_types}
-    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin] for coin in coin_types}
+    coin_bag = coins or {coin: ch.coinpurse[coin] for coin in coin_types}
+    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin: ch.coinpurse[coin] for coin in coin_types}
     new_coins = {}
     for coin in coin_types:
         new_coins[coin] = ch.coinpurse[coin] + coin_bag[coin] - last_coins[coin]
@@ -43,7 +43,7 @@ if compat:
     ch.coinpurse.set_coins(new_coins['pp'],new_coins['gp'],new_coins['ep'],new_coins['sp'],new_coins['cp'])
     
     for coin in delta:
-        if delta[coin] and coin_type!='total':
+        if delta[coin] and coin!='total':
             new_coins[coin] += delta[coin]
             
     if args[0] == 'convert':
@@ -73,8 +73,8 @@ if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and
     out = []
     ch.coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
     for coin in delta:
-        if delta[coin] and coin_type!='total':
-            out.append(f"{' '.join(ch.coinpurse.coin_str(coin_type).split()[::2])}: ({delta[coin]:+})")
+        if delta[coin] and coin!='total':
+            out.append(f"{' '.join(ch.coinpurse.coin_str(coin).split()[::2])}: ({delta[coin]:+})")
     return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
 else:
     return 'game coins &*&'
