@@ -33,18 +33,18 @@ if coins and not compat:
 ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
     
 if compat:
-    coin_bag = coins or {coin_type: ch.coinpurse[coin_type] for coin in coin_types}
-    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin_type] for coin in coin_types}
+    coin_bag = coins or {coin_type: ch.coinpurse[coin] for coin in coin_types}
+    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin_type: ch.coinpurse[coin] for coin in coin_types}
     new_coins = {}
     for coin in coin_types:
-        new_coins[coin_type] = ch.coinpurse[coin_type] + coin_bag[coin_type] - last_coins[coin_type]
+        new_coins[coin] = ch.coinpurse[coin] + coin_bag[coin] - last_coins[coin]
     if sum([new_coins[coin]*coin_rates[coin] for coin in new_coins]) < 0:
         return f"""echo You are already in debt by {sum([float(new_coins[coin])/coin_rates[coin] for coin in new_coins])} gp, please resolve this manually with `!g coins` before continuing."""
     ch.coinpurse.set_coins(new_coins['pp'],new_coins['gp'],new_coins['ep'],new_coins['sp'],new_coins['cp'])
     
     for coin in delta:
-        if delta[coin_type] and coin_type!='total':
-            new_coins[coin_type] += delta[coin_type]
+        if delta[coin] and coin_type!='total':
+            new_coins[coin] += delta[coin]
             
     if args[0] == 'convert':
         for coin in coin_types[1:]:
@@ -73,8 +73,8 @@ if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and
     out = []
     ch.coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)
     for coin in delta:
-        if delta[coin_type] and coin_type!='total':
-            out.append(f"{' '.join(ch.coinpurse.coin_str(coin_type).split()[::2])}: ({delta[coin_type]:+})")
+        if delta[coin] and coin_type!='total':
+            out.append(f"{' '.join(ch.coinpurse.coin_str(coin_type).split()[::2])}: ({delta[coin]:+})")
     return f"""embed -title "{name} {'collects some money' if delta.total>0 else 'spends some money'}!" -desc "{n.join(out)}" -footer !coins -thumb "https://i.imgur.com/auM9MBe.png"  """
 else:
     return 'game coins &*&'
