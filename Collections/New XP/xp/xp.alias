@@ -21,9 +21,12 @@ c.set_cvar('xptotals',",".join([str(x) for x in totals])) if get_svar("xptotals"
 if c.cc_exists(cc_name):
     if not get('xp_firstrun'):
         c.set_cvar('xp_firstrun','Delete me if you want to see another warning :)')
-        return(f"-title 'Warning' -desc 'Running this command again will convert CC named `{cc_name}` into a cvar named `xp`.{n*2}Ignore this warning if you are not using other older aliases to handle experience.'")
-    c.set_cvar_nx(counter,str(c.get_cc(cc_name)))
+        return(f"-title 'Warning' -desc 'Running this command again will convert CC named `{cc_name}` into a cvar named `xp` and convert your xp log into a format incompatible with the old alias (although it is more compact).{n*2}Ignore this warning if you are not using other older aliases to handle experience.'")
+    elif c.get_cc(cc_name) > 0:
+        c.set_cvar_nx(counter,str(c.get_cc(cc_name)))
     c.delete_cc(cc_name)
+c.delete_cvar('xp_firstrun')
+c.delete_cvar('xp_revert_firstrun')
 c.set_cvar_nx(counter,"0")
 cmd = ctx.prefix+ctx.alias
 out = []
@@ -50,25 +53,28 @@ if log == {} and 'xplog0' in c.cvars:
     log = load_yaml(templog)
 
 #Convert old log
-if log and typeof(list(log)[0]) == "str":
+if log and any([typeof(x) == "str" for x in list(log)]):
     newlog = {}
     for x in log:
-        log_time = x.split(" ")
-        clock = None
-        if len(log_time) == 2:
-            date, clock = log_time
+        if typeof(x) == 'str':
+            log_time = x.split(" ")
+            clock = None
+            if len(log_time) == 2:
+                date, clock = log_time
+            else:
+                date = log_time[0]
+            day, month, year = date.split(".")
+            if clock:
+                hour, minute, second = clock.strip("()").split(":")
+            else:
+                hour, minute, second = (0, 0, 0)
+            t = int(second) + int(minute) * 60 + (int(hour) - hourOffset) * 3600 + int(day) * 24 * 3600
+            t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
+            t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
+            t = int(round(float(t) / 60.0))
         else:
-            date = log_time[0]
-        day, month, year = date.split(".")
-        if clock:
-            hour, minute, second = clock.strip("()").split(":")
-        else:
-            hour, minute, second = (0, 0, 0)
-        t = int(second) + int(minute) * 60 + (int(hour) - hourOffset) * 3600 + int(day) * 24 * 3600
-        t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
-        t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
-        t = int(round(float(t) / 60.0))
-        newlog.update({t: log[x]})
+            t = x
+        newlog.update({t: f"{newlog[t]}; {log[x]}"}) if t in newlog else newlog.update({t: log[x]})
     log = newlog
     c.set_cvar('xplog',dump_yaml(log))
 
