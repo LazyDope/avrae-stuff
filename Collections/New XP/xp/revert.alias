@@ -69,7 +69,7 @@ c.create_cc_nx(cc_name,initial_value=int(float(get(counter))))
 
 #Clear cvars
 c.delete_cvar(counter)
-if pargs.get("noclear") != None:
+if pargs.get("clear"):
     c.delete_cvar('xp_revert_firstrun')
     c.delete_cvar('xp_firstrun')
     c.delete_cvar('xptotals')
