@@ -75,7 +75,7 @@ if pargs.get("noclear") != None:
     c.delete_cvar('xptotals')
     c.delete_cvar('xpname')
     c.delete_cvar('xp_ccname')
-    c.delete_cvar('xp_ccname')
 
+return(f"-title 'Success' -desc 'Your log and experience storage has been successfully reverted to the old format.'")
 </drac2>
 -color <color>
