@@ -46,7 +46,7 @@ if compat:
         if delta[coin] and coin!='total':
             new_coins[coin] += delta[coin]
             
-    if args[0] == 'convert':
+    if args and args[0] == 'convert':
         for coin in coin_types[1:]:
             smaller = coin_types[coin_types.index(coin)-1]
             rate = int(coin_rates[smaller]/coin_rates[coin])
