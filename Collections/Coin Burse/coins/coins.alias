@@ -50,9 +50,9 @@ if compat:
         for coin in coin_types[1:]:
             smaller = coin_types[coin_types.index(coin)-1]
             rate = int(coin_rates[smaller]/coin_rates[coin])
-            p = new_coins[1][smaller]//rate
-            if new_coins[1][smaller] >= rate:
-                new_coins[1].update({smaller:new_coins[1][smaller]-p*rate,new_coins:pouch[1][coin]+p})
+            p = new_coins[smaller]//rate
+            if new_coins[smaller] >= rate:
+                new_coins.update({smaller:new_coins[smaller]-p*rate,coin:new_coins[coin]+p})
                 
     for coin in coin_types[:-1]:
         larger = coin_types[coin_types.index(coin)+1]
