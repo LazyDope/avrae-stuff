@@ -15,7 +15,10 @@ delta = parse_coins(ptargs) if ptargs and 'convert' not in ptargs else {}
 n = "\n"
 
 if coins and not compat:
-    if additive:
+    if get("coinburse_last_coins"):
+        ch.delete_cvar('coinburse_last_coins')
+        [coins.pop(coin) for coin in coin_types]
+    elif additive:
         ch.coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     elif not get('coinburse_firstrun') and not all([ch.coinpurse[coin] == coins[coin] for coin in coin_types]):
         ch.set_cvar('coinburse_firstrun','Delete me if you want to see another warning :)')
@@ -28,7 +31,10 @@ if coins and not compat:
         else:
             bagsDict[f'Old {coinpouch_name}'] = coins
     bagsDict.pop(coinpouch_name)
-    ch.set_cvar('bags', dump_json(list(bagsDict.items())))
+    if bagsDict:
+        ch.set_cvar('bags', dump_json(list(bagsDict.items())))
+    else:
+        ch.delete_cvar('bags')
     
 ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
     
