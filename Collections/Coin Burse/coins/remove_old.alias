@@ -2,6 +2,7 @@ echo <drac2>
 bags = load_json(get('bags', '[]'))
 bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
+coinpouch_name = get_svar("coinPouchName") or get("coinPouchName",'Coin Pouch')
 ch = character()
 
 if coins:
@@ -11,13 +12,13 @@ if coins:
     coins.pop('sp')
     coins.pop('cp')
     if len(coins) > 0:
-        if 'Old Coin Pouch' in bagsDict:
-            bagsDict['Old Coin Pouch'].update(coins)
+        if f'Old {coinpouch_name}' in bagsDict:
+            bagsDict[f'Old {coinpouch_name}'].update(coins)
         else:
-            bagsDict['Old Coin Pouch'] = coins
-    bagsDict.pop('Coin Pouch')
+            bagsDict[f'Old {coinpouch_name}'] = coins
+    bagsDict.pop(coinpouch_name)
     ch.set_cvar('bags', dump_json(list(bagsDict.items())))
     
 ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your coinpurse')
-return "Coin Pouch cleanly removed."
+return f"{coinpouch_name} cleanly removed."
 </drac2>

@@ -4,13 +4,15 @@ args = &ARGS&
 ptargs = "&*&"
 bags = load_json(get('bags', '[]'))
 bagsDict = dict(bags)
-coinpouch_name = get_svar('coinburse_oldname') or get('coinburse_oldname','Coin Pouch')
+coinpouch_name = get_svar("coinPouchName") or get("coinPouchName",'Coin Pouch')
 coins = bagsDict.get(coinpouch_name)
 coin_types = ['cp','sp','ep','gp','pp']
-coin_rates={"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+coin_rates = load_json(get_svar("coinRates") or get("coinRates",dump_json({"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1})))
 compat = get_svar('coinburse_compat') or get('coinburse_compat')
 ch = character()
 ch.set_cvar('coinburse_compat',compat) if get_svar("coinburse_compat") else ()
+ch.set_cvar('coinPouchName',compat) if get_svar("coinPouchName") else ()
+ch.set_cvar('coinRates',compat) if get_svar("coinRates") else ()
 delta = parse_coins(ptargs) if ptargs and 'convert' not in ptargs else {}
 n = "\n"
 
