@@ -82,7 +82,7 @@ if any([bagNames.count(x)>1 for x in bagNames]):
 #Retrieves a bag to use based on input. In modes that take two bags, this is considered bag 1. 
 if sub_cmds['weight%']:
     bag = [[]]
-if sub_cmds['pack<']:
+elif sub_cmds['pack<']:
     bag = [x for x in packs if args[0].lower() in x[0].lower()]+[[[],[]]]
 elif sub_cmds['create$']:
     bagName = f"Bag {numBags+1}"
@@ -95,16 +95,18 @@ elif sub_cmds['create$']:
     bag = [[bagName,{}]]
 else:
     isbag_notnumber = args and len(args)>1 and args[1].isdecimal() if any(list(sub_cmds.values())[6:9]) else True
-    bag = [x for x in bagsLoaded if args and isbag_notnumber and (args[0] == x[0] or args[0] == str(bagsLoaded.index(x)+1))] or [x for x in bagsLoaded if args and isbag_notnumber and (args[0].lower() == x[0].lower())] or [x for x in bagsLoaded if args and isbag_notnumber and  (args[0].lower() in x[0].lower()) or (x[0] == "Shopping Bag" and sub_cmds['buy.'])] or [["Shopping Bag",{}]]*sub_cmds['buy.'] or [[]]
+    bag = [x for x in bagsLoaded if args and isbag_notnumber and (args[0] == x[0] or args[0] == str(bagsLoaded.index(x)+1))] or [x for x in bagsLoaded if args and isbag_notnumber and (args[0].lower() == x[0].lower())] or [x for x in bagsLoaded if args and isbag_notnumber and  (args[0].lower() in x[0].lower()) or (x[0] == "Shopping Bag" and sub_cmds['buy.'])] or [[]]
 
 #Open the first bag in the list of possible bags
 bagSelected =[] if sub_cmds['pack<'] or sub_cmds['weight%'] else bag[0]
 
-#Remove bag from arguments if it loaded successfully, otherwise revert to the first of all bags
+#Remove bag from arguments if it loaded successfully, otherwise revert to the first of all bags unless buying
 possibly_coins = bool(args and (args[0].lower() in 'coin purse' or any([coin in args for coin in coinTypes]) ) and coinRates == {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1})
 possibly_coinpurse = bool(args and possibly_coins and args[0].lower() in 'coin purse')
 if bag[0]:
     args.pop(0) if args else None  
+elif sub_cmds['buy.']:
+    bag = [["Shopping Bag",{}]]
 elif not possibly_coins:
     bag = bagsLoaded
 bag = bag[0] if bag else bag
