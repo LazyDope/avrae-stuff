@@ -66,14 +66,37 @@ numBags = len(bagsLoaded)
 #Add a bag if a Coin Pouch is already present
 bagsLoaded = bagsLoaded+[["Bag 2",{}]] if coinPouchName == bagsLoaded[0][0] and numBags == 1 else bagsLoaded
 
+
+bagNames = [x[0] for x in bagsLoaded]
+#Renames duplicate bags
+for x in bagsLoaded:
+    if bagNames.count(x[0]) > 1:
+        i = int(x[0].split(' ')[-1]) if x[0].split(' ')[-1].isdecimal() else 1
+        while [x[0] for x in bagsLoaded].count(x[0]) > 1:
+            x[0] = f"""{x[0].rstrip(" 1234567890")} {i}"""
+            i += 1
+
 #Retrieves a bag to use based on input. In modes that take two bags, this is considered bag 1. 
-bag = [[]] if sub_cmds['pack<'] else [[' '.join(args[0:]) or f"Bag {numBags+1}",{}]] if sub_cmds['create$'] else [x for x in bagsLoaded if args and (args[0] in x[0] or args[0] in str(bagsLoaded.index(x)+1)) or (x[0] == "Shopping Bag" and sub_cmds['buy.'])] or [["Shopping Bag",{}]]*sub_cmds['buy.'] or [[]]
+if sub_cmds['pack<']:
+    bag = [[]]
+elif sub_cmds['create$']:
+    bagName = f"Bag {numBags+1}"
+    if args:
+        bagName = ' '.join(args[0:])
+        i = 1
+        while bagName in list(dict(bagsLoaded)):
+            bagName = f"""{' '.join(args[0:])} {i}"""
+            i += 1
+    bag = [[bagName,{}]]
+else:
+    bag = [x for x in bagsLoaded if args and (args[0] in x[0] or args[0] in str(bagsLoaded.index(x)+1)) or (x[0] == "Shopping Bag" and sub_cmds['buy.'])] or [["Shopping Bag",{}]]*sub_cmds['buy.'] or [[]]
 
 #Open the first bag in the list of possible bags
 bagSelected = bag[0]
 
 #Remove bag from arguments if it loaded successfully, otherwise revert to the first of all bags
-possibly_coins = args and ( args[0] in 'coin purse' or any([coin in args for coin in coinTypes]) ) and coinRates == {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
+possibly_coins = bool(args and (args[0].lower() in 'coin purse' or any([coin in args for coin in coinTypes]) ) and coinRates == {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1})
+possibly_coinpurse = bool(args and possibly_coins and args[0].lower() in 'coin purse')
 if bag[0]:
     args.pop(0) if args else None  
 elif not possibly_coins:
@@ -113,19 +136,22 @@ valid = str(item) in bag[1] if bag else False
 bundled = sub_cmds['buy.'] and item and "bundle" in weightDict.get(item.lower(),{}) and weightDict[item.lower()].bundle or 1
 
 #Modify existing bags
+delta = {}
 if bag:
     bag[1].update({item:max(0,(bag[1][item] if valid else 0)+bundled*quantity*(1 if sub_cmds['add+'] or sub_cmds['buy.'] else -1))}) if item and (sub_cmds['move>'] or sub_cmds['remove-'] or sub_cmds['add+'] or sub_cmds['buy.']) else bagsLoaded.remove(bag) if sub_cmds['delete/'] or sub_cmds['swap#'] else (bag.pop(0),bag.insert(0,item)) if sub_cmds['name@'] and item != [] and not any([item == x[0] for x in bagsLoaded]) else ''
-elif possibly_coins:
-    if sub_cmds['add+']:
-        delta = parse_coins(''.join(['+']+[str(quantity)]+args))
-    if sub_cmds['remove-']:
-        delta = parse_coins(''.join(['-']+[str(quantity)]+args))
-    character().coinpurse.modify_coins(delta['pp'],delta['gp'],delta['ep'],delta['sp'],delta['cp'])
+elif possibly_coins and (sub_cmds['add+'] or sub_cmds['remove-']):
+    item = args[0].lower()
+    if sub_cmds['add+'] and item:
+        delta = parse_coins(f"""+{quantity}{item}""")
+    if sub_cmds['remove-'] and item:
+        delta = parse_coins(f"""+{quantity}{item}""")
+    if (valid:=(delta.total < character().coinpurse.total)):
+        character().coinpurse.modify_coins(delta['pp'],delta['gp'],delta['ep'],delta['sp'],delta['cp'])
 
 #Handle coins
 itemPrice = sub_cmds['buy.'] and (inputPrice or typeof(weightDict.get(item.lower(),{})) == 'SafeDict' and weightDict.get(item.lower(),{"cost":"0gp"}).get("cost","0gp"))
 costNumber,costDenomination = itemPrice and quantity*int(''.join([x for x in itemPrice if x.isdecimal()])),itemPrice and ''.join([x for x in itemPrice if x.isalpha()])
-error = not costDenomination in coinTypes
+error = not costDenomination in coinTypes if sub_cmds['buy.'] else False
 pouch = ([x for x in bagsLoaded if x[0] == coinPouchName] or [[]])[0]
 if coinRates != {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}:
     pouch = pouch or [coinPouchName,{costDenomination:0}]
@@ -155,11 +181,11 @@ if not error and pouch:
             pouch[1].update({x:pouch[1][x]-p*R})
     
       
-error = [pouch[1][x] for x in pouch[1] if pouch[1][x]<0] if pouch else False
+error = [pouch[1][x] for x in pouch[1] if pouch[1][x]<0] if pouch else error
 bagsLoaded.insert(destination,bag) if sub_cmds['swap#'] else ''
-valid and bag[1][item] == 0 and not(coinPouchName == bag[0] and item in coinTypes) and bag[1].pop(item)
+valid and not possibly_coins and bag[1][item] == 0 and not(coinPouchName == bag[0] and item in coinTypes) and bag[1].pop(item)
 sub_cmds['move>'] and valid and targetBag and targetBag[1].update({item:(targetBag[1][item] if item in targetBag[1] else 0)+quantity})
-valid = 1 if item else 0
+valid = True if item else possibly_coins and valid
 bagsLoaded = bagsLoaded+([bag] if sub_cmds['create$'] or (sub_cmds['buy.'] and not bag in bagsLoaded) or (sub_cmds['pack<'] and bag[0]) else [targetBag] if sub_cmds['move>'] and not targetBag in bagsLoaded else [])
 (character().set_cvar("bags",dump_json(bagsLoaded))if bagsLoaded else character().delete_cvar("bags")) if not error else ''
 bagsLoaded = load_json(bags) if error else bagsLoaded
@@ -172,8 +198,8 @@ trackWeight = True if settings.weightTracking == "On" else False
 trackEncumbrance = True if settings.encumbrance == "On" else False
 openMode = openModes.index(settings.openMode)
 if not bag and possibly_coins:
-    addIgnore = ['coin purse'] if sub_cmds['ignore*'] and possibly_coins in 'coin purse' else []
-    removeIgnore = ['coin purse'] if sub_cmds['unignore^'] and possibly_coins in 'coin purse' else []
+    addIgnore = ['coin purse'] if sub_cmds['ignore*'] and possibly_coinpurse else []
+    removeIgnore = ['coin purse'] if sub_cmds['unignore^'] and possibly_coinpurse else []
     bag = ['Coin Purse',{coin:character().coinpurse[coin] for coin in coinTypes}]
 else:
     addIgnore = [bag[0].lower()] if sub_cmds['ignore*'] else []
