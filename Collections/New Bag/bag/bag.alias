@@ -239,8 +239,8 @@ elif not bagsLoaded:
     text.append('''-desc "You have deleted your only bag."''')
 else:
     cpouch = pouch if pouch else [['Coin Purse',{coin:character().coinpurse[coin] for coin in coinTypes}]] if coinRates == {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1} else {}
-    loop = [cpouch if error and sub_cmds['buy.'] else bag] if justOne else bagsLoaded
-    loop = loop + cpouch if not pouch else loop
+    loop = [cpouch if error and sub_cmds['buy.'] else [['Coin Purse',{coin:character().coinpurse[coin] for coin in coinTypes}]] if possibly_coinpurse and coinRates == {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1} else bag] if justOne else bagsLoaded
+    loop = loop + cpouch if not pouch and not justOne else loop
     for x in loop:
         lineLength = len(x[0])
         bagWeight = 0
@@ -277,7 +277,7 @@ else:
 
                 lineLength = max(lineLength,len(z)+(len((str(itemWeight*x[1][z])*2))+16 if itemWeight and itemWeight != "†" else 1 if itemWeight else 0))
 
-            curbag.append(f'{str(x[1][z])+"x"*(not z in coinTypes) if x[1][z] != 1 else x[1][z] if z in coinTypes else blank} {z}{((f" ({itemWeight:.2f} lbs.){asterisk if not (z.lower() in weightDict or pch in z.lower() or pot in z.lower()) else blank}" if itemWeight != "†" else itemWeight) if itemWeight and not z in coinTypes else " ") if trackWeight else " "}'.strip())
+            curbag.append(f"""{f'{x[1][z]:,}'+"x"*(not z in coinTypes) if f'{x[1][z]:,}' != 1 else f'{x[1][z]:,}' if z in coinTypes else blank} {z}{((f" ({itemWeight:.2f} lbs.){asterisk if not (z.lower() in weightDict or pch in z.lower() or pot in z.lower()) else blank}" if itemWeight != "†" else itemWeight) if itemWeight and not z in coinTypes else " ") if trackWeight else " "}""".strip())
 
         if not curbag:
             curbag = ['*This bag is empty.*']
