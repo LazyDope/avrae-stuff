@@ -32,29 +32,33 @@ calendar=load_json(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
 monthLengths=[x.length for x in calendar.months]
 hourOffset=int(calendar.get('hourOffset',0))+int(get('timezone',0))
 baseYear=calendar.get("yearOffset",1970)
+leapCycle = calendar.get('leapCycle',4)
+leapMonth = calendar.get('leapMonth','February')
+
+if len(dump_json(log)) > 9999:
+    return(f"-title 'Warning' -desc 'Your log is too long to revert to the old format. Please manually remove some entries from the `xplog` cvar to continue. '")
 
 #Revert new log
 if log and any([typeof(x) == "int" for x in list(log)]):
     newlog = {}
-    for x in log:
-        if typeof(x) == 'int':
-            Time=x*60+t_since+(3600*hourOffset)
+    for entry in log:
+        if len(dump_json(log)) > 9999:
+            break
+        if typeof(entry) == 'int':
+            Time=entry*60+t_since+(3600*hourOffset)
             totalDayCount=int((Time)//86400)
             yearsPassed=totalDayCount//calendar.length
-            numLeapYears=len([x for x in range(baseYear,baseYear+yearsPassed-4) if x//calendar.get('leapCycle',4)==x/calendar.get('leapCycle',4)]) if calendar.get('leapCycle') else 0
+            numLeapYears=(yearsPassed-leapCycle+1)//leapCycle
             yearStartDay=yearsPassed*calendar.length+numLeapYears
             totalDays=totalDayCount-yearStartDay
             year=int((totalDayCount-numLeapYears-1)//calendar.length)+baseYear
-            isLeapYear=year//calendar.get('leapCycle',4)==year/calendar.get('leapCycle',4) if numLeapYears else 0
+            isLeapYear=year//leapCycle==year/leapCycle if numLeapYears else 0
             calendarDay=totalDays%(calendar.length+isLeapYear) or calendar.length+isLeapYear
-            hour=int(Time%86400//3600)
-            minute=int(Time%86400%3600//60)
-            second=int(Time%86400%3600%60)
-            monthLengths=[x.length+(isLeapYear and x.name==calendar.get('leapMonth','February')) for x in calendar.months]
+            monthLengths=[x.length+(isLeapYear and x.name==leapMonth) for x in calendar.months]
             day,month=calendarDay,1
             [(day:=day-monthLengths[x],month:=month+1) for x in range(len(monthLengths)) if month>x and day>monthLengths[x]]
-            timestamp=f'{day:02}.{month:02}.{str(year)[2:]} ({hour:02}:{minute:02}:{second:02})'
-            newlog.update({timestamp: log[x]})
+            timestamp=f'{day:02}.{month:02}.{str(year)[2:]} ({int(Time%86400//3600):02}:{int(Time%86400%3600//60):02}:{int(Time%86400%3600%60):02})'
+            newlog.update({timestamp: log[entry]})
         else:
             newlog.update({x: log[x]})
     log = newlog
