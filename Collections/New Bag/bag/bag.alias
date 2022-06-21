@@ -168,7 +168,7 @@ def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_
     if not bag:
         bag = find_bag_with_item(bags_dict, item)
     if not bag and create_on_fail:
-        new_bag(bags_dict, bag_name)
+        bag = new_bag(bags_dict, bag_name)
     if not bag and len(bags_dict)>0:
         bag = get_bag(bags_dict, 0)
     if not bag:
@@ -209,7 +209,7 @@ def find_bag_with_item(bags_dict: SafeDict, item) -> (str, SafeDict):
     """
     bags_dict = as_dict(bags_dict)
     for x in bags_dict:
-        if item.lower() in [i.lower() for i in bags_dict[x]]:
+        if any([item.lower() in i.lower() for i in bags_dict[x]]):
             return (x, bags_dict[x])
     return None
 
