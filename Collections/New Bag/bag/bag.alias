@@ -385,8 +385,6 @@ match args_list:
         
     case [("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args] | [bag_name, ("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args]:
         buy, add, remove = sign in "buy.", sign in "add+", sign in "remove-"
-        if not bag_name:
-            bag_name = args.pop(0)
         price = None
         error = False
         coins = None
@@ -406,7 +404,7 @@ match args_list:
             coins, error = modify_coins(bags_dict, coin, num)
         if not error:
             quantity = -quantity if remove else quantity
-            bag_name, error = modify_item(bags_dict, item, quantity)
+            bag_name, error = modify_item(bags_dict, item, quantity, bag_name)
         success = save_bags(bags_dict, error)
         if buy:
             focus = coins if error else get_bag(bags_dict, bag_name, exact_match=True)
