@@ -116,9 +116,12 @@ def get_bag(bags_dict: SafeDict, bag_id, exact_match=False, create_on_fail=False
         bag = bags[position]
         return bag
     match bags_dict:
-        case {bag_name: contents, **_} if bag_id == bag_name
-        case {bag_name: contents, **_} if bag_id in bag_name and not exact_match
-        case {bag_name: contents, **_} if bag_id.lower() in bag_name.lower() and not exact_match
+        case {bag_name: contents, **rest} if bag_id == bag_name:
+            ()
+        case {bag_name: contents, **rest} if bag_id in bag_name and not exact_match:
+            ()
+        case {bag_name: contents, **rest} if bag_id.lower() in bag_name.lower() and not exact_match:
+            ()
         case _ if create_on_fail:
             return new_bag(bag_id)
         case _:
