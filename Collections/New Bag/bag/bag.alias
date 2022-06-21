@@ -76,12 +76,12 @@ def save_bags(bags, error = False, ch = character()) -> int:
         ch.set_cvar('bags',dump_json(bags))
     return 1
 
-def as_dict(listordict):
+def as_dict(listordict) -> SafeDict:
     """
     Makes sure a list is returned as a dict
     :var listordict: The list or dict to check
     """
-    match typeof(listordict) -> SafeDict:
+    match typeof(listordict):
         case 'SafeDict':
             return listordict
         case 'SafeList':
