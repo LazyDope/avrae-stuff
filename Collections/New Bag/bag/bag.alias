@@ -128,10 +128,12 @@ def get_bag(bags: SafeList, bag_id, exact_match=False, create_on_fail=False) -> 
         bag = bags[position]
         return bag
     match bags:
-        case [f"{bag_id}", contents]:
+        case [[f"{bag_id}", contents],*_]:
             bag_name = bag_id
-        case [bag_name, contents] if bag_id in bag_name and not exact_match:
-        case [bag_name, contents] if bag_id.lower() in bag_name.lower() and not exact_match:
+        case [[bag_name, contents],*_] if bag_id in bag_name and not exact_match:
+            ()
+        case [[bag_name, contents],*_] if bag_id.lower() in bag_name.lower() and not exact_match:
+            ()
         case _ if create_on_fail:
             return new_bag(dict(bags),bag_id)
         case _:
@@ -420,9 +422,12 @@ match args_list:
             bag_name = ' '.join(args)
         bags_dict = dict(load_bags())
         match dict(packs):
-            case {pack_name: contents, **_} if bag_name == pack_name
-            case {pack_name: contents, **_} if bag_name in pack_name
-            case {pack_name: contents, **_} if bag_name.lower() in pack_name.lower()
+            case [[pack_name, contents], *_] if bag_name == pack_name:
+                ()
+            case [[pack_name, contents], *_] if bag_name in pack_name:
+                ()
+            case [[pack_name, contents], *_] if bag_name.lower() in pack_name.lower():
+                ()
         bags_dict.update({pack_name: contents})
         success = save_bags(bags_dict)
         focus = get_bag(bags_dict, pack_name, exact_match == True)
@@ -430,12 +435,17 @@ match args_list:
         text.append(f"""-title ＂{name}{[f" tries to add a {title_bag} but still has no bags!",f" adds a {title_bag}",f" can't add a {title_bag}"][success]}＂""")
             
     case [("weight"|"w"|"%"), *args] | [bag_name, ("weight"|"w"|"%"), *args]:
-        
+        () #TODO: implement weight tracking
     case [("ignore"|"i"|"*"), *args] | [bag_name, ("ignore"|"i"|"*"), *args]:
+        () #TODO: implement weight tracking
     case [("unignore"|"u"|"^"), *args] | [bag_name, ("unignore"|"u"|"^"), *args]:
+        () #TODO: implement weight tracking
     case [("track"|"t"|"~"), *args] | [bag_name, ("track"|"t"|"~"), *args]:
+        () #TODO: implement weight tracking
     case [("open"|"o"|"&"), *args] | [bag_name, ("open"|"o"|"&"), *args]:
+        () #TODO: implement bag open modes
     case [("encumbrance"|"e"|"="), *args] | [bag_name, ("encumbrance"|"e"|"="), *args]:
+        () #TODO: implement weight tracking
     case [("view"|"v"|"!"), *args] | [bag_name, ("view"|"v"|"!"), *args] | [*args]:
         focus = get_bag(bag_name) if bag_name else focus
         title_bag = f"""their {focus[0]}""" if bag_name else "a bag"
