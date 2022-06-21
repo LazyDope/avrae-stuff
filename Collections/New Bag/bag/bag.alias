@@ -415,7 +415,7 @@ match args_list:
         if add or remove:
             focus = get_bag(bags_dict, bag_name, exact_match=True)
             title_bag = f"""their {focus[0]}""" if focus else "a bag"    
-            text.append(f"""-title ＂{name}{[f" tries to {"add" if add else "remove"} {make_plural(item, quantity)} but has no bags!",f" {"adds" if add else "removes"} {quantity} {make_plural(item, quantity)} to {title_bag}",f" can't {"add" if add else "remove"} {item}"][success]}＂""")
+            text.append(f"""-title ＂{name}{[f" tries to {'add' if add else 'remove'} {make_plural(item, quantity)} but has no bags!",f" {'adds' if add else 'removes'} {quantity} {make_plural(item, quantity)} to {title_bag}",f" can't {'add' if add else 'remove'} {item}"][success]}＂""")
         
     case [("pack"|"p"|"<"), *args] | [bag_name, ("pack"|"p"|"<"), *args]:
         if not bag_name:
