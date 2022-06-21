@@ -123,7 +123,7 @@ def get_bag(bags: SafeList, bag_id, exact_match=False, create_on_fail=False) -> 
     :var create_on_fail: whether to create a new bag if one is not found
     """
     bags = as_list(bags_dict)
-    if typeof(bag_id) is 'int':
+    if typeof(bag_id) == 'int':
         position = max(min(len(bags)-1, bag_id), 0)
         bag = bags[position]
         return bag
