@@ -89,6 +89,19 @@ def as_dict(listordict) -> SafeDict:
         case _:
             err(f"{typeof(listordict)} is not a list or dict")
             
+def as_list(listordict) -> SafeDict:
+    """
+    Makes sure a dict is returned as a list of tuples
+    :var listordict: The list or dict to check
+    """
+    match typeof(listordict):
+        case 'SafeDict':
+            return list(listordict.items())
+        case 'SafeList':
+            return listordict
+        case _:
+            err(f"{typeof(listordict)} is not a list or dict")
+            
 def make_plural(word, quantity=0):
     if quantity != 1:
         match word[-1]:
@@ -101,7 +114,7 @@ def make_plural(word, quantity=0):
     else:
         return word
 
-def get_bag(bags_dict: SafeDict, bag_id, exact_match=False, create_on_fail=False) -> (str, SafeDict):
+def get_bag(bags: SafeList, bag_id, exact_match=False, create_on_fail=False) -> (str, SafeDict):
     """
     Retrieves a bag from the provided dict, given the name or index, with some fuzziness
     :arg bags_dict: the dict of bags to search
@@ -109,21 +122,18 @@ def get_bag(bags_dict: SafeDict, bag_id, exact_match=False, create_on_fail=False
     :var exact_match: whether to only return the bag if it's an exact match
     :var create_on_fail: whether to create a new bag if one is not found
     """
-    bags_dict = as_dict(bags_dict)
+    bags = as_list(bags_dict)
     if typeof(bag_id) is 'int':
-        bags = list(bags.items())
         position = max(min(len(bags)-1, bag_id), 0)
         bag = bags[position]
         return bag
-    match bags_dict:
-        case {bag_name: contents, **rest} if bag_id == bag_name:
-            ()
-        case {bag_name: contents, **rest} if bag_id in bag_name and not exact_match:
-            ()
-        case {bag_name: contents, **rest} if bag_id.lower() in bag_name.lower() and not exact_match:
-            ()
+    match bags:
+        case [f"{bag_id}", contents]:
+            bag_name = bag_id
+        case [bag_name, contents] if bag_id in bag_name and not exact_match:
+        case [bag_name, contents] if bag_id.lower() in bag_name.lower() and not exact_match:
         case _ if create_on_fail:
-            return new_bag(bag_id)
+            return new_bag(dict(bags),bag_id)
         case _:
             return None
     return (bag_name, contents)
