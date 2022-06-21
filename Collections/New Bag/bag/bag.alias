@@ -12,7 +12,7 @@ doesntdont = ["doesn't","don't"]
 #Load user variable
 DEFAULT_COIN_RATES = {"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1}
 COIN_RATES = get_svar("coinRates") or get("coinRates", DEFAULT_COIN_RATES)
-COIN_TYPES = list(coinRates)
+COIN_TYPES = list(COIN_RATES)
 coinPouchName = get_svar("coinPouchName") or get("coinPouchName","Coin Pouch")
 coinWeighs = get_svar("coinWeighs") or get("coinWeighs",0.02)
 
