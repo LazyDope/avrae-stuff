@@ -450,4 +450,5 @@ match args_list:
         focus = get_bag(bag_name) if bag_name else focus
         title_bag = f"""their {focus[0]}""" if bag_name else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
+return ' '.join(text)
 </drac2>
