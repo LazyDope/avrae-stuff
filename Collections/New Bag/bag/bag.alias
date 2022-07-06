@@ -197,17 +197,17 @@ def get_coins(bags: SafeList) -> (str, SafeDict):
     Will not update your coins if modified.
     :arg bags: a list of bags
     """
-	maybepouch = get_bag(bags, coinPouchName, create_on_fail=True) if COIN_RATES != DEFAULT_COIN_RATES else get_bag(bags, coinPouchName)
-	if maybepouch:
+    maybepouch = get_bag(bags, coinPouchName, create_on_fail=True) if COIN_RATES != DEFAULT_COIN_RATES else get_bag(bags, coinPouchName)
+    if maybepouch:
         cname = maybepouch[0]
-		coins = maybepouch[1]
-		if not coins:
+        coins = maybepouch[1]
+        if not coins:
             coins = {x:0 for x in COIN_TYPES}
-	else:
+    else:
         cname = "Coin Purse"
-		purse = character().coinpurse
-		coins = {coin:purse[coin] for coin in coinTypes}
-	return cname, coins
+        purse = character().coinpurse
+        coins = {coin:purse[coin] for coin in coinTypes}
+    return cname, coins
     
 def find_bag_with_item(bags_dict: SafeDict, item) -> (str, SafeDict):
     """
