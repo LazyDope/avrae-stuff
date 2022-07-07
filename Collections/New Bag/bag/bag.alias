@@ -1,6 +1,6 @@
 embed <drac2>
 #Define constants
-modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","="]
+modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
 minorUpdate = ctx.alias == 'tembed'
 args = &ARGS&
 asterisk = '\\*'
@@ -676,7 +676,7 @@ match args_list:
         text.append("-footer ＂!bag v4 by @Byronius#0001＂")
         focus = "help"
     
-    case [("variables"|"v"|";"), *_]:
+    case [("vars"|";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
         text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
         This variable defines what the conversion rates between coin types is. The types of coins are also derived from this.
