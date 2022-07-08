@@ -279,8 +279,8 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
     """
     # define variables
     bags_dict = _as_dict(bags_dict)
-    error = coin in COIN_TYPES
     coin = coin.lower()
+    error = not (coin in COIN_TYPES)
     
     # check if standard coins are in use, and make sure the coin is value
     if use_coin_purse(bagsLoaded):
