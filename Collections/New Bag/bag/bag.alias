@@ -279,18 +279,16 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
     """
     # define variables
     bags_dict = _as_dict(bags_dict)
-    error = True
+    error = coin in COIN_TYPES
     coin = coin.lower()
     
     # check if standard coins are in use, and make sure the coin is value
     if use_coin_purse(bagsLoaded):
-        if coin not in COIN_TYPES:
-            return (["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}], error)
-        coins = parse_coins(f"{quantity}{coin}")
-        if not (error:=-coins.total>=ch.coinpurse.total):
+        coins = parse_coins(f"{quantity}{coin}") if not error else None
+        if coins and not (error:=-coins.total>=ch.coinpurse.total):
             # modify the coin purse
             ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
-        return (["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}], error)
+        pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
     else:
         pouch = get_bag(bags_dict, coinPouchName, exact_match=True, create_on_fail=True)
         for coin in COIN_TYPES:
@@ -301,7 +299,7 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         for coin in COIN_TYPES[1::-1]:
-            if pouch[1][x] < 0:
+            if pouch[1][coin] < 0:
                 larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
                 rate = int(COIN_RATES[coin]/COIN_RATES[larger])
                 p = pouch[1][coin]//rate
@@ -315,9 +313,8 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
                 p = pouch[1][smaller]//rate
                 if pouch[1][smaller] >= rate:
                     pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
-        coins[x] = pouch[1][x]
-        error = any([pouch[1][x]<0 for x in pouch[1]])
-    return (None, error)
+        error = any([pouch[1][coin]<0 for coin in pouch[1]])
+    return (pouch, error)
 
 def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
     """
@@ -344,7 +341,7 @@ def use_coin_purse(bags_dict: SafeDict) -> bool:
     :arg bags_dict: The dict of bags to check
     """
     bags_dict = _as_dict(bags_dict)
-    return bool(get_bag(bags_dict, coinPouchName, exact_match = True)) and COIN_RATES == DEFAULT_COIN_RATES
+    return not get_bag(bags_dict, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
         
 def find_bag_with_item(bags_dict: SafeDict, item: str) -> [str, SafeDict]:
     """
@@ -801,8 +798,8 @@ match args_list:
             if input_name == destination:
                 error = True
             if not error:
-                if input_name.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
-                    bag, error = modify_coins(bagsLoaded, item.lower(), -quantity)
+                if input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower()):
+                    bag, error = modify_coins(bagsLoaded, item, -quantity)
                 else:
                     bag, error = modify_item(bagsLoaded, item, -quantity, input_name)
                 if not error:
@@ -841,7 +838,7 @@ match args_list:
                 coins, error = modify_coins(bagsLoaded, coin, cost)
             if not error:
                 quantity = -quantity if remove else quantity
-                if not input_name or input_name.lower() == ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName) and item.lower() in COIN_TYPES:
+                if not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower()) and item.lower() in COIN_TYPES:
                     bag, error = modify_coins(bagsLoaded, item, quantity)
                 bag, error = modify_item(bagsLoaded, item, quantity, input_name)
             success = save_bags(bagsLoaded, error)
