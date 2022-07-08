@@ -78,14 +78,14 @@ def load_bags(ch = character()) -> SafeList:
     bagsLoaded = bagsLoaded + old_bags_converted
     
     # remove duplicate names
-    bag_names = [x[0] for x in bagsLoaded]
-    if any([bag_names.count(x)>1 for x in bag_names]):
-        for x in bagsLoaded:
-            if bag_names.count(x[0]) > 1:
-                i = int(x[0].split(' ')[-1]) if x[0].split(' ')[-1].isdecimal() else 1
-                while [x[0] for x in bag_list].count(x[0]) > 1:
+    bag_names = [bag[0] for bag in bagsLoaded]
+    if any([bag_names.count(bag_name)>1 for bag_name in bag_names]):
+        for bag in bagsLoaded:
+            if bag_names.count(bag[0]) > 1:
+                i = int(bag[0].split(' ')[-1]) if bag[0].split(' ')[-1].isdecimal() else 1
+                while [bag[0] for bag in bagsLoaded].count(bag[0]) > 1:
                     i += 1
-                    x[0] = f"""{x[0].rstrip(" 1234567890")} {i}"""
+                    bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
     return bagsLoaded
 
 def save_bags(bagsLoaded, error = False, ch = character()) -> int:
