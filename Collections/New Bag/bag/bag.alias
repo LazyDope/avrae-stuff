@@ -840,7 +840,7 @@ match args_list:
                 coins, error = modify_coins(bagsLoaded, coin, cost)
             if not error:
                 quantity = -quantity if remove else quantity
-                if not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower()) and item.lower() in COIN_TYPES:
+                if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
                     bag, error = modify_coins(bagsLoaded, item, quantity)
                 else:
                     bag, error = modify_item(bagsLoaded, item, quantity, input_name)
