@@ -120,7 +120,7 @@ def _as_dict(listordict) -> SafeDict:
     match typeof(listordict):
         case 'SafeDict':
             return listordict
-        case 'SafeList' if max(listordict, key=len) == 2:
+        case 'SafeList' if len(max(listordict, key=len)) == 2:
             return dict(listordict)
         case _:
             err(f"{typeof(listordict)} cannot be converted to a dict.{newline}{listordict} caused this error.",True)
