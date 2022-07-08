@@ -19,7 +19,7 @@ COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
 coinPouchName = get_svar("coinPouchName") or get("coinPouchName","Coin Pouch")
-coinWeighs = get_svar("coinWeighs") or get("coinWeighs",0.02)
+coinWeighs = float(get_svar("coinWeighs") or get("coinWeighs",0.02))
 
 for var in ['coinRates','coinPouchName','coinWeighs']:
     if (svar:=get_svar(var)):
