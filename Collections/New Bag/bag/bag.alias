@@ -280,16 +280,18 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
     # define variables
     bags_dict = _as_dict(bags_dict)
     coin = coin.lower()
+    
+    # check if coins are valid
     error = not (coin in COIN_TYPES)
     
-    # check if standard coins are in use, and make sure the coin is value
+    # check if standard coins are in use
     if use_coin_purse(bagsLoaded):
         coins = parse_coins(f"{quantity}{coin}") if not error else None
         if coins and not (error:=-coins.total>=ch.coinpurse.total):
             # modify the coin purse
             ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
         pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
-    else:
+    elif not error:
         pouch = get_bag(bags_dict, coinPouchName, exact_match=True, create_on_fail=True)
         for coin in COIN_TYPES:
             if coin not in pouch[1]:
@@ -840,11 +842,12 @@ match args_list:
                 quantity = -quantity if remove else quantity
                 if not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower()) and item.lower() in COIN_TYPES:
                     bag, error = modify_coins(bagsLoaded, item, quantity)
-                bag, error = modify_item(bagsLoaded, item, quantity, input_name)
+                else:
+                    bag, error = modify_item(bagsLoaded, item, quantity, input_name)
             success = save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         if buy:
-            focus = coins if error else bag
+            focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
             text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} and puts it in {title_bag}",f" can't afford to buy {item}"][success]}＂""")
         if add or remove:
