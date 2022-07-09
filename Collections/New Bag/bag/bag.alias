@@ -48,7 +48,6 @@ weightDict.update(custWeights)
 ignoreBags = settings.weightlessBags
 weightTracking = True if settings.weightTracking.lower() == 'on' else False
 encumbrance = True if settings.encumbrance.lower() == 'on' else False
-openMode = openModes.index(settings.openMode)
 carryMod = strength*(2 if get('race',character().race).lower() in pbRaces else 1)*(2 if load_json(get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and get("l6totem","") == "Bear" else 1)
 
 #Define functions
@@ -554,7 +553,7 @@ def display_bag(bag: [str, SafeDict]) -> (SafeList, float, float, int, bool):  #
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
     
 
-def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None) -> str:
+def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode: str = None) -> str:
     """
     Create and collect the full display for a list of bags
     :arg bagsLoaded: the list of bags to display for the 'All' mode
@@ -562,14 +561,14 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None) -> str:
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    openMode = settings.openMode
+    openMode = openMode if openMode in openModes else settings.openMode
     coinbag = [get_coins(bagsLoaded)]
     
     # define loop based on what mode we're in
-    match settings.openMode:
-        case 'None':
+    match openMode.lower():
+        case 'none':
             loop = []
-        case 'One':
+        case 'one':
             loop = [focus]
         case _:
             loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else [])
@@ -646,6 +645,52 @@ def make_plural(word: str, quantity: int = 0) -> str:
     else:
         return word
 
+def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
+    string = ""
+    tlimit = limit-3
+    match typeof(input_values):
+        case 'SafeList':
+            string += "["
+            max_index = len(input_values)-1
+            for i, value in enumerate(input_values):
+                value_string = ""
+                if not i:
+                    value_string = f"""{value if typeof(value) == 'int' else f'"{value}"'}"""
+                elif i == max_index:
+                    value_string = f""", {value if typeof(value) == 'int' else f'"{value}"'}]"""
+                else:
+                    value_string = f""", {value if typeof(value) == 'int' else f'"{value}"'}"""
+                if (len(string)+len(value_string))>tlimit:
+                    return string+"..."
+                else:
+                    string+=value_string
+        case 'SafeDict':
+            string += "{"
+            for i, item in enumerate(input_values.items()):
+                x, y = item
+                if not i:
+                    x_string = f'''"{x}":'''
+                    y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}"""
+                elif i == max_index:
+                    x_string = f''', "{x}":'''
+                    y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}}"""
+                else:
+                    x_string = f''', "{x}":'''
+                    y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}"""
+                if (len(string)+len(x_string))>tlimit:
+                    return string + "..."
+                elif (len(string)+len(f'''{x_string} {y_string}'''))>tlimit:
+                    return string + x_string + "..."
+                else:
+                    string += f"{x_string} {y_string}"
+        case 'str'|'int':
+            if len(str(input_values))>limit:
+                return str(input_values)[:tlimit]+"..."
+            else:
+                return input_values
+    return string
+        
+
 def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
     """
     Fixes the args so that if a symbolic subcommand is placed
@@ -676,6 +721,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = load_bags()
+openMode = 'all'
 
 # match the input to a subcommand
 match args_list:
@@ -690,48 +736,48 @@ match args_list:
         text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
         This variable defines what the conversion rates between coin types is. The types of coins are also derived from this.
         __Current Value__
-        `{dump_json(COIN_RATES)}`
+        `{limit_length(COIN_RATES)}`
         __Default__
-        `{dump_json(DEFAULT_COIN_RATES)}`
+        `{limit_length(DEFAULT_COIN_RATES)}`
         
         `{ctx.prefix}s/c/uvar coinPouchName`
         This variable defines what bag to look for when trying to modify coins.
         __Current Value__
-        `{coinPouchName}`
+        `{limit_length(coinPouchName)}`
         __Default__
         `Coin Pouch`
         
         `{ctx.prefix}s/c/uvar coinWeighs`
         This variable defines how much each coin will weigh.
         __Current Value__
-        `{coinWeighs}`
+        `{limit_length(coinWeighs)}`
         __Default__
         `0.02`＂
         -f ＂Homebrew|`{ctx.prefix}s/c/uvar extraPacks`
         This variable lets you define equipment packs that are not included.
         __Loaded Packs__
-        `{', '.join([x[0] for x in hb_packs] or ["None"])}`
+        `{limit_length([x[0] for x in hb_packs] or ["None"])}`
         __Default Packs__
-        `{', '.join([x[0] for x in default_packs])}`
+        `{limit_length([x[0] for x in default_packs])}`
         
         `{ctx.prefix}s/c/uvar powerfulBuildRaces`
         This variable lets you define additional races which get the benefit of doubled carry capacity.
         __Loaded Races__
-        `{dump_json(hb_pbRaces)}`
+        `{limit_length(hb_pbRaces)}`
         __Default__
         `{dump_json(["bugbear","firbolg","goliath","orc"])}`＂
         
         -f ＂Storing Item Information|`{ctx.prefix}svar bag_custom_weights`
         This variable lets you define custom item weights, costs, and bundle sizes like is stored in your bagSettings cvar.
         __Loaded Items__
-        `{", ".join(server_weights or ["None"])}`
+        `{limit_length(server_weights or ["None"])}`
         __Default__
         [GVar Here](https://avrae.io/dashboard/gvars?lookup=19753bce-e2c1-42af-8c4f-baf56e2f6749)
         
         `{ctx.prefix}cvar bagSettings`
         This variable stores changes you've made to your settings in the alias, best not to edit manually.
         __Current Value__
-        `{dump_json(settings)}`
+        `{limit_length(settings)}`
         __Default__
         `{dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})}`＂
         ''')
@@ -819,6 +865,7 @@ match args_list:
         error = False
         coins = None
         bagsLoaded = dict(bagsLoaded)
+        openMode = None
         match args:
             case [quantity, item, *price] if quantity.strip("+-").isdecimal():
                 quantity = int(quantity.strip("+-"))
@@ -920,7 +967,7 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        settings['openMode'] = input_name.title() if input_name.title() in openModes else settings.openMode
+        settings['openMode'] = openMode = input_name.title() if input_name.title() in openModes else settings.openMode
         text_dict = {'None':" doesn't want to see their full bags when they add or remove an item!",'One':" would like to see the bag they removed something from when they add or remove an item!",'All':" would like to know what's left in all of their bags when they add or remove an item!"}
         text.append(f"""-title ＂{name}{text_dict[settings.openMode.title()]}＂""")
 
@@ -960,9 +1007,8 @@ if focus != "help":
     ignoreBags = settings.weightlessBags
     weightTracking = True if settings.weightTracking.lower() == 'on' else False
     encumbrance = True if settings.encumbrance.lower() == 'on' else False
-    openMode = openModes.index(settings.openMode)
     
-    text += create_display(bagsLoaded, focus)
+    text += create_display(bagsLoaded, focus, openMode)
     text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
 ch.set_cvar('bagSettings', dump_json(settings))
 return ' '.join(text)
