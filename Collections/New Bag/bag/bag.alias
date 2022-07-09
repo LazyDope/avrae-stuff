@@ -572,7 +572,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None) -> str:
         case 'One':
             loop = [focus]
         case _:
-            loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else []
+            loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else [])
     if not loop:
         return "-desc ＂You deleted your only bag and have no bags remaining!＂"
     else:
