@@ -428,7 +428,7 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
         success = 1
     return success
 
-def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float, int, bool):
+def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool):
     """
     Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
     Returns the weight as a float, the number of fuzzy items total as an int, and whether no matching weight was found as a bool.
@@ -452,7 +452,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float, int, bool):
         itemWeight = "†"
         unknownItem = True
         
-    return float(itemWeight), fuzzyItemCount, unknownItem
+    return itemWeight, fuzzyItemCount, unknownItem
     
 
 def weigh_bag(bag: [str, SafeDict]) -> (float, float, int):
