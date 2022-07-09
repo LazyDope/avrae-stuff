@@ -68,13 +68,10 @@ def load_bags(ch = character()) -> SafeList:
         ch.delete_cvar(f"bag{i}")
     
     # create a default bag only if there were no legacy bags
-    if old_bags:
-        character().set_cvar_nx("bags",'[]')
-    else:
-        character().set_cvar_nx("bags",'[["Bag 1",{}]]')
+    defaultbag = '[]' if old_bags else '[["Bag 1",{}]]'
         
     # load bags
-    bagsLoaded = load_json(get('bags'))
+    bagsLoaded = load_json(get('bags', defaultbag))
     bagsLoaded = bagsLoaded + old_bags_converted
     
     # remove duplicate names
@@ -575,7 +572,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None) -> str:
         case 'One':
             loop = [focus]
         case _:
-            loop = bagsLoaded + coinbag if coinbag not in bagsLoaded else []
+            loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else []
     if not loop:
         return "-desc ＂You deleted your only bag and have no bags remaining!＂"
     else:
