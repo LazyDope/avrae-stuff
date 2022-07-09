@@ -673,7 +673,7 @@ def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
                     y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}"""
                 elif i == max_index:
                     x_string = f''', "{x}":'''
-                    y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}}"""
+                    y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}""" + "}"
                 else:
                     x_string = f''', "{x}":'''
                     y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}"""
