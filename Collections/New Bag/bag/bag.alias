@@ -733,7 +733,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = load_bags()
-openMode = 'all'
+openMode = 'All'
 
 # match the input to a subcommand
 match args_list:
