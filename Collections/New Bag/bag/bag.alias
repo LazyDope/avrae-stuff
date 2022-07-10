@@ -893,6 +893,7 @@ match args_list:
                 cost = -num * quantity
                 coins, error = modify_coins(bagsLoaded, coin, cost)
                 input_name = input_name or "Shopping Bag"
+                bag = None                          
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
@@ -904,7 +905,7 @@ match args_list:
         if buy:
             focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
-            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} and puts it in {title_bag}",f" can't afford to buy {item}"][success]}＂""")
+            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} for {abs(cost)}{coin} and puts it in {title_bag}",f" can't afford the {abs(cost)}{coin} to buy {abs(quantity)} {item_name}"][success]}＂""")
         if add or remove:
             focus = bag if bag else focus
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
