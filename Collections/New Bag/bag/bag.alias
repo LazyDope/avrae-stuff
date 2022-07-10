@@ -656,12 +656,12 @@ def make_plural(word: str, quantity: int = 0) -> str:
     else:
         return word
 
-def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
+def limit_length(input_values, limit: int=100) -> str:
     string = ""
     tlimit = limit-3
-    max_index = len(input_values)-1
     match typeof(input_values):
         case 'SafeList':
+            max_index = len(input_values)-1
             string += "["
             for i, value in enumerate(input_values):
                 value_string = ""
