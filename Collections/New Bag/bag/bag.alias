@@ -181,7 +181,22 @@ def new_bag(bags_dict: SafeDict, bag_name = "New Bag") -> [str, SafeDict]:
     bag_name = find_valid_name(bags_dict, bag_name) # check for a name that is unused
     bags_dict[bag_name] = {}
     return [bag_name, bags_dict.get(bag_name)]
-    
+
+def is_partial_match(itemA: string, itemB: string) -> (bool):
+    """
+    Help with fuzzy matching.
+    Returns a bool if itemA is an exact/partial match for itemB at word boundaries (start of word or after a space)
+    :arg itemA: the partial string to check
+    :arg itemB: the string to check itemA against
+    """
+    itemA = itemA.lower()
+    itemB = itemB.lower()
+    #Check for an exact match
+    if itemA == itemB:
+        return true
+    #Check if itemA is a shortened form of B or a subsequent word, i.e. "heal" matches "potion of healing" but "ion" won't
+    return itemB.startswith(itemA) or f' {itemA}' in itemB
+
 def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (SafeList, bool):
     """
     Modifies an item in a bag by a given quantity
@@ -214,7 +229,7 @@ def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_
         return (bag_name, error)
     
     # try to find the closest match for the item we want, ignoring case
-    item_names = [x for x in bag[1] if item.lower() == x.lower()]
+    item_names = [x for x in bag[1] if is_partial_match(item, x)]
     item_name = item_names[0] if item_names else item
     
     # save the current quantity of the item, then make sure that we have enough of the item in the bag
@@ -245,7 +260,7 @@ def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, firs
     
     # loop though each bag, removing as many of the item as possible until remainder consumed
     for bag in bagsLoaded:
-        item_names = [x for x in bag[1] if item.lower() == x.lower()]
+        item_names = [x for x in bag[1] if is_partial_match(item, x)]
         item_name = item_names[0] if item_names else item
         c_value = bag[1][item_name] if item_names else 0
         total_items += c_value
@@ -349,7 +364,7 @@ def find_bag_with_item(bags_dict: SafeDict, item: str) -> [str, SafeDict]:
     """
     bags_dict = _as_dict(bags_dict)
     for bag_name, items in bags_dict.items():
-        if any([item.lower() in i.lower() for i in items]):
+        if any([item for i in items if is_partial_match(item, i)]):
             return [bag_name, items]
     return None
 
@@ -438,7 +453,7 @@ def get_matching_items(item: str) -> (SafeDict):
     if item:
         item_name = item.lower()
         for y in weightDict:
-            if y in item_name or item_name in y:
+            if is_partial_match(item_name, y):
                 item_matches.update({y:weightDict[y]})    
     return item_matches
     
@@ -461,7 +476,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool
         itemWeight = 0.5
     elif fuzzyItemCount<5:
         fuzzyItemCount += 1
-        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if y in item_name]+["†"])[0]
+        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if is_partial_match(item_name, y)]+["†"])[0]
     else:
         itemWeight = "†"
         unknownItem = True
@@ -916,7 +931,7 @@ match args_list:
                     if len(matchItem) > 0:
                         itemList = "".join(["\n • `"+x+"`" for x in matchItem]) if len(matchItem) < 10 else " (too many to list)"
                     text.append(f"""-title ＂{name} needs help buying items＂""")
-                    text.append(f"""-desc ＂Found {len(matchItem)} possible matches for `{item}`{itemList}\nTry your `{cmd}` command again using a more exact match for what you want to buy.\nAlternately, you can specify a price for the item(s) you're trying to purchase.＂""")
+                    text.append(f"""-desc ＂Found {len(matchItem)} items matching `{item}`{itemList}\nTry your `{cmd}` command again using a more exact match for what you want to buy.\nAlternately, you can specify a price for the item(s) you're trying to purchase.＂""")
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
