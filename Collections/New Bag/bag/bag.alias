@@ -392,7 +392,7 @@ def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (str, str):
     bags_dict[new_name] = bags_dict.pop(old_bag[0])
     return (old_bag[0], new_name)
 
-def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> int:
+def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
     """
     Swaps the position of a bag in the display
     Returns the new position
@@ -404,7 +404,7 @@ def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> int:
     bagsLoaded.remove([bag[0], bag[1]])
     position = max(min(len(bagsLoaded), position), 1)
     bagsLoaded.insert(position-1, bag)
-    return position
+    return bag[0], position
 
 def delete_bag(bagsLoaded: SafeList, bag_name) -> (str, bool):
     """
@@ -823,7 +823,7 @@ match args_list:
             input_name = args.pop(0)
         position = int(args[0]) if args and args[0].isdecimal() else 0
         if input_name:
-            position = swap_pos(bagsLoaded, input_name, position)
+            input_name, position = swap_pos(bagsLoaded, input_name, position)
             success = save_bags(bagsLoaded)
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" has nothing to swap",f" swaps {title_bag} to position {position}",f" fails to swap {title_bag}"][success]}＂""")
