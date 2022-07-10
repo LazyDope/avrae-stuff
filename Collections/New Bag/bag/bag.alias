@@ -998,6 +998,7 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         
+        openMode = "One" if input_name else openMode
         focus = get_bag(bagsLoaded, input_name) if input_name else focus
         title_bag = f"""their {focus[0]}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
