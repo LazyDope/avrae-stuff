@@ -42,12 +42,12 @@ if not "autoCoins" in settings:
     settings.update({"autoCoins":False})
     
 weightDict = load_json(get_gvar("19753bce-e2c1-42af-8c4f-baf56e2f6749"))
-custWeights = settings.customWeights
+custWeights = settings.get('customWeights', {})
 custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
 weightDict.update(custWeights)
-ignoreBags = settings.weightlessBags
-weightTracking = True if settings.weightTracking.lower() == 'on' else False
-encumbrance = True if settings.encumbrance.lower() == 'on' else False
+ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
+encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
 carryMod = strength*(2 if get('race',character().race).lower() in pbRaces else 1)*(2 if load_json(get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and get("l6totem","") == "Bear" else 1)
 
 #Define functions
@@ -304,7 +304,7 @@ def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (Safe
                 pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
         
         # convert into higher denominations if the settings is enabled
-        if settings.autoCoins:
+        if settings.get('autoCoins',False):
             for coin in COIN_TYPES[:-1:-1]:
                 smaller = COIN_TYPES[COIN_TYPES.index(coin)+1]
                 rate = int(COIN_RATES[smaller]/COIN_RATES[coin])
@@ -561,7 +561,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    openMode = openMode if openMode in openModes else settings.openMode
+    openMode = openMode if openMode in openModes else settings.get('openMode','All')
     coinbag = [get_coins(bagsLoaded)]
     
     # define loop based on what mode we're in
@@ -587,7 +587,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
         # add footnotes based on weight results
-        if weightTracking and settings.openMode == 'All':
+        if weightTracking and settings.get('openMode','All'):
             display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
             if anyUnknownItem:
                 display_footer += newline + "*Items marked with a dagger (†) are entirely unrecognized.*"
@@ -961,15 +961,15 @@ match args_list:
                 settings['weightTracking'] = "Off" if weightTracking else "On"
         success = 1
         text_dict = {'on':" is watching their weight!", 'off': " thinks weight is just a number!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.weightTracking.lower()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[settings.get('weightTracking','Off').lower()]}＂""")
         
     case [("open"|"o"|"&"), *args] | [input_name, ("open"|"o"|"&"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        settings['openMode'] = openMode = input_name.title() if input_name.title() in openModes else settings.openMode
+        settings['openMode'] = openMode = input_name.title() if input_name.title() in openModes else settings.get('openMode','All')
         text_dict = {'None':" doesn't want to see their full bags when they add or remove an item!",'One':" would like to see the bag they removed something from when they add or remove an item!",'All':" would like to know what's left in all of their bags when they add or remove an item!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.openMode.title()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[settings.get('openMode','All').title()]}＂""")
 
     case [("encumbrance"|"e"|"="), *args] | [input_name, ("encumbrance"|"e"|"="), *args]:
         if not input_name:
@@ -983,7 +983,7 @@ match args_list:
                 settings['encumbrance'] = "Off" if encumbrance else "On"
         success = 1
         text_dict = {'on':" is feeling weighed down!", 'off': " wants to get this weight off their shoulders!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.encumbrance.lower()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[settings.get('encumbrance','Off').lower()]}＂""")
         
     case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
         if not input_name:
@@ -1001,12 +1001,12 @@ if focus != "help":
         bagsLoaded = load_bags()
     
     # reload settings incase anything changed
-    custWeights = settings.customWeights
-    custWeights.update(load_json(get_svar("bag_custom_weights","{}")))
+    custWeights = settings.get('customWeights', {})
+    custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
     weightDict.update(custWeights)
-    ignoreBags = settings.weightlessBags
-    weightTracking = True if settings.weightTracking.lower() == 'on' else False
-    encumbrance = True if settings.encumbrance.lower() == 'on' else False
+    ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
+    encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
     
     text += create_display(bagsLoaded, focus, openMode)
     text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
