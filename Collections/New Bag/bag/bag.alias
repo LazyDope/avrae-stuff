@@ -859,7 +859,7 @@ match args_list:
                 else:
                     bag, error = modify_item(bagsLoaded, item, -quantity, input_name)
                 if not error:
-                    if destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
+                    if destination and destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
                         dest_bag, error = modify_coins(bagsLoaded, item.lower(), quantity)
                     else:
                         dest_bag, error = modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
@@ -925,7 +925,7 @@ match args_list:
         if not error:
             pack = pack[0]
             pack_name = find_valid_name(bagsLoaded, pack[0])
-            bagsLoaded.update({pack_name: pack[1]})
+            bagsLoaded.append([pack_name, pack[1]])
             focus = get_bag(bagsLoaded, pack_name, exact_match = True)
         success = save_bags(bagsLoaded, error)
         title_bag = f"""{pack_name}""" if focus else input_name
