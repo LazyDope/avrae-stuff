@@ -14,10 +14,8 @@ COIN_RATES = list((load_json(((svar:=get_svar("coinRates")) or get("coinRates", 
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
-DEFAULT_COIN = (svar:=get_svar("defaultCoin")) or get("defaultCoin")
-DEFAULT_COIN = DEFAULT_COIN if DEFAULT_COIN in COIN_TYPES else "gp" if "gp" in COIN_TYPES else COIN_TYPES[0]
-if svar and DEFAULT_COIN==svar:
-    ch.set_cvar('defaultCoin',svar)
+DEFAULT_COIN = [coin for coin, rate in COIN_RATES if rate == 1]
+DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
 coinPouchName = (svar:=get_svar("coinPouchName")) or get("coinPouchName","Coin Pouch")
 coinWeighs = float(get_svar("coinWeighs") or get("coinWeighs",0.02))
 
@@ -128,7 +126,7 @@ def _as_list(listordict) -> SafeDict:
     """
     match typeof(listordict):
         case 'SafeDict':
-            return [[x,y] for x,y in listordict.items()]
+            return list(listordict.items())
         case 'SafeList':
             return listordict
         case _:
@@ -161,8 +159,7 @@ def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=Fals
     
     # create a new bag if the argument is enabled
     if not bag and create_on_fail:
-        return new_bag(dict(bagsLoaded),bag_id)
-    
+        return new_bag(bagsLoaded, bag_id)
     # return the bag
     if not bag:
         return None
@@ -170,38 +167,23 @@ def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=Fals
         bag = bag[0]
         return [bag[0], bag[1]]
     
-def new_bag(bags_dict: SafeDict, bag_name = "New Bag") -> [str, SafeDict]:
+def new_bag(bagsLoaded: SafeList, bag_name = "New Bag") -> [str, SafeDict]:
     """
     Creates a new bag with the given name if available, or tries to find an unused one if not.
     Returns the bag
-    :arg bags_dict: the dict of bags to create in
+    :arg bagsLoaded: the list of bags to create in
     :var bag_name: the name of the new bag
     """
-    bags_dict = _as_dict(bags_dict)
-    bag_name = find_valid_name(bags_dict, bag_name) # check for a name that is unused
-    bags_dict[bag_name] = {}
-    return [bag_name, bags_dict.get(bag_name)]
-
-def is_partial_match(itemA: string, itemB: string) -> (bool):
-    """
-    Help with fuzzy matching.
-    Returns a bool if itemA is an exact/partial match for itemB at word boundaries (start of word or after a space)
-    :arg itemA: the partial string to check
-    :arg itemB: the string to check itemA against
-    """
-    itemA = itemA.lower()
-    itemB = itemB.lower()
-    #Check for an exact match
-    if itemA == itemB:
-        return true
-    #Check if itemA is a shortened form of B or a subsequent word, i.e. "heal" matches "potion of healing" but "ion" won't
-    return itemB.startswith(itemA) or f' {itemA}' in itemB
-
-def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (SafeList, bool):
+    bagsLoaded = _as_list(bagsLoaded)
+    bag_name = find_valid_name(bagsLoaded, bag_name) # check for a name that is unused
+    bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
+    return bagsLoaded[-1]
+    
+def modify_item(bagsLoaded: SafeList, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (SafeList, bool):
     """
     Modifies an item in a bag by a given quantity
     Returns a tuble of the bag modified and a bool to return if there was an error
-    :arg bags_dict: the dict of bags to modify
+    :arg bagsLoaded: the list of bags to modify
     :arg item: the name of the item to modify
     :var quantity: the delta of the item to modify, positive adds, negative removes
     :var bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
@@ -209,27 +191,27 @@ def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_
     :var recursive_search: whether to search for other bags that contain the requested items, only works if quantity is negative
     """
     # setup variables
-    bags_dict = _as_dict(bags_dict)
+    bagsLoaded = _as_list(bagsLoaded)
     bag = None
     error = True
     
     # try to find a bag with the given name, failing to do so, fallback to searching for a bag with the item already in it
     if bag_name:
-        bag = get_bag(bags_dict, bag_name)
+        bag = get_bag(bagsLoaded, bag_name)
     if not bag:
-        bag = find_bag_with_item(bags_dict, item)
+        bag = find_bag_with_item(bagsLoaded, item)
         recursive_search = True
         
     # create a new bag if the option is set, otherwise grab the first bag in the list
     if not bag and create_on_fail:
-        bag = new_bag(bags_dict, bag_name)
-    if not bag and len(bags_dict)>0:
-        bag = get_bag(bags_dict, 0)
+        bag = new_bag(bagsLoaded, bag_name)
+    if not bag and len(bagsLoaded)>0:
+        bag = get_bag(bagsLoaded, 0)
     if not bag:
         return (bag_name, error)
     
     # try to find the closest match for the item we want, ignoring case
-    item_names = [x for x in bag[1] if is_partial_match(item, x)]
+    item_names = [x for x in bag[1] if item.lower() == x.lower()]
     item_name = item_names[0] if item_names else item
     
     # save the current quantity of the item, then make sure that we have enough of the item in the bag
@@ -241,7 +223,7 @@ def modify_item(bags_dict: SafeDict, item, quantity=1, bag_name=None, create_on_
         if bag[1][item_name] <= 0:
             bag[1].pop(item_name)
         if remainder < 0 and recursive_search:
-            return _remove_item_recursive(bags_dict, item, remainder, bag[0])
+            return _remove_item_recursive(bagsLoaded, item, remainder, bag[0])
         error = False
     return (bag, error)
 
@@ -260,7 +242,7 @@ def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, firs
     
     # loop though each bag, removing as many of the item as possible until remainder consumed
     for bag in bagsLoaded:
-        item_names = [x for x in bag[1] if is_partial_match(item, x)]
+        item_names = [x for x in bag[1] if item.lower() == x.lower()]
         item_name = item_names[0] if item_names else item
         c_value = bag[1][item_name] if item_names else 0
         total_items += c_value
@@ -279,18 +261,19 @@ def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, firs
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bags_dict: SafeDict, coin=DEFAULT_COIN, quantity=1, ch=character()) -> (SafeList, bool):
+def modify_coins(bagsLoaded: SafeList, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> (SafeList, bool):
     """
     Handles automatic switching between using coin purse and using coin pouch depending on if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
-    :arg bags_dict: dict of all the bags
+    :arg bagsLoaded: list of all the bags
     :arg coin: the coin that is being modified
     :var quantity: how much to change the coins by
     :var ch: the character, can be passed through if already loaded
     """
     # define variables
-    bags_dict = _as_dict(bags_dict)
+    bagsLoaded = _as_list(bagsLoaded)
     coin = coin.lower()
+    pouch = None
     
     # check if coins are valid
     error = not (coin in COIN_TYPES)
@@ -303,18 +286,17 @@ def modify_coins(bags_dict: SafeDict, coin=DEFAULT_COIN, quantity=1, ch=characte
             ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
         pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
     elif not error:
-        pouch = get_bag(bags_dict, coinPouchName, exact_match=True, create_on_fail=True)
-        for coin in COIN_TYPES:
-            if coin not in pouch[1]:
-                pouch[1][coin] = 0
-        if coin not in COIN_TYPES:
-            return (pouch, error)
+        pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
+        for coin_type in COIN_TYPES:
+            if coin_type not in pouch[1]:
+                pouch[1][coin_type] = 0
+        pouch[1][coin] += quantity
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         for coin in COIN_TYPES[1::-1]:
             if pouch[1][coin] < 0:
                 larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
-                rate = int(COIN_RATES[coin]/COIN_RATES[larger])
+                rate = COIN_RATES[coin]/COIN_RATES[larger]
                 p = pouch[1][coin]//rate
                 pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
         
@@ -322,11 +304,24 @@ def modify_coins(bags_dict: SafeDict, coin=DEFAULT_COIN, quantity=1, ch=characte
         if settings.get('autoCoins',False):
             for coin in COIN_TYPES[:-1:-1]:
                 smaller = COIN_TYPES[COIN_TYPES.index(coin)+1]
-                rate = int(COIN_RATES[smaller]/COIN_RATES[coin])
+                rate = COIN_RATES[smaller]/COIN_RATES[coin]
                 p = pouch[1][smaller]//rate
                 if pouch[1][smaller] >= rate:
                     pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
-        error = any([pouch[1][coin]<0 for coin in pouch[1]])
+        
+        # convert decimal currencies into lower denominations if possible
+        for coin in COIN_TYPES[:-1:-1]:
+            if (decimal:=pouch[1][coin] % 1):
+                index = COIN_TYPES.index(coin)
+                smaller = COIN_TYPES[index+1]
+                rate = COIN_RATES[smaller]/COIN_RATES[coin]
+                p = decimal*rate
+                if index == len(COIN_TYPES)-2 and p%1:
+                    return (pouch, True)
+                pouch[1].update({smaller:pouch[1][smaller]+p,coin:int(pouch[1][coin]-decimal)})
+        pouch[1][COIN_TYPES[-1]] = int(pouch[1][COIN_TYPES[-1]])
+                
+        error = any([(pouch[1][coin]<0) or (pouch[1][coin]%1) for coin in pouch[1]]) or error
     return (pouch, error)
 
 def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
@@ -348,23 +343,23 @@ def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
             coins = {x:0 for x in COIN_TYPES}
     return [cname, coins]
 
-def use_coin_purse(bags_dict: SafeDict) -> bool:
+def use_coin_purse(bagsLoaded: SafeList) -> bool:
     """
     Checks if coin_purse should be used, and returns a boolean
-    :arg bags_dict: The dict of bags to check
+    :arg bagsLoaded: The list of bags to check
     """
-    bags_dict = _as_dict(bags_dict)
-    return not get_bag(bags_dict, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
+    bagsLoaded = _as_list(bagsLoaded)
+    return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
         
-def find_bag_with_item(bags_dict: SafeDict, item: str) -> [str, SafeDict]:
+def find_bag_with_item(bagsLoaded: SafeList, item: str) -> [str, SafeDict]:
     """
     Finds and returns the first bag with a given item in it
-    :arg bags_dict: the dict of bags to search in
+    :arg bagsLoaded: the list of bags to search in
     :arg item: the desired item
     """
-    bags_dict = _as_dict(bags_dict)
-    for bag_name, items in bags_dict.items():
-        if any([item for i in items if is_partial_match(item, i)]):
+    bagsLoaded = _as_list(bagsLoaded)
+    for bag_name, items in bagsLoaded:
+        if any([item.lower() in i.lower() for i in items]):
             return [bag_name, items]
     return None
 
@@ -442,21 +437,6 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
         success = 1
     return success
 
-def get_matching_items(item: str) -> (SafeDict):
-    """
-    Grabs a list of items from the weightDict that might match the specified item
-    Returns a SafeList of those items so they don't need to be re-searched and all relevant data is present.
-    Count of total matches can be inferred from the length of the returned values, with an empty dict equating to no matches found
-    :arg item: the name of the item
-    """
-    item_matches = {}
-    if item:
-        item_name = item.lower()
-        for y in weightDict:
-            if is_partial_match(item_name, y):
-                item_matches.update({y:weightDict[y]})    
-    return item_matches
-    
 def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool):
     """
     Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
@@ -476,7 +456,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool
         itemWeight = 0.5
     elif fuzzyItemCount<5:
         fuzzyItemCount += 1
-        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if is_partial_match(item_name, y)]+["†"])[0]
+        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if y in item_name]+["†"])[0]
     else:
         itemWeight = "†"
         unknownItem = True
@@ -588,6 +568,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     Create and collect the full display for a list of bags
     :arg bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
+    :var openMode: an override to the open mode
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
@@ -620,9 +601,9 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
         if weightTracking and settings.get('openMode','All'):
             display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
             if anyUnknownItem:
-                display_footer += newline + "*Items marked with a dagger (†) are entirely unrecognized.*"
+                display_footer += "\n*Items marked with a dagger (†) are entirely unrecognized.*"
             if unknownTotal:
-                display_footer += newline + f"""{asterisk+f"You have {unknownTotal} item{'s'*(unknownTotal>1)} which {doesntdont[unknownTotal>1]} have an exact match in the database."}"""
+                display_footer += f"""\n{asterisk+f"You have {unknownTotal} item{'s'*(unknownTotal>1)} which {doesntdont[unknownTotal>1]} have an exact match in the database."}"""
             display_footer += "＂"
             
             text.append(display_footer)
@@ -631,7 +612,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
         if encumbrance:
             if not carriedWeight:
                 carriedWeight = carried_weight(bagsLoaded)
-            encumbrance_footer += newline + (""" -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else "")
+            encumbrance_footer += """\n -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else ""
             text.append(encumbrance_footer)
     return text
 
@@ -765,6 +746,7 @@ match args_list:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
         text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
         This variable defines what the conversion rates between coin types is. The types of coins are also derived from this.
+        The coin with coin rate equal to 1 will be the default coin (the coin aliases would give you), or the first coin if there isn't one.
         __Current Value__
         `{limit_length(COIN_RATES)}`
         __Default__
@@ -782,15 +764,7 @@ match args_list:
         __Current Value__
         `{limit_length(coinWeighs)}`
         __Default__
-        `0.02`
-        
-        `{ctx.prefix}s/c/uvar defaultCoin`
-        This variable defines what the default coin to add is (your world's equivalent to gp).
-        This exists so that aliases can add a coin without worrying about custom coin types. 
-        __Current Value__
-        `{limit_length(defaultCoin)}`
-        __Default__
-        `gp`＂
+        `0.02`＂
         -f ＂Homebrew|`{ctx.prefix}s/c/uvar extraPacks`
         This variable lets you define equipment packs that are not included.
         __Loaded Packs__
@@ -857,7 +831,6 @@ match args_list:
     case [("create"|"c"|"$"), *args] | [input_name, ("create"|"c"|"$"), *args]:
         if not input_name:
             input_name = ' '.join(args)
-        bagsLoaded = dict(bagsLoaded)
         bag = new_bag(bagsLoaded, input_name) if input_name else new_bag(bagsLoaded)
         success = save_bags(bagsLoaded)
         focus = bag if success else focus
@@ -866,7 +839,6 @@ match args_list:
     
     case [("move"|"m"|">"), input_name, *args] | [input_name, ("move"|"m"|">"), *args]:
         bag, dest_bag = (None, None)
-        bagsLoaded = dict(bagsLoaded)
         error = False
         match args:
             case [quantity, item, *destination] if quantity.strip("+").isdecimal():
@@ -902,7 +874,6 @@ match args_list:
         price = None
         error = False
         coins = None
-        bagsLoaded = dict(bagsLoaded)
         openMode = None
         match args:
             case [quantity, item, *price] if quantity.strip("+-").isdecimal():
@@ -913,25 +884,13 @@ match args_list:
                 error = True
         if not error:
             if buy:
-                matchItem = get_matching_items(item)
-                #Only actually buy an item if they are specific about the item or the price.
-                if len(matchItem) == 1 or price:    
-                    item = [k for k in matchItem][0]
-                    fullcost = ''.join(price) or typeof(matchItem) == 'SafeDict' and matchItem.get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
-                    num = int(''.join([x for x in fullcost if x.isdecimal()]))
-                    coin = ''.join([x for x in fullcost]).lstrip(str(num))
-                    bundle = matchItem.get("bundle", 1) if typeof(matchItem) == 'SafeDict' else 1
-                    quantity = ceil(float(quantity) / bundle) * bundle
-                    cost = -num * quantity
-                    coins, error = modify_coins(bagsLoaded, coin, cost)                
-                else:   #If there's ambiguity, don't make the purchase
-                    error = True    #Don't modify their items
-                    focus = "help"  #Don't show their bags
-                    itemList = ""
-                    if len(matchItem) > 0:
-                        itemList = "".join(["\n • `"+x+"`" for x in matchItem]) if len(matchItem) < 10 else " (too many to list)"
-                    text.append(f"""-title ＂{name} needs help buying items＂""")
-                    text.append(f"""-desc ＂Found {len(matchItem)} items matching `{item}`{itemList}\nTry your `{cmd}` command again using a more exact match for what you want to buy.\nAlternately, you can specify a price for the item(s) you're trying to purchase.＂""")
+                fullcost = ''.join(price) or typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
+                num = int(''.join([x for x in fullcost if x.isdecimal()]))
+                coin = ''.join([x for x in fullcost]).lstrip(str(num))
+                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle",1)
+                quantity = ceil(float(quantity) / bundle) * bundle
+                cost = -num * quantity
+                coins, error = modify_coins(bagsLoaded, coin, cost)
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
@@ -940,7 +899,7 @@ match args_list:
                     bag, error = modify_item(bagsLoaded, item, quantity, input_name)
             success = save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
-        if buy and not error:
+        if buy:
             focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
             text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} and puts it in {title_bag}",f" can't afford to buy {item}"][success]}＂""")
@@ -952,7 +911,6 @@ match args_list:
     case [("pack"|"p"|"<"), *args] | [input_name, ("pack"|"p"|"<"), *args]:
         if not input_name:
             input_name = ' '.join(args)
-        bagsLoaded = dict(bagsLoaded)
         error = False
         pack = [pack for pack in packs if input_name == pack]
         if not pack:
