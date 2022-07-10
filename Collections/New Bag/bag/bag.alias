@@ -392,7 +392,7 @@ def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (str, str):
     bags_dict[new_name] = bags_dict.pop(old_bag[0])
     return (old_bag[0], new_name)
 
-def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> int:
+def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
     """
     Swaps the position of a bag in the display
     Returns the new position
@@ -404,7 +404,7 @@ def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> int:
     bagsLoaded.remove([bag[0], bag[1]])
     position = max(min(len(bagsLoaded), position), 1)
     bagsLoaded.insert(position-1, bag)
-    return position
+    return bag[0], position
 
 def delete_bag(bagsLoaded: SafeList, bag_name) -> (str, bool):
     """
@@ -677,6 +677,7 @@ def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
                     string+=value_string
         case 'SafeDict':
             string += "{"
+            max_index = len(input_values)-1
             for i, item in enumerate(input_values.items()):
                 x, y = item
                 if not i:
@@ -694,7 +695,7 @@ def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
                     return string + x_string + "..."
                 else:
                     string += f"{x_string} {y_string}"
-        case 'str'|'int':
+        case 'str'|'int'|'float':
             if len(str(input_values))>limit:
                 return str(input_values)[:tlimit]+"..."
             else:
@@ -822,7 +823,7 @@ match args_list:
             input_name = args.pop(0)
         position = int(args[0]) if args and args[0].isdecimal() else 0
         if input_name:
-            position = swap_pos(bagsLoaded, input_name, position)
+            input_name, position = swap_pos(bagsLoaded, input_name, position)
             success = save_bags(bagsLoaded)
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" has nothing to swap",f" swaps {title_bag} to position {position}",f" fails to swap {title_bag}"][success]}＂""")
@@ -887,7 +888,7 @@ match args_list:
                 fullcost = ''.join(price) or typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
                 num = int(''.join([x for x in fullcost if x.isdecimal()]))
                 coin = ''.join([x for x in fullcost]).lstrip(str(num))
-                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle",1)
+                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle") or 1
                 quantity = ceil(float(quantity) / bundle) * bundle
                 cost = -num * quantity
                 coins, error = modify_coins(bagsLoaded, coin, cost)
@@ -998,7 +999,8 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         focus = get_bag(bagsLoaded, input_name) if input_name else focus
-        title_bag = f"""their {focus[0]}""" if input_name else "a bag"
+        openMode = "One" if focus else "All"
+        title_bag = f"""their {focus[0]}""" if focus else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
 
 # don't display bags if viewing help
