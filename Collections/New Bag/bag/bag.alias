@@ -733,7 +733,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = load_bags()
-openMode = 'All'
+openMode = 'all'
 
 # match the input to a subcommand
 match args_list:
@@ -888,7 +888,7 @@ match args_list:
                 fullcost = ''.join(price) or typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
                 num = int(''.join([x for x in fullcost if x.isdecimal()]))
                 coin = ''.join([x for x in fullcost]).lstrip(str(num))
-                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle",1) or 1
+                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle") or 1
                 quantity = ceil(float(quantity) / bundle) * bundle
                 cost = -num * quantity
                 coins, error = modify_coins(bagsLoaded, coin, cost)
@@ -998,9 +998,9 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         
-        openMode = "One" if input_name else openMode
         focus = get_bag(bagsLoaded, input_name) if input_name else focus
-        title_bag = f"""their {focus[0]}""" if input_name else "a bag"
+        openMode = "One" if focus else "All"
+        title_bag = f"""their {focus[0]}""" if focus else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
 
 # don't display bags if viewing help
