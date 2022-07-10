@@ -612,7 +612,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
         if encumbrance:
             if not carriedWeight:
                 carriedWeight = carried_weight(bagsLoaded)
-            encumbrance_footer += """\n -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else ""
+            encumbrance_footer = """\n -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else ""
             text.append(encumbrance_footer)
     return text
 
