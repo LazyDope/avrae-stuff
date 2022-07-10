@@ -2,7 +2,7 @@ embed <drac2>
 #Define constants
 modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
 asterisk = '\\*'
-openModes = ["None","One","All"]
+openModes = ["none","one","all"]
 doesntdont = ["doesn't","don't"]
 ch = character()
 cmd = f"{ctx.prefix}{ctx.alias}"
@@ -32,7 +32,7 @@ pbRaces = ["bugbear","firbolg","goliath","orc"]
 pbRaces = pbRaces+(hb_pbRaces:=load_json(get("powerfulBuildRaces","[]"))+load_json(get_svar("powerfulBuildRaces","[]")))
 
 settings = load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})))
-if not "openMode" in settings or not settings.openMode in openModes:
+if not "openMode" in settings or not settings.openMode.lower() in openModes:
     settings.update({"openMode":"All"})
 if not "encumbrance" in settings:
     settings.update({"encumbrance":"Off"})
@@ -572,7 +572,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    openMode = openMode if openMode in openModes else settings.get('openMode','All')
+    openMode = openMode if openMode.lower() in openModes else settings.get('openMode','All')
     coinbag = [get_coins(bagsLoaded)]
     
     # define loop based on what mode we're in
@@ -659,10 +659,10 @@ def make_plural(word: str, quantity: int = 0) -> str:
 def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
     string = ""
     tlimit = limit-3
+    max_index = len(input_values)-1
     match typeof(input_values):
         case 'SafeList':
             string += "["
-            max_index = len(input_values)-1
             for i, value in enumerate(input_values):
                 value_string = ""
                 if not i:
@@ -891,6 +891,7 @@ match args_list:
                 quantity = ceil(float(quantity) / bundle) * bundle
                 cost = -num * quantity
                 coins, error = modify_coins(bagsLoaded, coin, cost)
+                input_name = input_name or "Shopping Bag"
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
@@ -975,7 +976,7 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        settings['openMode'] = openMode = input_name.title() if input_name.title() in openModes else settings.get('openMode','All')
+        settings['openMode'] = openMode = input_name.title() if input_name.lower() in openModes else settings.get('openMode','All')
         text_dict = {'None':" doesn't want to see their full bags when they add or remove an item!",'One':" would like to see the bag they removed something from when they add or remove an item!",'All':" would like to know what's left in all of their bags when they add or remove an item!"}
         text.append(f"""-title ＂{name}{text_dict[settings.get('openMode','All').title()]}＂""")
 
@@ -996,7 +997,6 @@ match args_list:
     case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
         if not input_name:
             input_name = ' '.join(args)
-        
         focus = get_bag(bagsLoaded, input_name) if input_name else focus
         title_bag = f"""their {focus[0]}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
