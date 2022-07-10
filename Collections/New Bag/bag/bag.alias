@@ -1,11 +1,7 @@
 embed <drac2>
 #Define constants
 modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
-minorUpdate = ctx.alias == 'tembed'
-args = &ARGS&
 asterisk = '\\*'
-newline = '\n'
-blank = ''
 openModes = ["None","One","All"]
 doesntdont = ["doesn't","don't"]
 ch = character()
@@ -14,11 +10,15 @@ cmd = f"{ctx.prefix}{ctx.alias}"
 #Load user variable
 DEFAULT_COIN_RATES = {"pp":0.1,"gp":1,"ep":2,"sp":10,"cp":100}
 DEFAULT_COIN_EMOJIS = {"cp":"<:DDBCopper:953399505129205830>","sp":"<:DDBSilver:953399505124995122>","ep":"<:DDBElectrum:953399505129205831>","gp":"<:DDBGold:953399505062080594>","pp":"<:DDBPlatinum:953399504739106847>"}
-COIN_RATES = list((load_json((get_svar("coinRates") or get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
+COIN_RATES = list((load_json(((svar:=get_svar("coinRates")) or get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
-coinPouchName = get_svar("coinPouchName") or get("coinPouchName","Coin Pouch")
+DEFAULT_COIN = (svar:=get_svar("defaultCoin")) or get("defaultCoin")
+DEFAULT_COIN = DEFAULT_COIN if DEFAULT_COIN in COIN_TYPES else "gp" if "gp" in COIN_TYPES else COIN_TYPES[0]
+if svar and DEFAULT_COIN==svar:
+    ch.set_cvar('defaultCoin',svar)
+coinPouchName = (svar:=get_svar("coinPouchName")) or get("coinPouchName","Coin Pouch")
 coinWeighs = float(get_svar("coinWeighs") or get("coinWeighs",0.02))
 
 for var in ['coinRates','coinPouchName','coinWeighs']:
@@ -119,7 +119,7 @@ def _as_dict(listordict) -> SafeDict:
         case 'SafeList' if len(max(listordict, key=len)) == 2:
             return dict(listordict)
         case _:
-            err(f"{typeof(listordict)} cannot be converted to a dict.{newline}{listordict} caused this error.",True)
+            err(f"{typeof(listordict)} cannot be converted to a dict.\n{listordict} caused this error.",True)
             
 def _as_list(listordict) -> SafeDict:
     """
@@ -132,7 +132,7 @@ def _as_list(listordict) -> SafeDict:
         case 'SafeList':
             return listordict
         case _:
-            err(f"{typeof(listordict)} cannot be converted to a list.{newline}{listordict} caused this error.",True)
+            err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
 
 def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=False) -> [str, SafeDict]:
     """
@@ -264,7 +264,7 @@ def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, firs
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bags_dict: SafeDict, coin, quantity=1, ch=character()) -> (SafeList, bool):
+def modify_coins(bags_dict: SafeDict, coin=DEFAULT_COIN, quantity=1, ch=character()) -> (SafeList, bool):
     """
     Handles automatic switching between using coin purse and using coin pouch depending on if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
@@ -545,7 +545,7 @@ def display_bag(bag: [str, SafeDict]) -> (SafeList, float, float, int, bool):  #
             if not item_messages:
                 break
             item_message = item_messages.pop(0)
-            fields[i] += f"{newline}{item_message}"
+            fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
         fields[i] += "|inline＂"
         i += 1
@@ -727,7 +727,7 @@ openMode = 'all'
 match args_list:
     case [("help"|"h"|"?"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags＂""")
-        text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em!＂ -f ＂Bag Management|**help**|**h**|**?**{newline}This message.{newline}{newline}**vars**|**;**{newline}Displays a list of the svars and cvars you can use, what their current values are, and what the defaults are.{newline}{newline}**create**|**c**|**$** {newline} Creates a bag.{newline}• `{cmd} $ "[bag name]"`{newline}{newline}**name**|**n**|**@** {newline} Names an existing bag.{newline}• `{cmd} "<Bag>" @ "<New Name>"`{newline}{newline}**delete**|**d**|**/** {newline} Deletes a bag and its contents. There is no additional confirmation, so make sure you have what you want out of a bag before you delete it.{newline}• `{cmd} "<Bag>" /`{newline}{newline}**swap**|**s**|**#** {newline} Swaps a bag to a different slot.{newline}• `{cmd} "<Bag>" # <position#>`{newline}{newline}**view**|**v**|**!** {newline} Views individual bags.{newline}• `{cmd} "<Bag Name>" !`{newline}• `{cmd} "<Bag Name>"`{newline}{newline}**open**|**o**|**&** {newline} Sets which bags will be opened when adding/removing items.{newline}• `{cmd} open none|one|all`＂ -f ＂Item Management|**buy**|**b**|**.** {newline} Purchases items in exchange for currency. Everything in the PHB is included. Can override prices or buy non-PHB items by including your own price at the end with no spaces. Buying ammunition is done in bundles, as per how it's listed in the PHB. Defaults to adding to a Shopping Bag. To put your purchases in an existing bag, specify the destionation bag first.{newline}• `{cmd} buy [quantity] "<Item>" [price]`{newline}• `{cmd} "[bag name]" buy [quantity] "<Item>" [price]`{newline}{newline}**add**|**a**|**+** {newline} Adds items to a bag. Default quantity is 1, default bag is slot 1.{newline}• `{cmd} "[Bag]" + [#] "<Item>"`{newline}• `{cmd} + "<Item>"`{newline}{newline}**remove**|**r**|**-** {newline} Removes items from a bag. Ditto on defaults.{newline}• `{cmd} "<Bag>" - [#] "<Item>"`{newline}• `{cmd} - "<Item>"`＂ -f ＂_ _|**move**|**m**|**>** {newline} Moves items from one bag to another. Ditto on quantity and origin bag. Defaults to a new bag if no destination provided.{newline}• `{cmd} "<Origin>" > [#] "<Item>" "[Destination]"• `{newline}{newline}**pack**|**p**|**<** {newline} Adds a Pack from the Player's Handbook to your bags.{newline}• `{cmd} pack "<pack type>"`＂ -f ＂Weight Tracking|**track**|**t**|**~** {newline} Toggles weight tracking `on` or `off`.{newline}• `{cmd} track on|off`{newline}{newline}**weight**|**w**|**%** {newline} Sets the weight, cost, and bundle size of a custom item. Can also set `-weight`, `-cost` and `-bundle` (for ammo) individually.{newline}• `{cmd} % "<item>" <weight #>`{newline}• e.g `{cmd} weight pellet 0.05 -cost 1gp -bundle 50`{newline}{newline}**ignore**|**i**|**\\*** {newline} Tells the alias to ignore the weight of a bag's contents.{newline}• `{cmd} "<bag name>" {asterisk}`{newline}{newline}**unignore**|**u**|**^** {newline} Tells the alias to stop ignoring the weight of a bag's contents.{newline}• `{cmd} "<bag name>" ^`{newline}{newline}**encumbrance**|**e**|**=** {newline} Toggles the Variant: Encumbrance rules `on` or `off`.{newline}• `{cmd} encumbrance on|off`{newline}{newline}If you are a homebrew race that has powerful build as a feature, or a similar effect that doubles your carry weight, put your race name in a cvar as such: `!cvar powerfulBuildRaces ["race name"]`＂ -f ＂Inexact Matches|Some items may be marked with an asterisk. These items have been given the weight of the closest match found, but if you have too many like this, the alias will stop trying because too many loops are bad mmkay. Make sure everything is spelled correctly according to the Player's Handbook or enter custom item weights using `{cmd} weight <item> <weight>`. Use the **full** names of items for best results.＂''')
+        text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em!＂ -f ＂Bag Management|**help**|**h**|**?**\nThis message.\n\n**vars**|**;**\nDisplays a list of the svars and cvars you can use, what their current values are, and what the defaults are.\n\n**create**|**c**|**$** \n Creates a bag.\n• `{cmd} $ "[bag name]"`\n\n**name**|**n**|**@** \n Names an existing bag.\n• `{cmd} "<Bag>" @ "<New Name>"`\n\n**delete**|**d**|**/** \n Deletes a bag and its contents. There is no additional confirmation, so make sure you have what you want out of a bag before you delete it.\n• `{cmd} "<Bag>" /`\n\n**swap**|**s**|**#** \n Swaps a bag to a different slot.\n• `{cmd} "<Bag>" # <position#>`\n\n**view**|**v**|**!** \n Views individual bags.\n• `{cmd} "<Bag Name>" !`\n• `{cmd} "<Bag Name>"`\n\n**open**|**o**|**&** \n Sets which bags will be opened when adding/removing items.\n• `{cmd} open none|one|all`＂ -f ＂Item Management|**buy**|**b**|**.** \n Purchases items in exchange for currency. Everything in the PHB is included. Can override prices or buy non-PHB items by including your own price at the end with no spaces. Buying ammunition is done in bundles, as per how it's listed in the PHB. Defaults to adding to a Shopping Bag. To put your purchases in an existing bag, specify the destionation bag first.\n• `{cmd} buy [quantity] "<Item>" [price]`\n• `{cmd} "[bag name]" buy [quantity] "<Item>" [price]`\n\n**add**|**a**|**+** \n Adds items to a bag. Default quantity is 1, default bag is slot 1.\n• `{cmd} "[Bag]" + [#] "<Item>"`\n• `{cmd} + "<Item>"`\n\n**remove**|**r**|**-** \n Removes items from a bag. Ditto on defaults.\n• `{cmd} "<Bag>" - [#] "<Item>"`\n• `{cmd} - "<Item>"`＂ -f ＂_ _|**move**|**m**|**>** \n Moves items from one bag to another. Ditto on quantity and origin bag. Defaults to a new bag if no destination provided.\n• `{cmd} "<Origin>" > [#] "<Item>" "[Destination]"• `\n\n**pack**|**p**|**<** \n Adds a Pack from the Player's Handbook to your bags.\n• `{cmd} pack "<pack type>"`＂ -f ＂Weight Tracking|**track**|**t**|**~** \n Toggles weight tracking `on` or `off`.\n• `{cmd} track on|off`\n\n**weight**|**w**|**%** \n Sets the weight, cost, and bundle size of a custom item. Can also set `-weight`, `-cost` and `-bundle` (for ammo) individually.\n• `{cmd} % "<item>" <weight #>`\n• e.g `{cmd} weight pellet 0.05 -cost 1gp -bundle 50`\n\n**ignore**|**i**|**\\*** \n Tells the alias to ignore the weight of a bag's contents.\n• `{cmd} "<bag name>" {asterisk}`\n\n**unignore**|**u**|**^** \n Tells the alias to stop ignoring the weight of a bag's contents.\n• `{cmd} "<bag name>" ^`\n\n**encumbrance**|**e**|**=** \n Toggles the Variant: Encumbrance rules `on` or `off`.\n• `{cmd} encumbrance on|off`\n\nIf you are a homebrew race that has powerful build as a feature, or a similar effect that doubles your carry weight, put your race name in a cvar as such: `!cvar powerfulBuildRaces ["race name"]`＂ -f ＂Inexact Matches|Some items may be marked with an asterisk. These items have been given the weight of the closest match found, but if you have too many like this, the alias will stop trying because too many loops are bad mmkay. Make sure everything is spelled correctly according to the Player's Handbook or enter custom item weights using `{cmd} weight <item> <weight>`. Use the **full** names of items for best results.＂''')
         text.append("-footer ＂!bag v4 by @Byronius#0001＂")
         focus = "help"
     
@@ -752,7 +752,15 @@ match args_list:
         __Current Value__
         `{limit_length(coinWeighs)}`
         __Default__
-        `0.02`＂
+        `0.02`
+        
+        `{ctx.prefix}s/c/uvar defaultCoin`
+        This variable defines what the default coin to add is (your world's equivalent to gp).
+        This exists so that aliases can add a coin without worrying about custom coin types. 
+        __Current Value__
+        `{limit_length(defaultCoin)}`
+        __Default__
+        `gp`＂
         -f ＂Homebrew|`{ctx.prefix}s/c/uvar extraPacks`
         This variable lets you define equipment packs that are not included.
         __Loaded Packs__
