@@ -427,6 +427,21 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
         success = 1
     return success
 
+def get_matching_items(item: str) -> (SafeDict):
+    """
+    Grabs a list of items from the weightDict that might match the specified item
+    Returns a SafeList of those items so they don't need to be re-searched and all relevant data is present.
+    Count of total matches can be inferred from the length of the returned values, with an empty dict equating to no matches found
+    :arg item: the name of the item
+    """
+    item_matches = {}
+    if item:
+        item_name = item.lower()
+        for y in weightDict:
+            if y in item_name or item_name in y:
+                item_matches.update({y:weightDict[y]})    
+    return item_matches
+    
 def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool):
     """
     Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
@@ -875,13 +890,25 @@ match args_list:
                 error = True
         if not error:
             if buy:
-                fullcost = ''.join(price) or typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
-                num = int(''.join([x for x in fullcost if x.isdecimal()]))
-                coin = ''.join([x for x in fullcost]).lstrip(str(num))
-                bundle = typeof(weightDict.get(item.lower())) == 'SafeDict' and weightDict.get(item.lower(),{}).get("bundle",1)
-                quantity = ceil(float(quantity) / bundle) * bundle
-                cost = -num * quantity
-                coins, error = modify_coins(bagsLoaded, coin, cost)
+                matchItem = get_matching_items(item)
+                #Only actually buy an item if they are specific about the item or the price.
+                if len(matchItem) == 1 or price:    
+                    item = [k for k in matchItem][0]
+                    fullcost = ''.join(price) or typeof(matchItem) == 'SafeDict' and matchItem.get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
+                    num = int(''.join([x for x in fullcost if x.isdecimal()]))
+                    coin = ''.join([x for x in fullcost]).lstrip(str(num))
+                    bundle = matchItem.get("bundle", 1) if typeof(matchItem) == 'SafeDict' else 1
+                    quantity = ceil(float(quantity) / bundle) * bundle
+                    cost = -num * quantity
+                    coins, error = modify_coins(bagsLoaded, coin, cost)                
+                else:   #If there's ambiguity, don't make the purchase
+                    error = True    #Don't modify their items
+                    focus = "help"  #Don't show their bags
+                    itemList = ""
+                    if len(matchItem) > 0:
+                        itemList = "".join(["\n • `"+x+"`" for x in matchItem]) if len(matchItem) < 10 else " (too many to list)"
+                    text.append(f"""-title ＂{name} needs help buying items＂""")
+                    text.append(f"""-desc ＂Found {len(matchItem)} possible matches for `{item}`{itemList}\nTry your `{cmd}` command again using a more exact match for what you want to buy.\nAlternately, you can specify a price for the item(s) you're trying to purchase.＂""")
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
@@ -890,7 +917,7 @@ match args_list:
                     bag, error = modify_item(bagsLoaded, item, quantity, input_name)
             success = save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
-        if buy:
+        if buy and not error:
             focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
             text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} and puts it in {title_bag}",f" can't afford to buy {item}"][success]}＂""")
