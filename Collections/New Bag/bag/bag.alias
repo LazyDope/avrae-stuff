@@ -677,6 +677,7 @@ def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
                     string+=value_string
         case 'SafeDict':
             string += "{"
+            max_index = len(input_values)-1
             for i, item in enumerate(input_values.items()):
                 x, y = item
                 if not i:
@@ -694,7 +695,7 @@ def limit_length(input_values: SafeList|str|SafeDict, limit: int=100) -> str:
                     return string + x_string + "..."
                 else:
                     string += f"{x_string} {y_string}"
-        case 'str'|'int':
+        case 'str'|'int'|'float':
             if len(str(input_values))>limit:
                 return str(input_values)[:tlimit]+"..."
             else:
