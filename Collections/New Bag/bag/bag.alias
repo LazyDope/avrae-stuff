@@ -905,7 +905,7 @@ match args_list:
         if buy:
             focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
-            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} for {abs(cost)}{coin} and puts it in {title_bag}",f" can't afford the {abs(cost)}{coin} to buy {abs(quantity)} {item_name}"][success]}＂""")
+            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} for {abs(cost)}{coin} and puts it in {title_bag}",f" can't afford the {abs(cost)}{coin} to buy {item_name}"][success]}＂""")
         if add or remove:
             focus = bag if bag else focus
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
