@@ -10,14 +10,14 @@ cmd = f"{ctx.prefix}{ctx.alias}"
 #Load user variable
 DEFAULT_COIN_RATES = {"pp":0.1,"gp":1,"ep":2,"sp":10,"cp":100}
 DEFAULT_COIN_EMOJIS = {"cp":"<:DDBCopper:953399505129205830>","sp":"<:DDBSilver:953399505124995122>","ep":"<:DDBElectrum:953399505129205831>","gp":"<:DDBGold:953399505062080594>","pp":"<:DDBPlatinum:953399504739106847>"}
-COIN_RATES = list((load_json(((svar:=get_svar("coinRates")) or get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
+COIN_RATES = list((load_json((get_svar("coinRates") or ch.cvars.get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
 DEFAULT_COIN = [coin for coin, rate in COIN_RATES if rate == 1]
 DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
-coinPouchName = (svar:=get_svar("coinPouchName")) or get("coinPouchName","Coin Pouch")
-coinWeighs = float(get_svar("coinWeighs") or get("coinWeighs",0.02))
+coinPouchName = get_svar("coinPouchName") or ch.cvars.get("coinPouchName","Coin Pouch")
+coinWeighs = float(get_svar("coinWeighs") or ch.cvars.get("coinWeighs",0.02))
 
 for var in ['coinRates','coinPouchName','coinWeighs']:
     if (svar:=get_svar(var)):
@@ -46,7 +46,7 @@ weightDict.update(custWeights)
 ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
 weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
 encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
-carryMod = strength*(2 if get('race',character().race).lower() in pbRaces else 1)*(2 if load_json(get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and get("l6totem","") == "Bear" else 1)
+carryMod = ch.strength*(2 if get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and get("l6totem","") == "Bear" else 1)
 
 #Define functions
 def load_bags(ch = character()) -> SafeList:
