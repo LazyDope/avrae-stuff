@@ -46,7 +46,7 @@ weightDict.update(custWeights)
 ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
 weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
 encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
-carryMod = ch.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
+carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
 
 #Define functions
 def load_bags(ch = character()) -> SafeList:
