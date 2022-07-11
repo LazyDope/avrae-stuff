@@ -859,7 +859,7 @@ match args_list:
                 else:
                     bag, error = modify_item(bagsLoaded, item, -quantity, input_name)
                 if not error:
-                    if destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
+                    if destination and destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
                         dest_bag, error = modify_coins(bagsLoaded, item.lower(), quantity)
                     else:
                         dest_bag, error = modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
@@ -893,18 +893,19 @@ match args_list:
                 cost = -num * quantity
                 coins, error = modify_coins(bagsLoaded, coin, cost)
                 input_name = input_name or "Shopping Bag"
+                bag = None                          
             if not error:
                 quantity = -quantity if remove else quantity
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
                     bag, error = modify_coins(bagsLoaded, item, quantity)
                 else:
-                    bag, error = modify_item(bagsLoaded, item, quantity, input_name)
+                    bag, error = modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
             success = save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         if buy:
             focus = coins if success == -1 else bag
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
-            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} and puts it in {title_bag}",f" can't afford to buy {item}"][success]}＂""")
+            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} for {abs(cost)}{coin} and puts it in {title_bag}",f" can't afford the {abs(cost)}{coin} to buy {item_name}"][success]}＂""")
         if add or remove:
             focus = bag if bag else focus
             title_bag = f"""their {bag[0]}""" if bag else "a bag"    
@@ -924,7 +925,7 @@ match args_list:
         if not error:
             pack = pack[0]
             pack_name = find_valid_name(bagsLoaded, pack[0])
-            bagsLoaded.update({pack_name: pack[1]})
+            bagsLoaded.append([pack_name, pack[1]])
             focus = get_bag(bagsLoaded, pack_name, exact_match = True)
         success = save_bags(bagsLoaded, error)
         title_bag = f"""{pack_name}""" if focus else input_name
