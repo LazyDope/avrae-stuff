@@ -24,14 +24,14 @@ for var in ['coinRates','coinPouchName','coinWeighs']:
         ch.set_cvar(var, svar)
 
 default_packs = [["Priest's Pack",{"Backpack":1,"Blanket":1,"Candle":10,"Tinderbox":1,"Alms Box":1,"Block of Incense":2,"Censer":1,"Vestments":1,"Days of Rations":2,"Waterskin (Full)":1}],["Burglar's Pack",{"Backpack":1,"Ball Bearings (Bag of 1,000)":1,"String (10 feet)":1,"Bell":1,"Candle":5,"Crowbar":1,"Hammer":1,"Pitons":10,"Hooded Lantern":1,"Oil (Flask)":2,"Days of Rations":5,"Tinderbox":1,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Scholar's Pack",{"Backpack":1,"Book of Lore":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Parchment (Sheet)":10,"Little Bag of Sand":1,"Small Knife":1}],["Diplomat's Pack",{"Chest":1,"Map or Scroll Case":2,"Fine Clothes":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Lamp":1,"Oil (Flask)":2,"Paper (Sheet)":5,"Perfume (Vial)":1,"Sealing Wax":1,"Soap":1}],["Explorer's Pack",{"Backpack":1,"Bedroll":1,"Mess Kit":1,"Tinderbox":1,"Torch":10,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Dungeoneer's Pack",{"Backpack":1,"Crowbar":1,"Hammer":1,"Piton":10,"Torch":10,"Tinderbox":1,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Entertainer's Pack",{"Backpack":1,"Bedroll":1,"Clothes, Costume":2,"Candle":5,"Days of Rations":5,"Waterskin (Full)":1,"Disguise Kit":1}],["Monster Hunter's Pack",{"Chest":1,"Crowbar":1,"Hammer":1,"Wooden Stake":3,"Holy Symbol":1,"Holy Water (Flask)":1,"Manacles":1,"Steel Mirror":1,"Oil (Flask)":1,"Tinderbox":1,"Torch":3}],["Soldier's Pack",{"Backpack":1,"Bedroll":1,"Fuse (50 feet)":1,"Small Knife":1,"Mess Kit":1,"Musket":1,"Musket Bullets":100,"Tinderbox":1,"Torch":10,"Shovel":1,"Waterskin":1,"Vial of Antitoxin":1,"Hempen Rope (50 feet)":1}],["Exploder's Pack",{"Gunpowder Horn":3,"Gunpowder Keg":1,"Tinderbox":1,"Torch":10,"Oil (Flask)":3,"Fuse (50 feet)":1}]]
-hb_packs = load_json(get_svar("extraPacks",'[]'))+load_json(get("extraPacks",'[]'))
+hb_packs = load_json(get_svar("extraPacks",'[]'))+load_json(ch.cvars.get("extraPacks",'[]'))
 
 packs = default_packs + hb_packs
 
 pbRaces = ["bugbear","firbolg","goliath","orc"]
-pbRaces = pbRaces+(hb_pbRaces:=load_json(get("powerfulBuildRaces","[]"))+load_json(get_svar("powerfulBuildRaces","[]")))
+pbRaces = pbRaces+(hb_pbRaces:=load_json(ch.cvars.get("powerfulBuildRaces","[]"))+load_json(get_svar("powerfulBuildRaces","[]")))
 
-settings = load_json(get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})))
+settings = load_json(ch.cvars.get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})))
 if not "openMode" in settings or not settings.openMode.lower() in openModes:
     settings.update({"openMode":"All"})
 if not "encumbrance" in settings:
@@ -46,7 +46,7 @@ weightDict.update(custWeights)
 ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
 weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
 encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
-carryMod = ch.strength*(2 if get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and get("l6totem","") == "Bear" else 1)
+carryMod = ch.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
 
 #Define functions
 def load_bags(ch = character()) -> SafeList:
@@ -68,7 +68,7 @@ def load_bags(ch = character()) -> SafeList:
     defaultbag = '[]' if old_bags else '[["Bag 1",{}]]'
         
     # load bags
-    bagsLoaded = load_json(get('bags', defaultbag))
+    bagsLoaded = load_json(ch.cvars.get('bags', defaultbag))
     bagsLoaded = bagsLoaded + old_bags_converted
     
     # remove duplicate names
