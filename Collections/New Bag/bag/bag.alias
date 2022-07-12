@@ -1,6 +1,5 @@
 embed <drac2>
 #Define constants
-modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
 asterisk = '\\*'
 openModes = ["none","one","all"]
 doesntdont = ["doesn't","don't"]
@@ -729,6 +728,7 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
 #Begin
 
 # define variables
+modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
 args_list = fix_args(&ARGS&, modes, 1)
 focus = None
 text = []

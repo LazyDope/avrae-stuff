@@ -1,5 +1,4 @@
 #Define constants
-modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
 asterisk = '\\*'
 openModes = ["none","one","all"]
 doesntdont = ["doesn't","don't"]
@@ -323,7 +322,7 @@ def modify_coins(bagsLoaded: SafeList, coin: str=DEFAULT_COIN, quantity: float|i
         error = any([(pouch[1][coin]<0) or (pouch[1][coin]%1) for coin in pouch[1]]) or error
     return (pouch, error)
 
-def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
+def get_coins(bagsLoaded: SafeList, ch=character()) -> [str, SafeDict]:
     """
     Returns a dict of how many coins you currently have.
     Will not update your coins if modified.
@@ -332,7 +331,7 @@ def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
     # check if we are using coin purse or not
     if use_coin_purse(bagsLoaded):
         cname = "Coin Purse"
-        purse = character().coinpurse
+        purse = ch.coinpurse
         coins = {coin:purse[coin] for coin in COIN_TYPES}
     else:
         pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
