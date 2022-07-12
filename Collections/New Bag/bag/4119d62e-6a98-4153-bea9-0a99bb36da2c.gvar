@@ -579,7 +579,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     bagsLoaded = _as_list(bagsLoaded)
     openMode = openMode if openMode and openMode.lower() in openModes else settings.get('openMode','All')
     coinbag = [get_coins(bagsLoaded)]
-    text = ""
+    text = []
     
     # define loop based on what mode we're in
     match openMode.lower():
