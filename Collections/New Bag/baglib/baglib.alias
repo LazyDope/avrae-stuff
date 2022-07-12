@@ -38,6 +38,7 @@ def get_docs(func):
 args = ' '.join(&ARGS&)
 possible_func = args and [func for idx, func in enumerate(functions) if args in func_names[idx]]
 previous_funcs = load_json(get('baglib_multiple_choice','[]'))
+character().delete_cvar('baglib_multiple_choice')
 if args.isdecimal() and previous_funcs:
     index = int(args)-1
     func = previous_funcs[index]
