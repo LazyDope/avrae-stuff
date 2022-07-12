@@ -38,12 +38,16 @@ def get_docs(func):
 args = ' '.join(&ARGS&)
 possible_func = args and [func for idx, func in enumerate(functions) if args in func_names[idx]]
 previous_funcs = load_json(get('baglib_multiple_choice','[]'))
-character().delete_cvar('baglib_multiple_choice')
 if args.isdecimal() and previous_funcs:
-    index = int(args)-1
-    func = previous_funcs[index]
-    desc = get_docs(func)
-    return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
+    index = max(int(args)-1,0)
+    if len(previous_funcs)>index:
+        func = previous_funcs[index]
+        desc = get_docs(func)
+        character().delete_cvar('baglib_multiple_choice')
+        return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
+    else:
+        desc = "That was not a valid option, try again\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
+        return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂＂ -desc ＂{desc}＂"
 elif len(possible_func)>1:
     desc = f"**Multiple Matches Found**\n rerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
     character().set_cvar('baglib_multiple_choice',dump_json(possible_func))
@@ -51,8 +55,10 @@ elif len(possible_func)>1:
 elif len(possible_func)==1:
     func = possible_func[0]
     desc = get_docs(func)
+    character().delete_cvar('baglib_multiple_choice')
     return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
 else:
     desc = '\n'.join([f"""`{func.name}`: {func.doc.split(newline)[0]}""" for func in functions])
+    character().delete_cvar('baglib_multiple_choice')
     return f"-title ＂{ctx.author.display_name} wants to know what baglib has＂ -desc ＂{desc}＂"
 </drac2>
