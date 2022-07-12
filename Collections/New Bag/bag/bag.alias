@@ -401,6 +401,8 @@ def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
     :var position: the new position you want the bag in, indexed from 1
     """
     bag = get_bag(bagsLoaded, bag_name)
+    if not bag:
+        return None, -1
     bagsLoaded.remove([bag[0], bag[1]])
     position = max(min(len(bagsLoaded), position), 1)
     bagsLoaded.insert(position-1, bag)
@@ -824,10 +826,11 @@ match args_list:
         position = int(args[0]) if args and args[0].isdecimal() else 0
         if input_name:
             input_name, position = swap_pos(bagsLoaded, input_name, position)
-            success = save_bags(bagsLoaded)
+            error = not input_name
+            success = save_bags(bagsLoaded, error)
+            focus = get_bag(bagsLoaded, input_name) if input_name else None
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" has nothing to swap",f" swaps {title_bag} to position {position}",f" fails to swap {title_bag}"][success]}＂""")
-        focus = get_bag(bagsLoaded, input_name)
     
     case [("create"|"c"|"$"), *args] | [input_name, ("create"|"c"|"$"), *args]:
         if not input_name:
