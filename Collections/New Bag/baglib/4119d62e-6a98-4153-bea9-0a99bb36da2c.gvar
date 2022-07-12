@@ -186,7 +186,7 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
     :var quantity: the delta of the item to modify, positive adds, negative removes
     :var bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
     :var create_on_fail: whether to create a new bag if one is not found
-    :var recursive_search: whether to search for other bags that contain the requested items, only works if quantity is negative
+    :var recursive_search: whether to search for other bags that contain the requested item, only if quantity is negative
     """
     # setup variables
     bagsLoaded = _as_list(bagsLoaded)

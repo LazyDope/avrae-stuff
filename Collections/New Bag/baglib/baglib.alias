@@ -49,7 +49,7 @@ if args.isdecimal() and previous_funcs:
         desc = "That was not a valid option, try again\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
         return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂＂ -desc ＂{desc}＂"
 elif len(possible_func)>1:
-    desc = f"**Multiple Matches Found**\n rerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
+    desc = f"**Multiple Matches Found**\nRerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
     character().set_cvar('baglib_multiple_choice',dump_json([x.name for x in possible_func]))
     return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂ -desc ＂{desc}＂"
 elif len(possible_func)==1:
