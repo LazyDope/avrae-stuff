@@ -902,7 +902,7 @@ match args_list:
                 if (not input_name or input_name.lower() in ("coin purse" if use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
                     bag, error = modify_coins(bagsLoaded, item, quantity)
                 else:
-                    bag, error = modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
+                    bag, error = modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=buy)
             success = save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         if buy:
