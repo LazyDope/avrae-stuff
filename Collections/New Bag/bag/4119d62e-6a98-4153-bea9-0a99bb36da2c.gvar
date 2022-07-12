@@ -45,7 +45,7 @@ weightDict.update(custWeights)
 carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
 
 #Define functions
-def load_bags(ch = character()) -> SafeList:
+def load_bags(ch = character()) -> [[bag_name str, bag_contents dict],...]:
     """
     Loads the current character's bags as a SafeList
     :arg ch: The current character, will be loaded if none is provided.
@@ -78,7 +78,7 @@ def load_bags(ch = character()) -> SafeList:
                     bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
     return bagsLoaded
 
-def save_bags(bagsLoaded, error = False, ch = character()) -> int:
+def save_bags(bagsLoaded: list, error = False, ch = character()) -> success_state bool:
     """
     Saves the current bag configuration to the cvar if no error.
     Returns a 0 for no bags, 1 for success, and -1 for failure
@@ -115,7 +115,7 @@ def _as_dict(listordict) -> SafeDict:
         case _:
             err(f"{typeof(listordict)} cannot be converted to a dict.\n{listordict} caused this error.",True)
             
-def _as_list(listordict) -> SafeDict:
+def _as_list(listordict) -> SafeList:
     """
     Makes sure a dict is returned as a list of lists
     :var listordict: The list or dict to check
@@ -128,7 +128,7 @@ def _as_list(listordict) -> SafeDict:
         case _:
             err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
 
-def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=False) -> [str, SafeDict]:
+def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -> [bag_name str, bag_contents dict]:
     """
     Retrieves a bag from the provided dict, given the name or index, with some fuzziness
     :arg bagsLoaded: the list of bags to search, also accepts a dict
@@ -163,7 +163,7 @@ def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=Fals
         bag = bag[0]
         return [bag[0], bag[1]]
     
-def new_bag(bagsLoaded: SafeList, bag_name = "New Bag") -> [str, SafeDict]:
+def new_bag(bagsLoaded: SafeList, bag_name = "New Bag") -> [bag_name str, bag_contents dict]:
     """
     Creates a new bag with the given name if available, or tries to find an unused one if not.
     Returns the bag
@@ -175,7 +175,7 @@ def new_bag(bagsLoaded: SafeList, bag_name = "New Bag") -> [str, SafeDict]:
     bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
     return bagsLoaded[-1]
     
-def modify_item(bagsLoaded: SafeList, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (SafeList, bool):
+def modify_item(bagsLoaded: SafeList, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> ([bag_name str, bag_contents dict], error bool):
     """
     Modifies an item in a bag by a given quantity
     Returns a tuble of the bag modified and a bool to return if there was an error
@@ -223,7 +223,7 @@ def modify_item(bagsLoaded: SafeList, item, quantity=1, bag_name=None, create_on
         error = False
     return (bag, error)
 
-def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, first_bag: str = None) -> [str, SafeDict]:
+def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_bag: str = None) -> [str, SafeDict]:
     """
     Handles fuzzy item removal from multiple bags if there is not enough in a single bag
     Returns a bag representing the bags accessed
@@ -257,7 +257,7 @@ def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, firs
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: SafeList, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> (SafeList, bool):
+def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> ([bag_name str, bag_contents dict], error bool):
     """
     Handles automatic switching between using coin purse and using coin pouch depending on if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
@@ -320,7 +320,7 @@ def modify_coins(bagsLoaded: SafeList, coin: str=DEFAULT_COIN, quantity: float|i
         error = any([(pouch[1][coin]<0) or (pouch[1][coin]%1) for coin in pouch[1]]) or error
     return (pouch, error)
 
-def get_coins(bagsLoaded: SafeList, ch=character()) -> [str, SafeDict]:
+def get_coins(bagsLoaded: list, ch=character()) -> [bag_name str, bag_contents dict]:
     """
     Returns a dict of how many coins you currently have.
     Will not update your coins if modified.
@@ -339,7 +339,7 @@ def get_coins(bagsLoaded: SafeList, ch=character()) -> [str, SafeDict]:
             coins = {x:0 for x in COIN_TYPES}
     return [cname, coins]
 
-def use_coin_purse(bagsLoaded: SafeList) -> bool:
+def use_coin_purse(bagsLoaded: list) -> bool:
     """
     Checks if coin_purse should be used, and returns a boolean
     :arg bagsLoaded: The list of bags to check
@@ -347,7 +347,7 @@ def use_coin_purse(bagsLoaded: SafeList) -> bool:
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
         
-def find_bag_with_item(bagsLoaded: SafeList, item: str) -> [str, SafeDict]:
+def find_bag_with_item(bagsLoaded: list, item: str) -> [bag_name str, bag_contents dict]:
     """
     Finds and returns the first bag with a given item in it
     :arg bagsLoaded: the list of bags to search in
@@ -359,7 +359,7 @@ def find_bag_with_item(bagsLoaded: SafeList, item: str) -> [str, SafeDict]:
             return [bag_name, items]
     return None
 
-def find_valid_name(a_dict: SafeDict, input_str: str) -> str:
+def find_valid_name(a_dict: SafeDict, input_str: str) -> new_name str:
     """
     Finds a unique permutation for a key given a dict and a name
     :arg a_dict: the dict to search in
@@ -372,7 +372,7 @@ def find_valid_name(a_dict: SafeDict, input_str: str) -> str:
         input_str = f"""{input_str.rstrip(" 1234567890")} {i}"""
     return input_str
 
-def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (str, str):
+def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (old_name str, new_name str):
     """
     Renames a bag given the old name, and a new name
     Returns the final names after ensuring uniquness
@@ -388,7 +388,7 @@ def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (str, str):
     bags_dict[new_name] = bags_dict.pop(old_bag[0])
     return (old_bag[0], new_name)
 
-def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
+def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (bag_name str, new_position int):
     """
     Swaps the position of a bag in the display
     Returns the new position
@@ -404,7 +404,7 @@ def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
     bagsLoaded.insert(position-1, bag)
     return bag[0], position
 
-def delete_bag(bagsLoaded: SafeList, bag_name) -> (str, bool):
+def delete_bag(bagsLoaded: SafeList, bag_name) -> (bag_name str, error bool):
     """
     Deletes the given bag
     Returns the name of the bag, and a bool of whether any errors were encountered
@@ -418,7 +418,7 @@ def delete_bag(bagsLoaded: SafeList, bag_name) -> (str, bool):
     bagsLoaded.remove(old_bag)
     return (old_bag[0], False)
 
-def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None) -> int:
+def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None) -> success int:
     """
     Adds a custom weight to the custWeights cvar
     Returns whether the set was successful
@@ -435,7 +435,7 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
         success = 1
     return success
 
-def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: SafeDict = weightDict) -> (float|str, int, bool):
+def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weightDict) -> (weight float|str, new_fuzzy_item_total int, unknown_item bool):
     """
     Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
     Returns the weight as a float, the number of fuzzy items total as an int, and whether no matching weight was found as a bool.
@@ -462,7 +462,12 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: SafeDict = w
     return itemWeight, fuzzyItemCount, unknownItem
     
 
-def weigh_bag(bag: [str, SafeDict], weightDict=weightDict) -> (float, float, int):
+def weigh_bag(
+    bag: [str, dict],
+    weightDict: dict = weightDict,
+    weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
+    ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    ) -> (total_weight float, coin_weight float, fuzzy_item_total int):
     """
     Returns a tuple of values relevant to the weighing of a bag
     Returns the total and coin weight in lbs as floats, and the number of fuzzy matches total as an int
@@ -475,20 +480,26 @@ def weigh_bag(bag: [str, SafeDict], weightDict=weightDict) -> (float, float, int
     
     # loop over all the items in the bag, getting the necessary information for each
     for item in bag[1]:
-        unknownItem = False
-        item_name = item.lower()
-        itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount, weightDict)
-        
-        itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
-        
-        if typeof(itemWeight) != 'str':
-            total_weight += itemWeight
-            if item_name in COIN_TYPES:
-                coin_weight += itemWeight
+        if weightTracking and bag[0].lower() not in ignoreBags:
+            unknownItem = False
+            item_name = item.lower()
+            itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount, weightDict)
+            
+            itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
+            
+            if typeof(itemWeight) != 'str':
+                total_weight += itemWeight
+                if item_name in COIN_TYPES:
+                    coin_weight += itemWeight
     
     return float(total_weight), float(coin_weight), fuzzyItemCount
 
-def display_bag(bag: [str, SafeDict], weightDict=weightDict) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
+def display_bag(
+    bag: [str, dict],
+    weightDict: dict = weightDict,
+    weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
+    ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    ) -> (display_text list, total_weight float, coin_weight float, fuzzyItemCount int, unknownItems bool):  #TODO: handle recursive bags
     """
     Creates the fields to display a bag in an embed
     Returns a list of fields to display a bag, as well as the total weight of the bag, and the weight of the coins within
@@ -502,8 +513,6 @@ def display_bag(bag: [str, SafeDict], weightDict=weightDict) -> (SafeList, float
     coin_weight = 0
     fuzzyItemCount = 0
     anyUnknownItem = False
-    weightTracking = settings.get('weightTracking','Off').lower() == 'on'
-    ignoreBags = ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
     
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
@@ -564,7 +573,7 @@ def display_bag(bag: [str, SafeDict], weightDict=weightDict) -> (SafeList, float
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
     
 
-def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode: str = None) -> str:
+def create_display(bagsLoaded: list, focus: [bag_name str, contents dict] = None, openMode: str = None) -> display_string str:
     """
     Create and collect the full display for a list of bags
     :arg bagsLoaded: the list of bags to display for the 'All' mode
@@ -576,10 +585,12 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     openMode = openMode if openMode and openMode.lower() in openModes else settings.get('openMode','All')
     coinbag = [get_coins(bagsLoaded)]
     text = []
+    weightTracking = settings.get('weightTracking','Off').lower() == 'on'
+    ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
     
     # reload settings, just in case
-    custWeights = (settings.get('customWeights', {}))
-    custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
+    custWeights = settings.get('customWeights', default_settings.customWeights)
+    custWeights.update(load_json(get_svar("bag_custom_weights","{}")))
     weightDict.update(custWeights)
     
     # define loop based on what mode we're in
@@ -600,12 +611,12 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
         for bag in loop:
             if not bag:
                 continue
-            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict)
+            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags)
             text += fields
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
         # add footnotes based on weight results
-        if settings.get('weightTracking','Off').lower() == 'on' and settings.get('openMode','All'):
+        if weightTracking and settings.get('openMode','All').lower() == 'all':
             display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
             if anyUnknownItem:
                 display_footer += "\n*Items marked with a dagger (†) are entirely unrecognized.*"
@@ -623,7 +634,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
             text.append(encumbrance_footer)
     return text
 
-def carried_weight(bagsLoaded: SafeList) -> float:
+def carried_weight(bagsLoaded: list) -> carried_weight float:
     """
     Calculates the total weight of a list of bags
     Returns a float of the weight
@@ -632,8 +643,14 @@ def carried_weight(bagsLoaded: SafeList) -> float:
     bagsLoaded = _as_list(bagsLoaded)
     coinbag = [get_coins(bagsLoaded)]
     loop = bagsLoaded + coinbag if coinbag not in bagsLoaded else []
+    
+    # reload settings, just in case
+    custWeights = (settings.get('customWeights', default_settings.customWeights))
+    custWeights.update(load_json(get_svar("bag_custom_weights","{}")))
+    weightDict.update(custWeights)
+    
     for bag in loop:
-            bag_weight, _, _ = weigh_bag(bag)
+            bag_weight, _, _ = weigh_bag(bag, weightDict, 'on')
             carriedWeight += bag_weight
     return float(carriedWeight)
 
