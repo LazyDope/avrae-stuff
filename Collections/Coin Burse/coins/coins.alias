@@ -2,12 +2,12 @@
 additive = get('coinburse_additive')
 args = &ARGS&
 ptargs = "&*&"
-bags = load_json(get('bags', '[]'))
+bags = load_yaml(get('bags', '[]'))
 bagsDict = dict(bags)
 coinpouch_name = get_svar("coinPouchName") or get("coinPouchName",'Coin Pouch')
 coins = bagsDict.get(coinpouch_name)
 coin_types = ['cp','sp','ep','gp','pp']
-coin_rates = load_json(get_svar("coinRates") or get("coinRates",dump_json({"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1})))
+coin_rates = load_yaml(get_svar("coinRates") or get("coinRates",dump_json({"cp":100,"sp":10,"ep":2,"gp":1,"pp":0.1})))
 compat = get_svar('coinburse_compat') or get('coinburse_compat')
 ch = character()
 ch.set_cvar('coinburse_compat',compat) if get_svar("coinburse_compat") else ()
@@ -42,7 +42,7 @@ ch.set_cvar('coinburse_additive','Do not remove this or I will overwrite your co
     
 if compat:
     coin_bag = coins or {coin: ch.coinpurse[coin] for coin in coin_types}
-    last_coins = load_json(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin: ch.coinpurse[coin] for coin in coin_types}
+    last_coins = load_yaml(get("coinburse_last_coins")) if "coinburse_last_coins" in ch.cvars else {coin: ch.coinpurse[coin] for coin in coin_types}
     new_coins = {}
     for coin in coin_types:
         new_coins[coin] = ch.coinpurse[coin] + coin_bag[coin] - last_coins[coin]
@@ -76,7 +76,7 @@ if compat:
     ch.set_cvar('bags', dump_json(list(bagsDict.items())))
     ch.set_cvar('coinburse_last_coins', dump_json(new_coins))
 
-if &ARGS& and (bs:=load_json(get('bagSettings', '{}'))) and 'openMode' in bs and bs.openMode=='None':
+if &ARGS& and (bs:=load_yaml(get('bagSettings', '{}'))) and 'openMode' in bs and bs.openMode=='None':
     n = '\n'
     out = []
     ch.coinpurse.modify_coins(delta.pp, delta.gp, delta.ep, delta.sp, delta.cp)

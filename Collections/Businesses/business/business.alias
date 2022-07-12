@@ -3,7 +3,7 @@ busivar = get("business")
 c = character()
 if not busivar:
     return("""-title "You have no business" -desc "Create one with `!business create`" -thumb "https://i2.wp.com/nypost.com/wp-content/uploads/sites/2/2018/08/trashing-trash.jpg" """)
-business = load_json(busivar)
+business = load_yaml(busivar)
 score = business['scores']
 scorelist = {"inf":["Influence", 0, "inf"],"mig":["Might", 0, "mig"],"tre":["Treasure", 0, "tre"],"ter":["Territory", 0, "ter"],"sov":["Sovereignty", 0, "sov"]}
 for x in scorelist.keys():
@@ -17,7 +17,7 @@ for x in scorelist.keys():
         scorelist[x][1] = c.get_cc(scorelist[x][0])
 n = "\n"
 bags = get("bags")
-bagsLoaded = [x for x in load_json(bags) if x[0]=="Coin Pouch"] if bags else []
+bagsLoaded = [x for x in load_yaml(bags) if x[0]=="Coin Pouch"] if bags else []
 pouch = bagsLoaded[0] if bagsLoaded else []
 if pouch:
     coinTypes=["cp", "sp", "ep", "gp", "pp"]

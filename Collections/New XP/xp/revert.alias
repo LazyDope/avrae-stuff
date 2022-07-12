@@ -28,7 +28,7 @@ if log == {} and 'xplog0' in c.cvars:
     log = load_yaml(templog)
 
 #Setup Calendar
-calendar=load_json(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
+calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
 monthLengths=[x.length for x in calendar.months]
 hourOffset=int(calendar.get('hourOffset',0))+int(get('timezone',0))
 baseYear=calendar.get("yearOffset",1970)

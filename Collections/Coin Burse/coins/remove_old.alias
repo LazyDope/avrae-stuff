@@ -1,5 +1,5 @@
 echo <drac2>
-bags = load_json(get('bags', '[]'))
+bags = load_yaml(get('bags', '[]'))
 bagsDict = dict(bags)
 coins = bagsDict.get('Coin Pouch')
 coinpouch_name = get_svar("coinPouchName") or get("coinPouchName",'Coin Pouch')

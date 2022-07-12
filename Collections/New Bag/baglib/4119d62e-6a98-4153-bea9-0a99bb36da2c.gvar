@@ -8,7 +8,7 @@ a_bag = [str, dict]
 #Load user variable
 DEFAULT_COIN_RATES = {"pp":0.1,"gp":1,"ep":2,"sp":10,"cp":100}
 DEFAULT_COIN_EMOJIS = {"cp":"<:DDBCopper:953399505129205830>","sp":"<:DDBSilver:953399505124995122>","ep":"<:DDBElectrum:953399505129205831>","gp":"<:DDBGold:953399505062080594>","pp":"<:DDBPlatinum:953399504739106847>"}
-COIN_RATES = list((load_json((get_svar("coinRates") or ch.cvars.get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
+COIN_RATES = list((load_yaml((get_svar("coinRates") or ch.cvars.get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
@@ -22,15 +22,15 @@ for var in ['coinRates','coinPouchName','coinWeighs']:
         ch.set_cvar(var, svar)
 
 default_packs = [["Priest's Pack",{"Backpack":1,"Blanket":1,"Candle":10,"Tinderbox":1,"Alms Box":1,"Block of Incense":2,"Censer":1,"Vestments":1,"Days of Rations":2,"Waterskin (Full)":1}],["Burglar's Pack",{"Backpack":1,"Ball Bearings (Bag of 1,000)":1,"String (10 feet)":1,"Bell":1,"Candle":5,"Crowbar":1,"Hammer":1,"Pitons":10,"Hooded Lantern":1,"Oil (Flask)":2,"Days of Rations":5,"Tinderbox":1,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Scholar's Pack",{"Backpack":1,"Book of Lore":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Parchment (Sheet)":10,"Little Bag of Sand":1,"Small Knife":1}],["Diplomat's Pack",{"Chest":1,"Map or Scroll Case":2,"Fine Clothes":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Lamp":1,"Oil (Flask)":2,"Paper (Sheet)":5,"Perfume (Vial)":1,"Sealing Wax":1,"Soap":1}],["Explorer's Pack",{"Backpack":1,"Bedroll":1,"Mess Kit":1,"Tinderbox":1,"Torch":10,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Dungeoneer's Pack",{"Backpack":1,"Crowbar":1,"Hammer":1,"Piton":10,"Torch":10,"Tinderbox":1,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Entertainer's Pack",{"Backpack":1,"Bedroll":1,"Clothes, Costume":2,"Candle":5,"Days of Rations":5,"Waterskin (Full)":1,"Disguise Kit":1}],["Monster Hunter's Pack",{"Chest":1,"Crowbar":1,"Hammer":1,"Wooden Stake":3,"Holy Symbol":1,"Holy Water (Flask)":1,"Manacles":1,"Steel Mirror":1,"Oil (Flask)":1,"Tinderbox":1,"Torch":3}],["Soldier's Pack",{"Backpack":1,"Bedroll":1,"Fuse (50 feet)":1,"Small Knife":1,"Mess Kit":1,"Musket":1,"Musket Bullets":100,"Tinderbox":1,"Torch":10,"Shovel":1,"Waterskin":1,"Vial of Antitoxin":1,"Hempen Rope (50 feet)":1}],["Exploder's Pack",{"Gunpowder Horn":3,"Gunpowder Keg":1,"Tinderbox":1,"Torch":10,"Oil (Flask)":3,"Fuse (50 feet)":1}]]
-hb_packs = load_json(get_svar("extraPacks",'[]'))+load_json(ch.cvars.get("extraPacks",'[]'))
+hb_packs = load_yaml(get_svar("extraPacks",'[]'))+load_yaml(ch.cvars.get("extraPacks",'[]'))
 
 packs = default_packs + hb_packs
 
 pbRaces = ["bugbear","firbolg","goliath","orc"]
-pbRaces = pbRaces+(hb_pbRaces:=load_json(ch.cvars.get("powerfulBuildRaces","[]"))+load_json(get_svar("powerfulBuildRaces","[]")))
+pbRaces = pbRaces+(hb_pbRaces:=load_yaml(ch.cvars.get("powerfulBuildRaces","[]"))+load_yaml(get_svar("powerfulBuildRaces","[]")))
 
 default_settings = {"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False}
-settings = load_json(ch.cvars.get("bagSettings",dump_json(default_settings)))
+settings = load_yaml(ch.cvars.get("bagSettings",dump_json(default_settings)))
 if not "openMode" in settings or not settings.openMode.lower() in openModes:
     settings.update({"openMode":"All"})
 if not "encumbrance" in settings:
@@ -38,12 +38,12 @@ if not "encumbrance" in settings:
 if not "autoCoins" in settings:
     settings.update({"autoCoins":False})
     
-weightDict = load_json(get_gvar("19753bce-e2c1-42af-8c4f-baf56e2f6749"))
+weightDict = load_yaml(get_gvar("19753bce-e2c1-42af-8c4f-baf56e2f6749"))
 custWeights = settings.get('customWeights', {})
-custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
+custWeights.update(server_weights := load_yaml(get_svar("bag_custom_weights","{}")))
 weightDict.update(custWeights)
 
-carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
+carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_yaml(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
 
 #Define functions
 def load_bags(ch = character()) -> [a_bag]:
@@ -56,7 +56,7 @@ def load_bags(ch = character()) -> [a_bag]:
     cvars = ch.cvars
     
     # update legacy bags to new format
-    old_bags = [load_json(cvars[x]) for x in cvars if "bag" in x and x.strip("bag").isdecimal()]
+    old_bags = [load_yaml(cvars[x]) for x in cvars if "bag" in x and x.strip("bag").isdecimal()]
     old_bags_converted = [[bag[0],{bag[item_index].i:bag[item_index].q for item_index in range(1,len(bag))}] for bag in old_bags]
     for i in range(len(old_bags)):
         ch.delete_cvar(f"bag{i}")
@@ -65,7 +65,7 @@ def load_bags(ch = character()) -> [a_bag]:
     defaultbag = '[]' if old_bags else '[["Bag 1",{}]]'
         
     # load bags
-    bagsLoaded = load_json(ch.cvars.get('bags', defaultbag))
+    bagsLoaded = load_yaml(ch.cvars.get('bags', defaultbag))
     bagsLoaded = bagsLoaded + old_bags_converted
     
     # remove duplicate names
@@ -594,7 +594,7 @@ def create_display(bagsLoaded: list, focus: a_bag = None, openMode: str = None) 
     
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
-    custWeights.update(load_json(get_svar("bag_custom_weights","{}")))
+    custWeights.update(load_yaml(get_svar("bag_custom_weights","{}")))
     weightDict.update(custWeights)
     
     # define loop based on what mode we're in
@@ -650,7 +650,7 @@ def carried_weight(bagsLoaded: list) -> float:
     
     # reload settings, just in case
     custWeights = (settings.get('customWeights', default_settings.customWeights))
-    custWeights.update(load_json(get_svar("bag_custom_weights","{}")))
+    custWeights.update(load_yaml(get_svar("bag_custom_weights","{}")))
     weightDict.update(custWeights)
     
     for bag in loop:
