@@ -462,7 +462,6 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
         
     return itemWeight, fuzzyItemCount, unknownItem
     
-
 def weigh_bag(
     bag: a_bag,
     weightDict: dict = weightDict,

@@ -1,0 +1,39 @@
+embed <drac2>
+# load baglib module
+using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+
+functions = [
+        baglib.load_bags,
+        baglib.save_bags,
+        baglib.get_bag,
+        baglib.new_bag,
+        baglib.modify_item,
+        baglib.modify_coins,
+        baglib.get_coins,
+        baglib.use_coin_purse,
+        baglib.find_bag_with_item,
+        baglib.find_valid_name,
+        baglib.rename_bag,
+        baglib.swap_pos,
+        baglib.delete_bag,
+        baglib.set_custom_weight,
+        baglib.get_item_weight,
+        baglib.weigh_bag,
+        baglib.display_bag,
+        baglib.create_display,
+        baglib.carried_weight
+    ]
+
+func_names = [x.name for x in functions]
+
+def get_docs(func):
+    docs = func.docs
+    docs = docs.split('\n')
+    docs = [f"`{x.lstrip(':').replace(':','`:')}" if x.startswith(":") else x for x in docs]
+    return '\n'.join(docs)
+
+args = ' '.join(&ARGS&)
+if args and (possible_func := [func for idx, func in enumerate(functions) if args in func_names[idx]]):
+    func = possible_func[0]
+    desc = get_docs(func)
+    return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc {desc}"
