@@ -48,7 +48,7 @@ carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRac
 #Define functions
 def load_bags(ch = character()) -> [a_bag]:
     """
-    Loads the current character's bags as a SafeList
+    Loads the current character's bags as a list.
     :arg ch: The current character, will be loaded if none is provided.
     """
     
@@ -81,7 +81,7 @@ def load_bags(ch = character()) -> [a_bag]:
 
 def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     """
-    Saves the current bag configuration to the cvar if no error.
+    Saves the current bag configuration.
     Returns a 0 for no bags, 1 for success, and -1 for failure
     :var bagsLoaded: The dict or list of bags
     :arg error: Whether an error occurred before trying to save
@@ -131,8 +131,8 @@ def _as_list(listordict) -> list:
 
 def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -> a_bag:
     """
-    Retrieves a bag from the provided dict, given the name or index, with some fuzziness
-    :arg bagsLoaded: the list of bags to search, also accepts a dict
+    Retrieves a bag from the provided list, given the name or index.
+    :arg bagsLoaded: the list of bags to search
     :arg bag_id: the identifier, either index or name, to try to find
     :var exact_match: whether to only return the bag if it's an exact match
     :var create_on_fail: whether to create a new bag if one is not found
@@ -166,7 +166,8 @@ def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -
     
 def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     """
-    Creates a new bag with the given name if available, or tries to find an unused one if not.
+    Creates a new bag with the given name.
+    Will try to find an unused name if the given one is not available
     Returns the bag
     :arg bagsLoaded: the list of bags to create in
     :var bag_name: the name of the new bag
@@ -178,7 +179,7 @@ def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     
 def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (a_bag, bool):
     """
-    Modifies an item in a bag by a given quantity
+    Modifies an item in a bag by a given quantity.
     Returns a tuble of the bag modified and a bool to return if there was an error
     :arg bagsLoaded: the list of bags to modify
     :arg item: the name of the item to modify
@@ -260,7 +261,8 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
 
 def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> (a_bag, bool):
     """
-    Handles automatic switching between using coin purse and using coin pouch depending on if non-standard coins are in use.
+    Modifies the coin pouch or coin purse automatically.
+    Handles automatic switching depending if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
     :arg bagsLoaded: list of all the bags
     :arg coin: the coin that is being modified
@@ -323,7 +325,7 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
 
 def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
     """
-    Returns a dict of how many coins you currently have.
+    Returns a bag of how many coins you currently have.
     Will not update your coins if modified.
     :arg bagsLoaded: a list of bags
     """
@@ -342,7 +344,8 @@ def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
 
 def use_coin_purse(bagsLoaded: list) -> bool:
     """
-    Checks if coin_purse should be used, and returns a boolean
+    Checks if coin purse should be used.
+    Returns a boolean
     :arg bagsLoaded: The list of bags to check
     """
     bagsLoaded = _as_list(bagsLoaded)
@@ -350,7 +353,7 @@ def use_coin_purse(bagsLoaded: list) -> bool:
         
 def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
     """
-    Finds and returns the first bag with a given item in it
+    Finds and returns the first bag with a given item in it.
     :arg bagsLoaded: the list of bags to search in
     :arg item: the desired item
     """
@@ -362,7 +365,7 @@ def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
 
 def find_valid_name(a_dict: dict, input_str: str) -> str:
     """
-    Finds a unique permutation for a key given a dict and a name
+    Finds a unique permutation for a key given a dict and a name.
     :arg a_dict: the dict to search in
     :arg input_str: the base name to check with
     """
@@ -375,8 +378,8 @@ def find_valid_name(a_dict: dict, input_str: str) -> str:
 
 def rename_bag(bags_dict: dict, old_name: str, new_name: str) -> (str, str):
     """
-    Renames a bag given the old name, and a new name
-    Returns the final names after ensuring uniquness
+    Renames a bag given the old name, and a new name.
+    Returns the final names after ensuring uniquness.
     :arg bags_dict: the dict of bags to modify
     :arg old_name: the current name of the bag
     :arg new_name: the new name of the bag
@@ -391,7 +394,7 @@ def rename_bag(bags_dict: dict, old_name: str, new_name: str) -> (str, str):
 
 def swap_pos(bagsLoaded: list, bag_name: str, position=1) -> (str, int):
     """
-    Swaps the position of a bag in the display
+    Swaps the position of a bag in the display.
     Returns the new position
     :arg bagsLoaded: the list of bags to modify
     :arg bag_name: the name of the bag you want to move
@@ -407,7 +410,7 @@ def swap_pos(bagsLoaded: list, bag_name: str, position=1) -> (str, int):
 
 def delete_bag(bagsLoaded: list, bag_name: str) -> (str, bool):
     """
-    Deletes the given bag
+    Deletes the bag with the given name.
     Returns the name of the bag, and a bool of whether any errors were encountered
     :arg bagsLoaded: the list to remove the bag from
     :arg bag_name: the name of the bag to remove, exact match required
@@ -421,7 +424,7 @@ def delete_bag(bagsLoaded: list, bag_name: str) -> (str, bool):
 
 def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None) -> int:
     """
-    Adds a custom weight to the custWeights cvar
+    Adds a custom weight to the custWeights cvar.
     Returns whether the set was successful
     :arg item_name: the name of the item you want to configure
     :var weight: the weight of the item represented as a float or int
@@ -438,7 +441,8 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
 
 def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weightDict) -> (float|str, int, bool):
     """
-    Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
+    Grabs the weight of the given item.
+    Also allows keeping track of how many items have used a fuzzy search, which is more intensive.
     Returns the weight as a float, the number of fuzzy items total as an int, and whether no matching weight was found as a bool.
     :arg item: the name of the item
     :var fuzzyItemCount: the current count of how many fuzzy matches have been made
@@ -469,8 +473,8 @@ def weigh_bag(
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
     ) -> (float, float, int):
     """
-    Returns a tuple of values relevant to the weighing of a bag
-    Returns the total and coin weight in lbs as floats, and the number of fuzzy matches total as an int
+    Returns a tuple of values relevant to the weighing of a bag.
+    Returns the total and coin weight in lbs as floats, and the total number of fuzzy matches as an int
     :arg bag: the bag to get the weight of
     """
     # define variables
@@ -501,7 +505,7 @@ def display_bag(
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
     ) -> (list, float, float, int, bool):  #TODO: handle recursive bags
     """
-    Creates the fields to display a bag in an embed
+    Creates the field(s) to display a bag in an embed.
     Returns a list of fields to display a bag, as well as the total weight of the bag, and the weight of the coins within
     Also includes a total number of fuzzy matches, as well as a bool of whether any items had no matches
     :arg bag: the bag to get the weight of
@@ -575,7 +579,7 @@ def display_bag(
 
 def create_display(bagsLoaded: list, focus: a_bag = None, openMode: str = None) -> list:
     """
-    Create and collect the full display for a list of bags
+    Creates the full display for a list of bags.
     :arg bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
     :var openMode: an override to the open mode
@@ -636,7 +640,7 @@ def create_display(bagsLoaded: list, focus: a_bag = None, openMode: str = None) 
 
 def carried_weight(bagsLoaded: list) -> float:
     """
-    Calculates the total weight of a list of bags
+    Calculates the total weight of a list of bags.
     Returns a float of the weight
     :arg bagsLoaded: the list of bags
     """
