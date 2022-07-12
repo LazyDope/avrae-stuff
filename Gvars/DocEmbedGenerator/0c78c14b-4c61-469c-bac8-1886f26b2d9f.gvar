@@ -11,6 +11,7 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd=''):
     :var functions: a list of functions
     :var args: 
     """
+    newline = "\n"
     cmd = ctx.prefix + ctx.alias
     func_names = [x.name for x in functions]
     if typeof(args) == 'SafeList':
