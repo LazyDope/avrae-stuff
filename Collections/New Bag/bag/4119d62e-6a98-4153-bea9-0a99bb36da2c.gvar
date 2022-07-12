@@ -435,7 +435,7 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
         success = 1
     return success
 
-def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: SafeDict = {}) -> (float|str, int, bool):
+def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: SafeDict = weightDict) -> (float|str, int, bool):
     """
     Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
     Returns the weight as a float, the number of fuzzy items total as an int, and whether no matching weight was found as a bool.
@@ -462,7 +462,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: SafeDict = {
     return itemWeight, fuzzyItemCount, unknownItem
     
 
-def weigh_bag(bag: [str, SafeDict], weightDict={}) -> (float, float, int):
+def weigh_bag(bag: [str, SafeDict], weightDict=weightDict) -> (float, float, int):
     """
     Returns a tuple of values relevant to the weighing of a bag
     Returns the total and coin weight in lbs as floats, and the number of fuzzy matches total as an int
@@ -488,17 +488,13 @@ def weigh_bag(bag: [str, SafeDict], weightDict={}) -> (float, float, int):
     
     return float(total_weight), float(coin_weight), fuzzyItemCount
 
-def display_bag(bag: [str, SafeDict]) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
+def display_bag(bag: [str, SafeDict] weightDict=weightDict) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
     """
     Creates the fields to display a bag in an embed
     Returns a list of fields to display a bag, as well as the total weight of the bag, and the weight of the coins within
     Also includes a total number of fuzzy matches, as well as a bool of whether any items had no matches
     :arg bag: the bag to get the weight of
     """
-    # reload settings, just in case
-    custWeights = (settings.get('customWeights', {}))
-    custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
-    weightDict.update(custWeights)
     
     # define variables
     item_messages = []
@@ -581,6 +577,11 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
     coinbag = [get_coins(bagsLoaded)]
     text = []
     
+    # reload settings, just in case
+    custWeights = (settings.get('customWeights', {}))
+    custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
+    weightDict.update(custWeights)
+    
     # define loop based on what mode we're in
     match openMode.lower():
         case 'none':
@@ -599,7 +600,7 @@ def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode
         for bag in loop:
             if not bag:
                 continue
-            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag)
+            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict)
             text += fields
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
