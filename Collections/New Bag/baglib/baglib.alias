@@ -1,4 +1,6 @@
 embed <drac2>
+newline = "\n"
+
 # load baglib module
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
 
@@ -27,7 +29,7 @@ functions = [
 func_names = [x.name for x in functions]
 
 def get_docs(func):
-    docs = func.docs
+    docs = func.doc
     docs = docs.split('\n')
     docs = [f"`{x.lstrip(':').replace(':','`:')}" if x.startswith(":") else x for x in docs]
     return '\n'.join(docs)
@@ -38,6 +40,6 @@ if args and (possible_func := [func for idx, func in enumerate(functions) if arg
     desc = get_docs(func)
     return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
 else:
-    desc = '\n'.join([f"""`{func.name}`: {func.docs.split(newline)[0]}""" for func in functions])
+    desc = '\n'.join([f"""`{func.name}`: {func.doc.split(newline)[0]}""" for func in functions])
     return f"-title ＂{ctx.author.display_name} wants to know what baglib has＂ -desc ＂{desc}＂"
 </drac2>
