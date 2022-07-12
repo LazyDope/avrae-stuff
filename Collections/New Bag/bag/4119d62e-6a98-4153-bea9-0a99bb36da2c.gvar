@@ -400,6 +400,8 @@ def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
     :var position: the new position you want the bag in, indexed from 1
     """
     bag = get_bag(bagsLoaded, bag_name)
+    if not bag:
+        return None, -1
     bagsLoaded.remove([bag[0], bag[1]])
     position = max(min(len(bagsLoaded), position), 1)
     bagsLoaded.insert(position-1, bag)
