@@ -36,8 +36,8 @@ args = ' '.join(&ARGS&)
 if args and (possible_func := [func for idx, func in enumerate(functions) if args in func_names[idx]]):
     func = possible_func[0]
     desc = get_docs(func)
-    return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc {desc}"
+    return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
 else:
     desc = '\n'.join([f"""`{func.name}`: {func.docs.split(newline)[0]}""" for func in functions])
-    return f"-title ＂{ctx.author.display_name} wants to know what baglib has＂ -desc {desc}"
+    return f"-title ＂{ctx.author.display_name} wants to know what baglib has＂ -desc ＂{desc}＂"
 </drac2>
