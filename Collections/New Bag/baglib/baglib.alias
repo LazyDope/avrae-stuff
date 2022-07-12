@@ -1,9 +1,11 @@
 embed <drac2>
 newline = "\n"
-cmd = ctx.prefix + ctx.alias
 
 # load baglib module
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+using(
+    baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c",
+    docgen="0c78c14b-4c61-469c-bac8-1886f26b2d9f"
+)
 
 functions = [
         baglib.load_bags,
@@ -26,39 +28,5 @@ functions = [
         baglib.create_display,
         baglib.carried_weight
     ]
-
-func_names = [x.name for x in functions]
-
-def get_docs(func):
-    docs = func.doc
-    docs = docs.split('\n')
-    docs = [f"`{x.lstrip(':').replace(':','`:')}" if x.startswith(":") else x for x in docs]
-    return '\n'.join(docs)
-
-args = ' '.join(&ARGS&)
-possible_func = args and [func for idx, func in enumerate(functions) if args in func_names[idx]]
-previous_funcs = load_yaml(get('baglib_multiple_choice','[]'))
-if args.isdecimal() and previous_funcs:
-    index = max(int(args)-1,0)
-    if len(previous_funcs)>index:
-        func = functions[func_names.index(previous_funcs[index])]
-        desc = get_docs(func)
-        character().delete_cvar('baglib_multiple_choice')
-        return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
-    else:
-        desc = "That was not a valid option, try again\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
-        return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂＂ -desc ＂{desc}＂"
-elif len(possible_func)>1:
-    desc = f"**Multiple Matches Found**\nRerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
-    character().set_cvar('baglib_multiple_choice',dump_json([x.name for x in possible_func]))
-    return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂ -desc ＂{desc}＂"
-elif len(possible_func)==1:
-    func = possible_func[0]
-    desc = get_docs(func)
-    character().delete_cvar('baglib_multiple_choice')
-    return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
-else:
-    desc = '\n'.join([f"""`{func.name}`: {func.doc.split(newline)[0]}""" for func in functions])
-    character().delete_cvar('baglib_multiple_choice')
-    return f"-title ＂{ctx.author.display_name} wants to know what baglib has＂ -desc ＂{desc}＂"
+return docgen.get_embed(functions, &ARGS&)
 </drac2>
