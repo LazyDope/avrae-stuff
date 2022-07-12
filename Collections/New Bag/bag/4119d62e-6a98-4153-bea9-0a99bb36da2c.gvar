@@ -1,0 +1,637 @@
+#Define constants
+modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
+asterisk = '\\*'
+openModes = ["none","one","all"]
+doesntdont = ["doesn't","don't"]
+ch = character()
+cmd = f"{ctx.prefix}{ctx.alias}"
+
+#Load user variable
+DEFAULT_COIN_RATES = {"pp":0.1,"gp":1,"ep":2,"sp":10,"cp":100}
+DEFAULT_COIN_EMOJIS = {"cp":"<:DDBCopper:953399505129205830>","sp":"<:DDBSilver:953399505124995122>","ep":"<:DDBElectrum:953399505129205831>","gp":"<:DDBGold:953399505062080594>","pp":"<:DDBPlatinum:953399504739106847>"}
+COIN_RATES = list((load_json((get_svar("coinRates") or ch.cvars.get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
+COIN_RATES.sort(key=lambda x: x[1])
+COIN_RATES = dict(COIN_RATES)
+COIN_TYPES = list(COIN_RATES)
+DEFAULT_COIN = [coin for coin, rate in COIN_RATES if rate == 1]
+DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
+coinPouchName = get_svar("coinPouchName") or ch.cvars.get("coinPouchName","Coin Pouch")
+coinWeighs = float(get_svar("coinWeighs") or ch.cvars.get("coinWeighs",0.02))
+
+for var in ['coinRates','coinPouchName','coinWeighs']:
+    if (svar:=get_svar(var)):
+        ch.set_cvar(var, svar)
+
+default_packs = [["Priest's Pack",{"Backpack":1,"Blanket":1,"Candle":10,"Tinderbox":1,"Alms Box":1,"Block of Incense":2,"Censer":1,"Vestments":1,"Days of Rations":2,"Waterskin (Full)":1}],["Burglar's Pack",{"Backpack":1,"Ball Bearings (Bag of 1,000)":1,"String (10 feet)":1,"Bell":1,"Candle":5,"Crowbar":1,"Hammer":1,"Pitons":10,"Hooded Lantern":1,"Oil (Flask)":2,"Days of Rations":5,"Tinderbox":1,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Scholar's Pack",{"Backpack":1,"Book of Lore":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Parchment (Sheet)":10,"Little Bag of Sand":1,"Small Knife":1}],["Diplomat's Pack",{"Chest":1,"Map or Scroll Case":2,"Fine Clothes":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Lamp":1,"Oil (Flask)":2,"Paper (Sheet)":5,"Perfume (Vial)":1,"Sealing Wax":1,"Soap":1}],["Explorer's Pack",{"Backpack":1,"Bedroll":1,"Mess Kit":1,"Tinderbox":1,"Torch":10,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Dungeoneer's Pack",{"Backpack":1,"Crowbar":1,"Hammer":1,"Piton":10,"Torch":10,"Tinderbox":1,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Entertainer's Pack",{"Backpack":1,"Bedroll":1,"Clothes, Costume":2,"Candle":5,"Days of Rations":5,"Waterskin (Full)":1,"Disguise Kit":1}],["Monster Hunter's Pack",{"Chest":1,"Crowbar":1,"Hammer":1,"Wooden Stake":3,"Holy Symbol":1,"Holy Water (Flask)":1,"Manacles":1,"Steel Mirror":1,"Oil (Flask)":1,"Tinderbox":1,"Torch":3}],["Soldier's Pack",{"Backpack":1,"Bedroll":1,"Fuse (50 feet)":1,"Small Knife":1,"Mess Kit":1,"Musket":1,"Musket Bullets":100,"Tinderbox":1,"Torch":10,"Shovel":1,"Waterskin":1,"Vial of Antitoxin":1,"Hempen Rope (50 feet)":1}],["Exploder's Pack",{"Gunpowder Horn":3,"Gunpowder Keg":1,"Tinderbox":1,"Torch":10,"Oil (Flask)":3,"Fuse (50 feet)":1}]]
+hb_packs = load_json(get_svar("extraPacks",'[]'))+load_json(ch.cvars.get("extraPacks",'[]'))
+
+packs = default_packs + hb_packs
+
+pbRaces = ["bugbear","firbolg","goliath","orc"]
+pbRaces = pbRaces+(hb_pbRaces:=load_json(ch.cvars.get("powerfulBuildRaces","[]"))+load_json(get_svar("powerfulBuildRaces","[]")))
+
+settings = load_json(ch.cvars.get("bagSettings",dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})))
+if not "openMode" in settings or not settings.openMode.lower() in openModes:
+    settings.update({"openMode":"All"})
+if not "encumbrance" in settings:
+    settings.update({"encumbrance":"Off"})
+if not "autoCoins" in settings:
+    settings.update({"autoCoins":False})
+    
+weightDict = load_json(get_gvar("19753bce-e2c1-42af-8c4f-baf56e2f6749"))
+custWeights = settings.get('customWeights', {})
+custWeights.update(server_weights := load_json(get_svar("bag_custom_weights","{}")))
+weightDict.update(custWeights)
+ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+weightTracking = True if settings.get('weightTracking','Off').lower() == 'on' else False
+encumbrance = True if settings.get('encumbrance','Off').lower() == 'on' else False
+carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRaces else 1)*(2 if load_json(ch.cvars.get('subclass','{}')).get("BarbarianLevel","") == "Totem Warrior" and ch.cvars.get("l6totem","") == "Bear" else 1)
+
+#Define functions
+def load_bags(ch = character()) -> SafeList:
+    """
+    Loads the current character's bags as a SafeList
+    :arg ch: The current character, will be loaded if none is provided.
+    """
+    
+    # grab the list of cvars
+    cvars = ch.cvars
+    
+    # update legacy bags to new format
+    old_bags = [load_json(cvars[x]) for x in cvars if "bag" in x and x.strip("bag").isdecimal()]
+    old_bags_converted = [[bag[0],{bag[item_index].i:bag[item_index].q for item_index in range(1,len(bag))}] for bag in old_bags]
+    for i in range(len(old_bags)):
+        ch.delete_cvar(f"bag{i}")
+    
+    # create a default bag only if there were no legacy bags
+    defaultbag = '[]' if old_bags else '[["Bag 1",{}]]'
+        
+    # load bags
+    bagsLoaded = load_json(ch.cvars.get('bags', defaultbag))
+    bagsLoaded = bagsLoaded + old_bags_converted
+    
+    # remove duplicate names
+    bag_names = [bag[0] for bag in bagsLoaded]
+    if any([bag_names.count(bag_name)>1 for bag_name in bag_names]):
+        for bag in bagsLoaded:
+            if bag_names.count(bag[0]) > 1:
+                i = int(bag[0].split(' ')[-1]) if bag[0].split(' ')[-1].isdecimal() else 1
+                while [bag[0] for bag in bagsLoaded].count(bag[0]) > 1:
+                    i += 1
+                    bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
+    return bagsLoaded
+
+def save_bags(bagsLoaded, error = False, ch = character()) -> int:
+    """
+    Saves the current bag configuration to the cvar if no error.
+    Returns a 0 for no bags, 1 for success, and -1 for failure
+    :var bagsLoaded: The dict or list of bags
+    :arg error: Whether an error occurred before trying to save
+    :arg ch: The current character, will be loaded if none is provided.
+    """
+    # check if there was an error, or if the provided bags are in the wrong format
+    if error or typeof(bagsLoaded) not in ['SafeDict','SafeList']:
+        return -1
+    
+    # if there are no more bags, remove the bags cvar
+    elif not bagsLoaded:
+        ch.delete_cvar('bags')
+        return 0
+    
+    # dumb the bags in the appropriate way
+    elif typeof(bagsLoaded) == 'SafeDict':
+        ch.set_cvar('bags',dump_json(list(bagsLoaded.items())))
+    else:
+        ch.set_cvar('bags',dump_json(bagsLoaded))
+    return 1
+
+def _as_dict(listordict) -> SafeDict:
+    """
+    Makes sure a list is returned as a dict
+    :var listordict: The list or dict to check
+    """
+    match typeof(listordict):
+        case 'SafeDict':
+            return listordict
+        case 'SafeList' if len(max(listordict, key=len)) == 2:
+            return dict(listordict)
+        case _:
+            err(f"{typeof(listordict)} cannot be converted to a dict.\n{listordict} caused this error.",True)
+            
+def _as_list(listordict) -> SafeDict:
+    """
+    Makes sure a dict is returned as a list of lists
+    :var listordict: The list or dict to check
+    """
+    match typeof(listordict):
+        case 'SafeDict':
+            return list(listordict.items())
+        case 'SafeList':
+            return listordict
+        case _:
+            err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
+
+def get_bag(bagsLoaded: SafeList, bag_id, exact_match=False, create_on_fail=False) -> [str, SafeDict]:
+    """
+    Retrieves a bag from the provided dict, given the name or index, with some fuzziness
+    :arg bagsLoaded: the list of bags to search, also accepts a dict
+    :arg bag_id: the identifier, either index or name, to try to find
+    :var exact_match: whether to only return the bag if it's an exact match
+    :var create_on_fail: whether to create a new bag if one is not found
+    """
+    bagsLoaded = _as_list(bagsLoaded) # ensure bags are in list format
+    
+    # try to grab the bag from the list position
+    if typeof(bag_id) == 'int':
+        position = max(min(len(bagsLoaded)-1, bag_id), 0)
+        bag = bagsLoaded[position]
+        return bag
+    
+    # try to grab the bag by name, getting progressivly fuzzier if an exact match is not needed
+    bag = [b for b in bagsLoaded if b[0] == bag_id]
+    if not bag and not exact_match:
+        bag = [b for b in bagsLoaded if bag_id.lower() == b[0].lower()]
+    if not bag and not exact_match:
+        bag = [b for b in bagsLoaded if bag_id in b[0]]
+    if not bag and not exact_match:
+        bag = [b for b in bagsLoaded if bag_id.lower() in b[0].lower()]
+    
+    # create a new bag if the argument is enabled
+    if not bag and create_on_fail:
+        return new_bag(bagsLoaded, bag_id)
+    # return the bag
+    if not bag:
+        return None
+    else:
+        bag = bag[0]
+        return [bag[0], bag[1]]
+    
+def new_bag(bagsLoaded: SafeList, bag_name = "New Bag") -> [str, SafeDict]:
+    """
+    Creates a new bag with the given name if available, or tries to find an unused one if not.
+    Returns the bag
+    :arg bagsLoaded: the list of bags to create in
+    :var bag_name: the name of the new bag
+    """
+    bagsLoaded = _as_list(bagsLoaded)
+    bag_name = find_valid_name(bagsLoaded, bag_name) # check for a name that is unused
+    bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
+    return bagsLoaded[-1]
+    
+def modify_item(bagsLoaded: SafeList, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (SafeList, bool):
+    """
+    Modifies an item in a bag by a given quantity
+    Returns a tuble of the bag modified and a bool to return if there was an error
+    :arg bagsLoaded: the list of bags to modify
+    :arg item: the name of the item to modify
+    :var quantity: the delta of the item to modify, positive adds, negative removes
+    :var bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
+    :var create_on_fail: whether to create a new bag if one is not found
+    :var recursive_search: whether to search for other bags that contain the requested items, only works if quantity is negative
+    """
+    # setup variables
+    bagsLoaded = _as_list(bagsLoaded)
+    bag = None
+    error = True
+    
+    # try to find a bag with the given name, failing to do so, fallback to searching for a bag with the item already in it
+    if bag_name:
+        bag = get_bag(bagsLoaded, bag_name)
+    if not bag:
+        bag = find_bag_with_item(bagsLoaded, item)
+        recursive_search = True
+        
+    # create a new bag if the option is set, otherwise grab the first bag in the list
+    if not bag and create_on_fail:
+        bag = new_bag(bagsLoaded, bag_name)
+    if not bag and len(bagsLoaded)>0:
+        bag = get_bag(bagsLoaded, 0)
+    if not bag:
+        return (bag_name, error)
+    
+    # try to find the closest match for the item we want, ignoring case
+    item_names = [x for x in bag[1] if item.lower() == x.lower()]
+    item_name = item_names[0] if item_names else item
+    
+    # save the current quantity of the item, then make sure that we have enough of the item in the bag
+    c_value = bag[1][item_name] if item_names else 0
+    if (c_value >= -quantity or recursive_search):
+        
+        # update the bag's values, remove the entry if it's empty
+        bag[1][item_name] = remainder = (c_value + quantity)
+        if bag[1][item_name] <= 0:
+            bag[1].pop(item_name)
+        if remainder < 0 and recursive_search:
+            return _remove_item_recursive(bagsLoaded, item, remainder, bag[0])
+        error = False
+    return (bag, error)
+
+def _remove_item_recursive(bagsLoaded: SafeList, item: str, remainder: int, first_bag: str = None) -> [str, SafeDict]:
+    """
+    Handles fuzzy item removal from multiple bags if there is not enough in a single bag
+    Returns a bag representing the bags accessed
+    :arg bagsLoaded: the list of bags
+    :arg item: the name of the item you're trying to remove
+    :arg remainder: how many more of the item you need to remove
+    """
+    # define variables
+    bagsLoaded = _as_list(bagsLoaded)
+    total_items = 0
+    names = [first_bag] if first_bag else []
+    
+    # loop though each bag, removing as many of the item as possible until remainder consumed
+    for bag in bagsLoaded:
+        item_names = [x for x in bag[1] if item.lower() == x.lower()]
+        item_name = item_names[0] if item_names else item
+        c_value = bag[1][item_name] if item_names else 0
+        total_items += c_value
+        if c_value > 0 and remainder < 0:
+            names.append(bag[0])
+            bag[1][item_name] = (remainder := remainder + c_value)
+            # remove entry if empty
+            if remainder < 1:
+                bag[1].pop(item_name) if item_names else ()
+    
+    # show in one bag mode that multiple bags were used
+    if len(names)>1:
+        names[-1] = "and " + names[-1]
+    if remainder < 0:
+        return ([", ".join(names), {item: total_items}], True)
+    else:
+        return ([", ".join(names), {item: total_items}], False)
+
+def modify_coins(bagsLoaded: SafeList, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> (SafeList, bool):
+    """
+    Handles automatic switching between using coin purse and using coin pouch depending on if non-standard coins are in use.
+    Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
+    :arg bagsLoaded: list of all the bags
+    :arg coin: the coin that is being modified
+    :var quantity: how much to change the coins by
+    :var ch: the character, can be passed through if already loaded
+    """
+    # define variables
+    bagsLoaded = _as_list(bagsLoaded)
+    coin = coin.lower()
+    pouch = None
+    
+    # check if coins are valid
+    error = not (coin in COIN_TYPES)
+    
+    # check if standard coins are in use
+    if use_coin_purse(bagsLoaded):
+        coins = parse_coins(f"{quantity}{coin}") if not error else None
+        if coins and not (error:=-coins.total>=ch.coinpurse.total):
+            # modify the coin purse
+            ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
+        pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
+    elif not error:
+        pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
+        for coin_type in COIN_TYPES:
+            if coin_type not in pouch[1]:
+                pouch[1][coin_type] = 0
+        pouch[1][coin] += quantity
+        
+        # after modifying the coins, do autoconversions, and check if you actually have enough
+        for coin in COIN_TYPES[1::-1]:
+            if pouch[1][coin] < 0:
+                larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
+                rate = COIN_RATES[coin]/COIN_RATES[larger]
+                p = pouch[1][coin]//rate
+                pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
+        
+        # convert into higher denominations if the settings is enabled
+        if settings.get('autoCoins',False):
+            for coin in COIN_TYPES[:-1:-1]:
+                smaller = COIN_TYPES[COIN_TYPES.index(coin)+1]
+                rate = COIN_RATES[smaller]/COIN_RATES[coin]
+                p = pouch[1][smaller]//rate
+                if pouch[1][smaller] >= rate:
+                    pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
+        
+        # convert decimal currencies into lower denominations if possible
+        for coin in COIN_TYPES[:-1:-1]:
+            if (decimal:=pouch[1][coin] % 1):
+                index = COIN_TYPES.index(coin)
+                smaller = COIN_TYPES[index+1]
+                rate = COIN_RATES[smaller]/COIN_RATES[coin]
+                p = decimal*rate
+                if index == len(COIN_TYPES)-2 and p%1:
+                    return (pouch, True)
+                pouch[1].update({smaller:pouch[1][smaller]+p,coin:int(pouch[1][coin]-decimal)})
+        pouch[1][COIN_TYPES[-1]] = int(pouch[1][COIN_TYPES[-1]])
+                
+        error = any([(pouch[1][coin]<0) or (pouch[1][coin]%1) for coin in pouch[1]]) or error
+    return (pouch, error)
+
+def get_coins(bagsLoaded: SafeList) -> [str, SafeDict]:
+    """
+    Returns a dict of how many coins you currently have.
+    Will not update your coins if modified.
+    :arg bagsLoaded: a list of bags
+    """
+    # check if we are using coin purse or not
+    if use_coin_purse(bagsLoaded):
+        cname = "Coin Purse"
+        purse = character().coinpurse
+        coins = {coin:purse[coin] for coin in COIN_TYPES}
+    else:
+        pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
+        cname = pouch[0]
+        coins = pouch[1]
+        if not coins:
+            coins = {x:0 for x in COIN_TYPES}
+    return [cname, coins]
+
+def use_coin_purse(bagsLoaded: SafeList) -> bool:
+    """
+    Checks if coin_purse should be used, and returns a boolean
+    :arg bagsLoaded: The list of bags to check
+    """
+    bagsLoaded = _as_list(bagsLoaded)
+    return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
+        
+def find_bag_with_item(bagsLoaded: SafeList, item: str) -> [str, SafeDict]:
+    """
+    Finds and returns the first bag with a given item in it
+    :arg bagsLoaded: the list of bags to search in
+    :arg item: the desired item
+    """
+    bagsLoaded = _as_list(bagsLoaded)
+    for bag_name, items in bagsLoaded:
+        if any([item.lower() in i.lower() for i in items]):
+            return [bag_name, items]
+    return None
+
+def find_valid_name(a_dict: SafeDict, input_str: str) -> str:
+    """
+    Finds a unique permutation for a key given a dict and a name
+    :arg a_dict: the dict to search in
+    :arg input_str: the base name to check with
+    """
+    a_dict = _as_dict(a_dict)
+    i = int(input_str.split(' ')[-1]) if input_str.split(' ')[-1].isdecimal() else 1
+    while input_str in a_dict:
+        i += 1
+        input_str = f"""{input_str.rstrip(" 1234567890")} {i}"""
+    return input_str
+
+def rename_bag(bags_dict: SafeDict, old_name, new_name) -> (str, str):
+    """
+    Renames a bag given the old name, and a new name
+    Returns the final names after ensuring uniquness
+    :arg bags_dict: the dict of bags to modify
+    :arg old_name: the current name of the bag
+    :arg new_name: the new name of the bag
+    """
+    bags_dict = _as_dict(bags_dict)
+    old_bag = get_bag(bags_dict, old_name)
+    if not old_bag:
+        return (old_name, None)
+    new_name = find_valid_name(bags_dict, new_name)
+    bags_dict[new_name] = bags_dict.pop(old_bag[0])
+    return (old_bag[0], new_name)
+
+def swap_pos(bagsLoaded: SafeList, bag_name, position=1) -> (str, int):
+    """
+    Swaps the position of a bag in the display
+    Returns the new position
+    :arg bagsLoaded: the list of bags to modify
+    :arg bag_name: the name of the bag you want to move
+    :var position: the new position you want the bag in, indexed from 1
+    """
+    bag = get_bag(bagsLoaded, bag_name)
+    bagsLoaded.remove([bag[0], bag[1]])
+    position = max(min(len(bagsLoaded), position), 1)
+    bagsLoaded.insert(position-1, bag)
+    return bag[0], position
+
+def delete_bag(bagsLoaded: SafeList, bag_name) -> (str, bool):
+    """
+    Deletes the given bag
+    Returns the name of the bag, and a bool of whether any errors were encountered
+    :arg bagsLoaded: the list to remove the bag from
+    :arg bag_name: the name of the bag to remove, exact match required
+    """
+    bagsLoaded = _as_list(bagsLoaded)
+    old_bag = get_bag(bagsLoaded, bag_name, exact_match=True)
+    if not old_bag:
+        return (bag_name, True)
+    bagsLoaded.remove(old_bag)
+    return (old_bag[0], False)
+
+def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None) -> int:
+    """
+    Adds a custom weight to the custWeights cvar
+    Returns whether the set was successful
+    :arg item_name: the name of the item you want to configure
+    :var weight: the weight of the item represented as a float or int
+    :var cost: the cost of the item, represented as <number><denomination> eg "1gp" for 1 gold piece
+    :var bundle: how many items in a bundle, this is the grouping you have to buy these items in
+    """
+    # build item config dict
+    item = (custWeights.get(item_name) or custWeights.get(item_name.lower(), {})) | {x: y for x, y in [('weight', weight), ('cost', cost), ('bundle', bundle)] if y is not None}
+    success = -1
+    if item:
+        custWeights.update({item_name.lower(): item})
+        success = 1
+    return success
+
+def get_item_weight(item: str, fuzzyItemCount: int = 0) -> (float|str, int, bool):
+    """
+    Grabs the weight of the given item, and also allows keeping track of how many items have used a fuzzy search, which is more intensive
+    Returns the weight as a float, the number of fuzzy items total as an int, and whether no matching weight was found as a bool.
+    :arg item: the name of the item
+    :var fuzzyItemCount: the current count of how many fuzzy matches have been made
+    """
+    item_name = item.lower()
+    unknownItem = False
+    if item_name in weightDict:
+        itemWeight = (weightDict[item_name] if typeof(weightDict[item_name]) != "SafeDict" else weightDict[item_name].weight)
+    elif item_name in COIN_TYPES:
+        itemWeight = coinWeighs
+    elif "pouch" in item_name:
+        itemWeight = 1
+    elif "potion" in item_name:
+        itemWeight = 0.5
+    elif fuzzyItemCount<5:
+        fuzzyItemCount += 1
+        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if y in item_name]+["†"])[0]
+    else:
+        itemWeight = "†"
+        unknownItem = True
+        
+    return itemWeight, fuzzyItemCount, unknownItem
+    
+
+def weigh_bag(bag: [str, SafeDict]) -> (float, float, int):
+    """
+    Returns a tuple of values relevant to the weighing of a bag
+    Returns the total and coin weight in lbs as floats, and the number of fuzzy matches total as an int
+    :arg bag: the bag to get the weight of
+    """
+    # define variables
+    total_weight = 0
+    coin_weight = 0
+    fuzzyItemCount = 0
+    
+    # loop over all the items in the bag, getting the necessary information for each
+    for item in bag[1]:
+        unknownItem = False
+        item_name = item.lower()
+        itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount)
+        
+        itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
+        
+        if typeof(itemWeight) != 'str':
+            total_weight += itemWeight
+            if item_name in COIN_TYPES:
+                coin_weight += itemWeight
+    
+    return float(total_weight), float(coin_weight), fuzzyItemCount
+
+def display_bag(bag: [str, SafeDict]) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
+    """
+    Creates the fields to display a bag in an embed
+    Returns a list of fields to display a bag, as well as the total weight of the bag, and the weight of the coins within
+    Also includes a total number of fuzzy matches, as well as a bool of whether any items had no matches
+    :arg bag: the bag to get the weight of
+    """
+    # define variables
+    item_messages = []
+    total_weight = 0
+    coin_weight = 0
+    fuzzyItemCount = 0
+    anyUnknownItem = False
+    
+    # loop over each item, getting the information needed for the display
+    for item in bag[1]:
+        item_name = item.lower()
+        if weightTracking and bag[0].lower() not in ignoreBags: # only weigh the bag if it's enabled
+            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount)
+            anyUnknownItem = anyUnknownItem or unknownItem
+            
+            itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
+            
+            if typeof(itemWeight) != 'str':
+                total_weight += itemWeight
+                if item_name in COIN_TYPES:
+                    coin_weight += itemWeight
+            
+            # show the correct message based on the item and weigh retrieved
+            if typeof(itemWeight) in ['int','float'] and item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
+                item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item} ({_round_nicely(itemWeight)} lbs.){asterisk if unknownItem else ""}""".strip()
+            elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
+                item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item}{f" {itemWeight}" if itemWeight else "" }""".strip()
+            elif typeof(itemWeight) in ['int','float']:
+                item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item} ({_round_nicely(itemWeight)} lbs.){asterisk if unknownItem else ""}""".strip()
+            else:
+                item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item}{f" {itemWeight}" if itemWeight else "" }""".strip()
+        elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item}""".strip()
+        else:
+            item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+        item_messages.append(item_message)
+    
+    # show empty message
+    if not item_messages:
+        item_messages = ['*This bag is empty.*']
+    
+    # add weight counter for coins and total for each bag
+    if coin_weight:
+        item_messages.append(f"""**Coin Weight:** {_round_nicely(coin_weight)} lbs.""")
+    bag_title = f"""{bag[0]}{"†" if anyUnknownItem else f''' ({_round_nicely(total_weight)} lbs.)''' if total_weight else ""}"""
+    
+    # split up fields if they are too long
+    fields = []
+    i = 0
+    while item_messages:
+        header = bag_title if i == 0 else "*(continued)*"
+        lineLength = len(header)
+        item_message = item_messages.pop(0)
+        fields.append(f"-f ＂{header}|{item_message}")
+        lineLength = max(lineLength, len(item_message))
+        while len(fields[i]) <= 1000:
+            if not item_messages:
+                break
+            item_message = item_messages.pop(0)
+            fields[i] += f"\n{item_message}"
+            lineLength = max(lineLength, len(item_message))
+        fields[i] += "|inline＂"
+        i += 1
+    
+    return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
+    
+
+def create_display(bagsLoaded: SafeList, focus: (str, SafeDict) = None, openMode: str = None) -> str:
+    """
+    Create and collect the full display for a list of bags
+    :arg bagsLoaded: the list of bags to display for the 'All' mode
+    :var focus: a bag to focus on for the 'One' mode
+    :var openMode: an override to the open mode
+    """
+    # define variables
+    bagsLoaded = _as_list(bagsLoaded)
+    openMode = openMode if openMode and openMode.lower() in openModes else settings.get('openMode','All')
+    coinbag = [get_coins(bagsLoaded)]
+    
+    # define loop based on what mode we're in
+    match openMode.lower():
+        case 'none':
+            loop = []
+        case 'one':
+            loop = [focus]
+        case _:
+            loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else [])
+    if not loop:
+        return "-desc ＂You deleted your only bag and have no bags remaining!＂"
+    else:
+        carriedWeight = 0
+        unknownTotal = 0
+        
+        # loop over the bags
+        for bag in loop:
+            if not bag:
+                continue
+            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag)
+            text += fields
+            carriedWeight += bag_weight
+            unknownTotal += fuzzyItemCount
+        # add footnotes based on weight results
+        if weightTracking and settings.get('openMode','All'):
+            display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
+            if anyUnknownItem:
+                display_footer += "\n*Items marked with a dagger (†) are entirely unrecognized.*"
+            if unknownTotal:
+                display_footer += f"""\n{asterisk+f"You have {unknownTotal} item{'s'*(unknownTotal>1)} which {doesntdont[unknownTotal>1]} have an exact match in the database."}"""
+            display_footer += "＂"
+            
+            text.append(display_footer)
+        
+        # show encumbrance footer even if 'all' mode is not selected
+        if encumbrance:
+            if not carriedWeight:
+                carriedWeight = carried_weight(bagsLoaded)
+            encumbrance_footer = """\n -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else ""
+            text.append(encumbrance_footer)
+    return text
+
+def carried_weight(bagsLoaded: SafeList) -> float:
+    """
+    Calculates the total weight of a list of bags
+    Returns a float of the weight
+    :arg bagsLoaded: the list of bags
+    """
+    bagsLoaded = _as_list(bagsLoaded)
+    coinbag = [get_coins(bagsLoaded)]
+    loop = bagsLoaded + coinbag if coinbag not in bagsLoaded else []
+    for bag in loop:
+            bag_weight, _, _ = weigh_bag(bag)
+            carriedWeight += bag_weight
+    return float(carriedWeight)
+
+def _round_nicely(number) -> str:
+    """
+    Makes the number look nice, regardless of whether it's an int or a float
+    :arg number: an integer or float
+    """
+    return f"{f'{number:.2f}'.rstrip('0').rstrip('.')}"
