@@ -41,7 +41,7 @@ previous_funcs = load_json(get('baglib_multiple_choice','[]'))
 if args.isdecimal() and previous_funcs:
     index = max(int(args)-1,0)
     if len(previous_funcs)>index:
-        func = previous_funcs[index]
+        func = functions[func_names.index(previous_funcs[index])]
         desc = get_docs(func)
         character().delete_cvar('baglib_multiple_choice')
         return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
@@ -50,7 +50,7 @@ if args.isdecimal() and previous_funcs:
         return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂＂ -desc ＂{desc}＂"
 elif len(possible_func)>1:
     desc = f"**Multiple Matches Found**\n rerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
-    character().set_cvar('baglib_multiple_choice',dump_json(possible_func))
+    character().set_cvar('baglib_multiple_choice',dump_json([x.name for x in possible_func]))
     return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂ -desc ＂{desc}＂"
 elif len(possible_func)==1:
     func = possible_func[0]
