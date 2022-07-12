@@ -488,7 +488,7 @@ def weigh_bag(bag: [str, SafeDict], weightDict=weightDict) -> (float, float, int
     
     return float(total_weight), float(coin_weight), fuzzyItemCount
 
-def display_bag(bag: [str, SafeDict] weightDict=weightDict) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
+def display_bag(bag: [str, SafeDict], weightDict=weightDict) -> (SafeList, float, float, int, bool):  #TODO: handle recursive bags
     """
     Creates the fields to display a bag in an embed
     Returns a list of fields to display a bag, as well as the total weight of the bag, and the weight of the coins within
