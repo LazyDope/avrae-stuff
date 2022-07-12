@@ -1,5 +1,6 @@
 embed <drac2>
 newline = "\n"
+cmd = ctx.prefix + ctx.alias
 
 # load baglib module
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
@@ -35,7 +36,18 @@ def get_docs(func):
     return '\n'.join(docs)
 
 args = ' '.join(&ARGS&)
-if args and (possible_func := [func for idx, func in enumerate(functions) if args in func_names[idx]]):
+possible_func = args and [func for idx, func in enumerate(functions) if args in func_names[idx]]
+previous_funcs = load_json(get('baglib_multiple_choice','[]'))
+if args.isdecimal() and previous_funcs:
+    index = int(args)-1
+    func = previous_funcs[index]
+    desc = get_docs(func)
+    return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
+elif len(possible_func)>1:
+    desc = f"**Multiple Matches Found**\n rerun `{cmd} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
+    character().set_cvar('baglib_multiple_choice',dump_json(possible_func))
+    return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂ -desc ＂{desc}＂"
+elif len(possible_func)==1:
     func = possible_func[0]
     desc = get_docs(func)
     return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
