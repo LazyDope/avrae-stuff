@@ -4,8 +4,10 @@ using(
     baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c",
     docgen="0c78c14b-4c61-469c-bac8-1886f26b2d9f"
 )
+a_bagType = {'name':'Type: a_bag', 'doc': """A two item list containing the bag_name and bag_contents\n:0 bag_name: a string representing the bag's name\n:1 bag_contents: a dict representing the bag's contents"""}
 
 functions = [
+        a_bagType,
         baglib.load_bags,
         baglib.save_bags,
         baglib.get_bag,
