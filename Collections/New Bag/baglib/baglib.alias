@@ -29,6 +29,6 @@ functions = [
         baglib.carried_weight
     ]
 body = docgen.get_embed(functions, &ARGS&)
-footer = " -footer ＂baglib gvar: `4119d62e-6a98-4153-bea9-0a99bb36da2c`＂"
+footer = " -footer ＂baglib gvar: 4119d62e-6a98-4153-bea9-0a99bb36da2c＂"
 return body + footer
 </drac2>
