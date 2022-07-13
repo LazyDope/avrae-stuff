@@ -237,4 +237,4 @@ def _round_nicely(number, include_sign=True) -> str:
     Makes the number look nice, regardless of whether it's an int or a float
     :arg number: an integer or float
     """
-    return f"{f'{"+" if number>0 else ""}{number:.2f}'.rstrip('0').rstrip('.')}"
+    return f"""{f'{"+" if number>0 else ""}{number:.2f}'.rstrip('0').rstrip('.')}"""
