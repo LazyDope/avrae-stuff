@@ -50,7 +50,7 @@ def modify(value: int|float, log_message: str, ch=character()) -> float:
     ch.set_cvar(counter, _round_nicely(new_val))
     return new_val, removed
     
-def next(xp=None, ch=character()) -> int, float, float:
+def next(xp=None, ch=character()) -> (int, float, float):
     """
     Gets the next level for a character.
     :var xp: the xp to compare for the difference, generally passed from another function.

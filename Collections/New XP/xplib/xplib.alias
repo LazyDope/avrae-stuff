@@ -19,5 +19,7 @@ functions = [
         xplib.xp_name
     ]
 
-return docgen.get_embed(functions, &ARGS&)
+body = docgen.get_embed(functions, &ARGS&)
+footer = " -footer ＂xplib gvar: `bd5e6af1-55e9-4c5b-b814-8f9b447091e7`＂"
+return 
 </drac2>
