@@ -6,10 +6,10 @@ using(
 )
 
 functions = [
-        xplib.get,
-        xplib.set,
-        xplib.modify,
-        xplib.next,
+        xplib.get_xp,
+        xplib.set_xp,
+        xplib.modify_xp,
+        xplib.next_lvl,
         xplib.level,
         xplib.get_log,
         xplib.log,

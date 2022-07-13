@@ -8,7 +8,7 @@ def _update_old(ch=character()) -> bool:
         ch.set_cvar_nx(counter,str(c.get_cc(cc_name)))
     ch.delete_cc(cc_name)
 
-def get(ch=character()) -> float:
+def get_xp(ch=character()) -> float:
     """
     Load the XP or similar from the cvar.
     :var ch: the character
@@ -18,7 +18,7 @@ def get(ch=character()) -> float:
     _update_old(ch)
     return float(ch.cvars.get(counter,"0"))
     
-def set(value: int|float, log_message: str=None, ch=character()) -> float:
+def set_xp(value: int|float, log_message: str=None, ch=character()) -> float:
     """
     Sets the cvar to a new value.
     :arg value: the new value
@@ -33,7 +33,7 @@ def set(value: int|float, log_message: str=None, ch=character()) -> float:
     ch.set_cvar(counter, _round_nicely(value))
     return value, removed
     
-def modify(value: int|float, log_message: str, ch=character()) -> float:
+def modify_xp(value: int|float, log_message: str, ch=character()) -> float:
     """
     Modifies the cvar by the given value.
     :arg value: value to modify by
@@ -43,14 +43,14 @@ def modify(value: int|float, log_message: str, ch=character()) -> float:
     """
     counter="xp"
     _update_old(ch)
-    c_val = get(ch)
+    c_val = get_xp(ch)
     new_val = c_val + value
     log_message = f"{_round_nicely(value)}" if log_message is None else str(log_message).replace("[value]", _round_nicely(value)).replace("[total]", _round_nicely(new_val))
     removed = log(log_message, ch)
     ch.set_cvar(counter, _round_nicely(new_val))
     return new_val, removed
     
-def next(xp=None, ch=character()) -> (int, float, float):
+def next_lvl(xp=None, ch=character()) -> (int, float, float):
     """
     Gets the next level for a character.
     :var xp: the xp to compare for the difference, generally passed from another function.
@@ -59,7 +59,7 @@ def next(xp=None, ch=character()) -> (int, float, float):
     """
     totals = totals(ch)
     c_level = ch.levels.total_level
-    xp = get(ch) if xp is None else xp
+    xp = get_xp(ch) if xp is None else xp
     index = min(c_level, len(totals)-1)
     return index+1, float(totals[index]), float(totals[index]-xp)
     
@@ -74,7 +74,7 @@ def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
     totals = totals(ch)
     if lvl is not None:
         index = min(int(lvl)-1, len(totals)-1)
-        c_xp = get(ch) if xp is None else xp
+        c_xp = get_xp(ch) if xp is None else xp
         xp = totals[index]
         xp_diff = xp - c_xp
     elif xp is not None:
@@ -84,7 +84,7 @@ def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
     else:
         lvl = ch.levels.total_level
         index = min(int(lvl)-1, len(totals)-1)
-        xp = get(ch)
+        xp = get_xp(ch)
         xp_diff = totals[index]-xp
     return lvl, float(xp), float(xp_diff)
 
@@ -101,15 +101,15 @@ def get_log(ch=character()) -> dict:
     #Setup Calendar
     calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
     monthLengths=[x.length for x in calendar.months]
-    hourOffset=int(calendar.get('hourOffset',0))+int(get('timezone',0))
+    hourOffset=int(calendar.get('hourOffset',0))+int(get_xp('timezone',0))
 
     #Load xp log
-    log = load_yaml(get('xplog','{}'))
+    log = load_yaml(get_xp('xplog','{}'))
     if log == {} and 'xplog0' in c.cvars:
         i = 0
         templog = ''
         while f'xplog{i}' in c.cvars:
-            templog += get(f'xplog{i}','')
+            templog += get_xp(f'xplog{i}','')
             i += 1
         log = load_yaml(templog)
 
