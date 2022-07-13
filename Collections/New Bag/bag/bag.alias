@@ -239,7 +239,7 @@ match args_list:
                     error = bag == dest_bag or error
         success = baglib.save_bags(bagsLoaded, error)
         focus = bag if error else dest_bag
-        title_bag = f"""their {bag[0]}""" if bag else "a bag"
+        title_bag = f"""their {bag[0][0]}""" if bag else "a bag"
         item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         text.append(f"""-title ＂{name}{[" fails to move anything, as they have no bags!",f" moves {quantity} {item_name} from {title_bag} to their {dest_bag[0]}",f" fails to move some {item_name} from {title_bag}"][success]}＂""")
         
@@ -315,7 +315,7 @@ match args_list:
         bundle = pargs.last('bundle') or len(args)>2 and args[2]
         bundle = int(bundle) if bundle and bundle.isdecimal() else None
         success = baglib.set_custom_weight(input_name, weight, cost, bundle)
-        text.append(f"""-title ＂{name}{["",f''' updates the values for {input_name.title().replace("'S ", "'s ")}!''',f''' fails to update {input_name.title().replace("'S ", "'s ")}!'''][success]}＂""")
+        text.append(f"""-title ＂{name}{[f''' fails to update {input_name.title().replace("'S ", "'s ")}!''',f''' updates the values for {input_name.title().replace("'S ", "'s ")}!'''][success]}＂""")
     
     case [("ignore"|"i"|"*"), *args] | [input_name, ("ignore"|"i"|"*"), *args]:
         if not input_name:
