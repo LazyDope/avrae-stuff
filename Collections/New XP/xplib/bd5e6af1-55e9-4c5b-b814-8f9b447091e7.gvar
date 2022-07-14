@@ -4,9 +4,10 @@ def _update_old(ch=character()) -> bool:
     :var ch: the character
     """
     cc_name = _cc_name(ch)
-    if ch.cc_exists(cc_name) and ch.get_cc(cc_name) > 0:
-        ch.set_cvar_nx(counter,str(c.get_cc(cc_name)))
-    ch.delete_cc(cc_name)
+    if ch.cc_exists(cc_name):
+        if ch.get_cc(cc_name) > 0:
+            ch.set_cvar_nx(counter,str(c.get_cc(cc_name)))
+        ch.delete_cc(cc_name)
 
 def get_xp(ch=character()) -> float:
     """
