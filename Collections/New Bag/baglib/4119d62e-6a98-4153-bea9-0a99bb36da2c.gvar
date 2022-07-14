@@ -248,7 +248,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    pouch = None
+    pouch = get_coins(bagsLoaded, ch)
     
     # check if coins are valid
     error = any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES)
@@ -281,14 +281,8 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     else:
         coins = None
     
-    # check if standard coins are in use
-    if use_coin_purse(bagsLoaded):
-        if coins and not (error:=-total>=ch.coinpurse.total):
-            # modify the coin purse
-            ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
-        pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
-    elif not error:
-        pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
+    #prepare coins regardless of if it's coin pouch or coin purse
+    if not error:
         for coin_type in COIN_TYPES:
             if coin_type not in pouch[1]:
                 pouch[1][coin_type] = 0
@@ -312,6 +306,10 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
                     pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
                 
         error = any([pouch[1][coin]<0 for coin in pouch[1]]) or error
+        
+        # if the modifications were successful, dump to actual coin purse
+        if not error and use_coin_purse(bagsLoaded):
+            ch.coinpurse.set_coins(pouch[1].pp,pouch[1].gp,pouch[1].ep,pouch[1].sp,pouch[1].cp)
     return (pouch, error)
 
 def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
@@ -326,13 +324,13 @@ def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
         cname = "Coin Purse"
         purse = ch.coinpurse
         coins = {coin:purse[coin] for coin in COIN_TYPES}
+        pouch = [cname, coins]
     else:
         pouch = get_bag(bagsLoaded, coinPouchName, exact_match=True, create_on_fail=True)
-        cname = pouch[0]
-        coins = pouch[1]
-        if not coins:
-            coins = {x:0 for x in COIN_TYPES}
-    return [cname, coins]
+        for coin_type in COIN_TYPES:
+            if coin_type not in pouch[1]:
+                pouch[1][coin_type] = 0
+    return pouch
 
 def use_coin_purse(bagsLoaded: list) -> bool:
     """
