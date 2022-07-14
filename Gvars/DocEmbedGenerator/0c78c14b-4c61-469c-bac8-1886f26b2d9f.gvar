@@ -22,7 +22,7 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd=''):
     previous_funcs = load_yaml(get('docs_multiple_choice','[]'))
     if any([func_name not in func_names for func_name in previous_funcs]):
         previous_funcs = []
-        character().delete_cvar('docs_multiple_choice')
+        delete_uvar('docs_multiple_choice')
         
     if previous_funcs:
         possible_func = [func for func in functions if any([func_name == func.name for func_name in previous_funcs])]
@@ -33,21 +33,21 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd=''):
         if len(previous_funcs)>index:
             func = functions[func_names.index(previous_funcs[index])]
             desc = _get_docs(func)
-            character().delete_cvar('docs_multiple_choice')
+            delete_uvar('docs_multiple_choice')
             return f"-title ＂{ctx.author.display_name} decided on {func.name}＂ -desc ＂{desc}＂"
         else:
             desc = "That was not a valid option, try again\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func)])
             return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂＂ -desc ＂{desc}＂"
     elif len(possible_func)>1:
         desc = f"**Multiple Matches Found**\nRerun `{cmd}{f' {subcmd}' if subcmd else ''} #` with the number that you want.\n" + '\n'.join([f"""{idx+1}. `{func.name}`: {func.doc.split(newline)[0]}""" for idx, func in enumerate(possible_func[:20])])
-        character().set_cvar('docs_multiple_choice',dump_json([x.name for x in possible_func[:20]]))
+        set_uvar('docs_multiple_choice',dump_json([x.name for x in possible_func[:20]]))
         return f"-title ＂{ctx.author.display_name} couldn't make up their mind＂ -desc ＂{desc}＂"
     elif len(possible_func)==1:
         func = possible_func[0]
         desc = _get_docs(func)
-        character().delete_cvar('docs_multiple_choice')
+        delete_uvar('docs_multiple_choice')
         return f"-title ＂{ctx.author.display_name} wants to know more about {func.name}＂ -desc ＂{desc}＂"
     else:
         desc = '\n'.join([f"""`{func.name}`: {func.doc.split(newline)[0]}""" for func in functions])
-        character().delete_cvar('docs_multiple_choice')
+        delete_uvar('docs_multiple_choice')
         return f"-title ＂{ctx.author.display_name} wants to know what {ctx.alias}{f' {subcmd}' if subcmd else ''} has＂ -desc ＂{desc}＂"
