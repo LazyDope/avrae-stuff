@@ -12,7 +12,7 @@ COIN_RATES = list((load_yaml((get_svar("coinRates") or ch.cvars.get("coinRates",
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
-DEFAULT_COIN = [coin for coin, rate in COIN_RATES if rate == 1]
+DEFAULT_COIN = [coin for coin, rate in COIN_RATES.items() if rate == 1]
 DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
 coinPouchName = get_svar("coinPouchName") or ch.cvars.get("coinPouchName","Coin Pouch")
 coinWeighs = float(get_svar("coinWeighs") or ch.cvars.get("coinWeighs",0.02))
@@ -576,7 +576,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     :var bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
     :var openMode: an override to the open mode
-    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by either running `load_bags()` twice or by running `load_json(dump_json())` on the already loaded bags
+    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy()
     :return: a list of embed arguments to display the list of bags
     """
     # define variables
@@ -657,6 +657,15 @@ def carried_weight(bagsLoaded: list) -> float:
             bag_weight, _, _ = weigh_bag(bag, weightDict, 'on')
             carriedWeight += bag_weight
     return float(carriedWeight)
+
+def deep_copy(a_list: list) -> list:
+    """
+    Provides a deep copy of a list.
+    Idk just thought this'd be useful with baglib.
+    :arg a_list: any list
+    :return: a deep copy of the list
+    """
+    return list(dict(a_list).items())
 
 def _as_dict(listordict) -> dict:
     """
