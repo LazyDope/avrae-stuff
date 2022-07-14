@@ -105,6 +105,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
+old_bags = bagsLoaded.copy()
 openMode = 'all'
 
 # match the input to a subcommand
@@ -384,7 +385,7 @@ if focus != "help":
     if success == -1:
         bagsLoaded = baglib.load_bags()
     
-    text += baglib.create_display(bagsLoaded, focus, openMode)
+    text += baglib.create_display(bagsLoaded, focus, openMode, old_bags)
     text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
 return ' '.join(text)

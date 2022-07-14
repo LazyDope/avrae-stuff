@@ -80,8 +80,6 @@ def load_bags(ch = character()) -> [a_bag]:
                     bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
     return bagsLoaded
 
-_old_bags = load_bags()
-
 def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     """
     Saves the current bag configuration.
@@ -486,7 +484,7 @@ def display_bag(
     weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"]),
-    previousState: dict = None
+    old_bag: dict = None
     ) -> (list, float, float, int, bool):  #TODO: handle recursive bags
     """
     Creates the field(s) to display a bag in an embed.
@@ -494,7 +492,7 @@ def display_bag(
     :var weightDict: the dict to get weights from
     :var weightTracking: whether to use weight tracking
     :var ignoreBags: a list of what bags are ignored
-    :var previousState: the bag's contents previous state, for building a delta from
+    :var old_bag: the bag's contents previous state, for building a delta from
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     """
     
@@ -516,8 +514,8 @@ def display_bag(
             item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         
         # get item amount differences
-        if previousState is not None:
-            diff = quantity - previousState.get(item, 0)
+        if old_bag is not None:
+            diff = quantity - old_bag.get(item, 0)
             if diff:
                 item_message += f''' ({"+" if diff>0 else ""}{diff})'''
         
@@ -571,13 +569,14 @@ def display_bag(
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
     
 
-def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str = None) -> list:
+def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str = None, old_bags: dict = None) -> list:
     """
     Creates the full display for a list of bags.
     If a focus is provided but bagsLoaded is not, displays focus instead.
     :var bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
     :var openMode: an override to the open mode
+    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs
     :return: a list of embed arguments to display the list of bags
     """
     # define variables
@@ -585,7 +584,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     text = []
     weightTracking = settings.get('weightTracking','Off').lower() == 'on'
     ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
-    oldBags = _as_dict(_old_bags)
+    old_bags = None if old_bags is None else _as_dict(old_bags)
     
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
@@ -613,7 +612,8 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
         for bag in loop:
             if not bag:
                 continue
-            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags, oldBags.get(bag[0], {}))
+            old_bag = None if old_bags is None else oldBags.get(bag[0], {})
+            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
             text += fields
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
