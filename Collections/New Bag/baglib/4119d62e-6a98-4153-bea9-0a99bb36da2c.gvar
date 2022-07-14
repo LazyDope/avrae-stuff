@@ -485,7 +485,7 @@ def display_bag(
     bag: a_bag,
     weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
-    ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"]),
     previousState: dict = None
     ) -> (list, float, float, int, bool):  #TODO: handle recursive bags
     """
