@@ -248,7 +248,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    pouch = get_coins(bagsLoaded, ch)
+    pouch = get_coins(bagsLoaded, autoCoins=False, ch=ch)
     autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
     
     # check if coins are valid
