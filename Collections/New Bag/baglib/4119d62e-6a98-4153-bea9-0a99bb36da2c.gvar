@@ -234,7 +234,7 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1, ch=character()) -> (a_bag, bool):
+def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1, coins: dict = {}, ch=character()) -> (a_bag, bool):
     """
     Modifies the coin pouch or coin purse automatically.
     Handles automatic switching depending if non-standard coins are in use.
@@ -242,6 +242,7 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
     :arg bagsLoaded: list of all the bags
     :arg coin: the coin that is being modified
     :var quantity: how much to change the coins by
+    :var coins: instead of coin or quantity you can provide coins, a dict of coins and quantities
     :var ch: the character, can be passed through if already loaded
     :return: a bag representing the coins access, and an error bool
     """
@@ -251,12 +252,37 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
     pouch = None
     
     # check if coins are valid
-    error = not (coin in COIN_TYPES)
+    error = any([coin not in COIN_TYPES for coin in coins]) or (coin and coin not in COIN_TYPES)
+    total = 0
+    
+    #prepare the coin diff
+    if not error:
+        for coin in COIN_TYPES:
+            if coin not in coins:
+                coins[coin]=0
+        coins.update({coin:coins[coin]+quantity} if coin and quantity else {})
+        
+        # smooth out any floating point entries
+        for coin in COIN_TYPES[:-1:-1]:
+            if (decimal:=coins.get(coin,0) % 1):
+                index = COIN_TYPES.index(coin)
+                smaller = COIN_TYPES[index+1]
+                rate = COIN_RATES[smaller]/COIN_RATES[coin]
+                p = decimal*rate
+                if index == len(COIN_TYPES)-2 and p%1:
+                    return (get_coins(bagsLoaded), True)
+                coins.update({smaller:coins.get(smaller,0)+p,coin:int(coins.get(coin,0)-decimal)})
+        
+        # finally ensure all are int and calculate total
+        for coin in coins:
+            coins[coin] = int(coins[coin])
+            total += coins[coin]/COIN_RATES[coin]
+    else:
+        coins = None
     
     # check if standard coins are in use
     if use_coin_purse(bagsLoaded):
-        coins = parse_coins(f"{quantity}{coin}") if not error else None
-        if coins and not (error:=-coins.total>=ch.coinpurse.total):
+        if coins and not (error:=-total>=ch.coinpurse.total):
             # modify the coin purse
             ch.coinpurse.modify_coins(coins.pp,coins.gp,coins.ep,coins.sp,coins.cp)
         pouch = ["Coin Purse", {coin:ch.coinpurse[coin] for coin in COIN_TYPES}]
@@ -265,7 +291,7 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
         for coin_type in COIN_TYPES:
             if coin_type not in pouch[1]:
                 pouch[1][coin_type] = 0
-        pouch[1][coin] += quantity
+            pouch[1][coin] += coins[coin]
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         for coin in COIN_TYPES[1::-1]:
@@ -283,23 +309,8 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
                 p = pouch[1][smaller]//rate
                 if pouch[1][smaller] >= rate:
                     pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
-        
-        # convert decimal currencies into lower denominations if possible
-        for coin in COIN_TYPES[:-1:-1]:
-            if (decimal:=pouch[1][coin] % 1):
-                index = COIN_TYPES.index(coin)
-                smaller = COIN_TYPES[index+1]
-                rate = COIN_RATES[smaller]/COIN_RATES[coin]
-                p = decimal*rate
-                if index == len(COIN_TYPES)-2 and p%1:
-                    return (pouch, True)
-                pouch[1].update({smaller:pouch[1][smaller]+p,coin:int(pouch[1][coin]-decimal)})
-        
-        # finally ensure all are int
-        for coin in COIN_TYPES:
-            pouch[1][coin] = int(pouch[1][coin])
                 
-        error = any([(pouch[1][coin]<0) or (pouch[1][coin]%1) for coin in pouch[1]]) or error
+        error = any([pouch[1][coin]<0 for coin in pouch[1]]) or error
     return (pouch, error)
 
 def get_coins(bagsLoaded: list, ch=character()) -> a_bag:

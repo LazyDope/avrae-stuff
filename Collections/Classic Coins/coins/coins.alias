@@ -25,20 +25,17 @@ if coins:
     else:
         title = f"{name} removes"
         positive = False
-if baglib.use_coin_purse(bagsLoaded):
-    orig_coins = baglib.get_coins(bagsLoaded)
-for idx, cointup in enumerate(coins):
-    coin, quantity = cointup
-    focus, maybe_error = baglib.modify_coins(bagsLoaded, coin, quantity, ch)
-    error = maybe_error or error
-    if error:
-        break
-    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {round_nicely(abs(quantity))} {coin}"
-    if positive and quantity<0:
-        positive = False
-        
-if baglib.use_coin_purse(bagsLoaded) and error:
-    ch.coinpurse.set_coins(orig_coins.pp,orig_coins.gp,orig_coins.ep,orig_coins.sp,orig_coins.cp)
+    focus, error = baglib.modify_coins(bagsLoaded, coins = coins, ch=ch)
+
+if not error:
+    for idx, cointup in enumerate(coins):
+        coin, quantity = cointup
+        error = maybe_error or error
+        if error:
+            break
+        title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {round_nicely(abs(quantity))} {coin}"
+        if positive and quantity<0:
+            positive = False
         
 bag_name = "Coin Purse" if baglib.use_coin_purse(bagsLoaded) else baglib.coinPouchName
 if coins:
