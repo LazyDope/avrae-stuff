@@ -145,6 +145,7 @@ def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     :var bag_name: the name of the new bag
     :return: a bag
     """
+    bag_name = bag_name or "New Bag"
     bagsLoaded = _as_list(bagsLoaded)
     bag_name = find_valid_name(bagsLoaded, bag_name) # check for a name that is unused
     bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
