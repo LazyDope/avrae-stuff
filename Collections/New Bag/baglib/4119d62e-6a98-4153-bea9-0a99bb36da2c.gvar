@@ -168,6 +168,7 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
     bagsLoaded = _as_list(bagsLoaded)
     bag = None
     error = True
+    quantity = int(quantity)
     
     # try to find a bag with the given name, failing to do so, fallback to searching for a bag with the item already in it
     if bag_name:
