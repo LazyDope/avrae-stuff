@@ -299,8 +299,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
             for coin_type in COIN_TYPES[-2::-1]:
                 smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
                 rate = COIN_RATES[smaller]/COIN_RATES[coin_type]
-                p = pouch[1][smaller]//rate
-                log.append(f"{p=}={pouch[1][smaller]}//{rate}")
+                p = int(pouch[1][smaller]//rate)
                 if p:
                     pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin_type:pouch[1][coin_type]+p})
                 
