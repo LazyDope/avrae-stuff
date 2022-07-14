@@ -633,7 +633,7 @@ def display_coins(
     """
     
     # define variables
-    bag = get_coins(bagsLoaded, autoCoins = autoCoins)[1]
+    bag = get_coins(bagsLoaded, autoCoins = autoCoins)
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/baglib.COIN_RATES[coin] for coin in old_coins if coin.lower() in COIN_RATES])})
