@@ -290,18 +290,18 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
             for coin_type in COIN_TYPES[:0:-1]:
                 if pouch[1][coin_type] < 0:
                     larger = COIN_TYPES[COIN_TYPES.index(coin_type)-1]
-                    rate = COIN_RATES[coin_type]/COIN_RATES[larger]
-                    p = int(pouch[1][coin_type]//rate)
-                    pouch[1].update({larger:pouch[1][larger]+p, coin_type:pouch[1][coin_type]-p*rate})
+                    ratio = _get_ratio(COIN_RATES[larger], COIN_RATES[coin_type])
+                    p = pouch[1][coin_type]//ratio[1]
+                    pouch[1].update({larger:int(pouch[1][larger]+p*ratio[0]), coin_type:int(pouch[1][coin_type]-p*ratio[1])})
         
         # convert into higher denominations if the settings is enabled
         if autoCoins:
             for coin_type in COIN_TYPES[-2::-1]:
                 smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
-                rate = COIN_RATES[smaller]/COIN_RATES[coin_type]
-                p = int(pouch[1][smaller]//rate)
+                ratio = _get_ratio(COIN_RATES[smaller], COIN_RATES[coin_type])
+                p = pouch[1][smaller]//ratio[0]
                 if p:
-                    pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin_type:pouch[1][coin_type]+p})
+                    pouch[1].update({smaller:int(pouch[1][smaller]-p*ratio[0]),coin_type:int(pouch[1][coin_type]+p*ratio[1])})
                 
         error = any([pouch[1][coin_type]<0 for coin_type in pouch[1]]) or error
         
@@ -752,3 +752,21 @@ def _round_nicely(number: int|float) -> str:
     :return: the rounded number as a string
     """
     return f'{number:.2f}'.rstrip('0').rstrip('.')
+
+def _get_ratio(a: int|float, b: int|float) -> (int, int):
+    """Calculate the Greatest Common Divisor of a and b. Also returns the decimal adjustment used to avoid floating point errors.
+    Best used on simple floating points
+
+    Unless b==0, the result will have the same sign as b (so that when
+    b is divided by it, the result comes out positive).
+    """
+    decimal = 1
+    a1 = a
+    b1 = b
+    while a1%1 or b1%1:
+        a1 *= 10
+        b1 *= 10
+        decimal *= 10
+    while b1:
+        a1, b1 = b1, a1%b1
+    return int(a*decimal//a1), int(b*decimal//a1)
