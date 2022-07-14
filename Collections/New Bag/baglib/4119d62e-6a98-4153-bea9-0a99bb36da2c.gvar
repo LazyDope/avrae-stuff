@@ -576,7 +576,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     :var bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
     :var openMode: an override to the open mode
-    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs
+    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by either running `load_bags()` twice or by running `load_json(dump_json())` on the already loaded bags
     :return: a list of embed arguments to display the list of bags
     """
     # define variables
@@ -607,14 +607,16 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     else:
         carriedWeight = 0
         unknownTotal = 0
+        anyUnknownItem = False
         
         # loop over the bags
         for bag in loop:
             if not bag:
                 continue
             old_bag = None if old_bags is None else old_bags.get(bag[0], {})
-            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
+            fields, bag_weight, _, fuzzyItemCount, UnknownItems = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
             text += fields
+            anyUnknownItem = anyUnknownItem or UnknownItems
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
         # add footnotes based on weight results
