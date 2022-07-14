@@ -24,7 +24,7 @@ for idx, cointup in enumerate(coins):
     error = maybe_error or error
     if error:
         break
-    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {abs(quantity)}{coin}"
+    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {abs(quantity)} {coin}"
     if positive and quantity<0:
         positive = False
 if coins:
