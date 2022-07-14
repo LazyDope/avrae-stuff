@@ -283,9 +283,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     
     #prepare coins regardless of if it's coin pouch or coin purse
     if not error:
-        for coin_type in COIN_TYPES:
-            if coin_type not in pouch[1]:
-                pouch[1][coin_type] = 0
+        for coin in coins:
             pouch[1][coin] += coins[coin]
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
