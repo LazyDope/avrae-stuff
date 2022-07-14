@@ -29,7 +29,7 @@ if coins:
             title = f"{name} removes"
             positive = False
 elif autoCoins:
-    focus, error = baglib.modify_coins(bagsLoaded)
+    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins)
 
 if not error:
     for idx, cointup in enumerate(coins):

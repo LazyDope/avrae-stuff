@@ -249,10 +249,10 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     pouch = get_coins(bagsLoaded, ch)
-    autoCoins = settings.get('autoCoins',False) if autoCoins is None else autoCoins
+    autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
     
     # check if coins are valid
-    error = any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES)
+    error = bool(any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES))
     total = 0
     coin = (coin or DEFAULT_COIN).lower()
     coins = coins.copy()
@@ -272,46 +272,46 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
                     return (pouch, True)
                 coins.update({smaller:coins.get(smaller,0)+p,coin:int(coins.get(coin,0)-decimal)})
         
-        # finally ensure all are int and calculate total
-        for coin in coins:
-            coins[coin] = int(coins[coin])
-            total += coins[coin]/COIN_RATES[coin]
+        # finally ensure all are int
+        for coin_type in coins:
+            coins[coin_type] = int(coins[coin_type])
     else:
         coins = None
     
     #prepare coins regardless of if it's coin pouch or coin purse
     if not error:
         negative = False
-        for coin in coins:
-            pouch[1][coin] += coins[coin]
-            negative = negative or coins[coin]<0
+        for coin_type in coins:
+            pouch[1][coin_type] += coins[coin_type]
+            negative = negative or coins[coin_type]<0
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         if negative:
-            for coin in COIN_TYPES[1::-1]:
-                if pouch[1][coin] < 0:
-                    larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
-                    rate = COIN_RATES[coin]/COIN_RATES[larger]
-                    p = pouch[1][coin]//rate
-                    pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
+            for coin_type in COIN_TYPES[:0:-1]:
+                if pouch[1][coin_type] < 0:
+                    larger = COIN_TYPES[COIN_TYPES.index(coin_type)-1]
+                    rate = COIN_RATES[coin_type]/COIN_RATES[larger]
+                    p = pouch[1][coin_type]//rate
+                    pouch[1].update({larger:pouch[1][larger]+p, coin_type:pouch[1][coin_type]-p*rate})
         
         # convert into higher denominations if the settings is enabled
         if autoCoins:
-            for coin in COIN_TYPES[:-1:-1]:
-                smaller = COIN_TYPES[COIN_TYPES.index(coin)+1]
-                rate = COIN_RATES[smaller]/COIN_RATES[coin]
+            for coin_type in COIN_TYPES[-2::-1]:
+                smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
+                rate = COIN_RATES[smaller]/COIN_RATES[coin_type]
                 p = pouch[1][smaller]//rate
-                if pouch[1][smaller] >= rate:
-                    pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin:pouch[1][coin]+p})
+                log.append(f"{p=}={pouch[1][smaller]}//{rate}")
+                if p:
+                    pouch[1].update({smaller:pouch[1][smaller]-p*rate,coin_type:pouch[1][coin_type]+p})
                 
-        error = any([pouch[1][coin]<0 for coin in pouch[1]]) or error
+        error = any([pouch[1][coin_type]<0 for coin_type in pouch[1]]) or error
         
         # if the modifications were successful, dump to actual coin purse
         if not error and use_coin_purse(bagsLoaded):
             ch.coinpurse.set_coins(pouch[1].pp,pouch[1].gp,pouch[1].ep,pouch[1].sp,pouch[1].cp)
     return (pouch, error)
 
-def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
+def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
     """
     Returns a bag of how many coins you currently have.
     Will not update your coins if modified.
@@ -319,7 +319,10 @@ def get_coins(bagsLoaded: list, ch=character()) -> a_bag:
     :return: a bag representing your coins
     """
     # check if we are using coin purse or not
-    if use_coin_purse(bagsLoaded):
+    autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
+    if autoCoins:
+        pouch = modify_coins(bagsLoaded, autoCoins=autoCoins, ch=ch)
+    elif use_coin_purse(bagsLoaded):
         cname = "Coin Purse"
         purse = ch.coinpurse
         coins = {coin:purse[coin] for coin in COIN_TYPES}
