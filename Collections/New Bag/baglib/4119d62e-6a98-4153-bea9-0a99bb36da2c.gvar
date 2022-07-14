@@ -638,8 +638,8 @@ def display_coins(
     bag = get_coins(bagsLoaded, autoCoins = autoCoins)
     item_messages = []
     if compact:
-        old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in old_coins if coin.lower() in COIN_RATES])})
-        bag and bag.update({'cointotal':sum([bag.pop(coin)/COIN_RATES[coin] for coin in old_coins if coin.lower() in COIN_RATES])})
+        old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_RATES if coin.lower() in old_coins])})
+        bag[1] and bag[1].update({'cointotal':sum([bag[1].pop(coin)/COIN_RATES[coin] for coin in COIN_RATES if coin.lower() in bag[1]])})
     
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
