@@ -259,9 +259,6 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     
     #prepare the coin diff
     if not error:
-        for coin_type in COIN_TYPES:
-            if coin_type not in coins:
-                coins[coin_type]=0
         coins.update({coin:coins[coin]+quantity} if quantity else {})
         
         # smooth out any floating point entries
@@ -284,16 +281,19 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     
     #prepare coins regardless of if it's coin pouch or coin purse
     if not error:
+        negative = False
         for coin in coins:
             pouch[1][coin] += coins[coin]
+            negative = negative or coins[coin]<0
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
-        for coin in COIN_TYPES[1::-1]:
-            if pouch[1][coin] < 0:
-                larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
-                rate = COIN_RATES[coin]/COIN_RATES[larger]
-                p = pouch[1][coin]//rate
-                pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
+        if negative:
+            for coin in COIN_TYPES[1::-1]:
+                if pouch[1][coin] < 0:
+                    larger = COIN_TYPES[COIN_TYPES.index(coin)-1]
+                    rate = COIN_RATES[coin]/COIN_RATES[larger]
+                    p = pouch[1][coin]//rate
+                    pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
         
         # convert into higher denominations if the settings is enabled
         if autoCoins:

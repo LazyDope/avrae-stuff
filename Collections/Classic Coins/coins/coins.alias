@@ -12,13 +12,13 @@ def round_nicely(number: int|float) -> str:
 ch = character()
 bagsLoaded = baglib.load_bags()
 old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
+autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 coins, coin_error = baglib.parsecoins("&*&")
 error = coin_error
 cmd = ctx.prefix + ctx.alias
-focus = None
 title = f"{name} looks inside"
 if coins:
-    focus, error = baglib.modify_coins(bagsLoaded, coins = coins, ch=ch)
+    focus, error = baglib.modify_coins(bagsLoaded, coins = coins)
     if not error:
         coins = list(coins.items())
         coins.sort(key=lambda x: x[1], reverse=True)
@@ -28,6 +28,8 @@ if coins:
         else:
             title = f"{name} removes"
             positive = False
+elif autoCoins:
+    focus, error = baglib.modify_coins(bagsLoaded)
 
 if not error:
     for idx, cointup in enumerate(coins):
