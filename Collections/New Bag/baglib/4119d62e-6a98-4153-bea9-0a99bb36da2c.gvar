@@ -240,9 +240,10 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     Handles automatic switching depending if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
     :arg bagsLoaded: list of all the bags
-    :arg coin: the coin that is being modified
+    :var coin: the coin that is being modified
     :var quantity: how much to change the coins by
     :var coins: instead of coin or quantity you can provide coins, a dict of coins and quantities
+    :var autoCoins: whether to convert into larger denominations
     :var ch: the character, can be passed through if already loaded
     :return: a bag representing the coins access, and an error bool
     """
@@ -315,6 +316,7 @@ def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
     Returns a bag of how many coins you currently have.
     Will not update your coins if modified.
     :arg bagsLoaded: a list of bags
+    :var autoCoins: whether to convert coins into larger denominations
     :return: a bag representing your coins
     """
     # check if we are using coin purse or not

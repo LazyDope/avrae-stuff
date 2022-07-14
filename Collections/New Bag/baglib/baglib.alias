@@ -26,6 +26,7 @@ functions = [
         baglib.get_item_weight,
         baglib.weigh_bag,
         baglib.display_bag,
+        baglib.display_coins,
         baglib.create_display,
         baglib.carried_weight
     ]
