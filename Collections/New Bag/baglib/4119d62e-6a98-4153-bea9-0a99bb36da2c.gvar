@@ -258,9 +258,9 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     
     #prepare the coin diff
     if not error:
-        for coin in COIN_TYPES:
-            if coin not in coins:
-                coins[coin]=0
+        for coin_type in COIN_TYPES:
+            if coin_type not in coins:
+                coins[coin_type]=0
         coins.update({coin:coins[coin]+quantity} if quantity else {})
         
         # smooth out any floating point entries
