@@ -234,7 +234,7 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins: dict = {}, ch=character()) -> (a_bag, bool):
+def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins: dict = {}, autoCoins: bool = None, ch=character()) -> (a_bag, bool):
     """
     Modifies the coin pouch or coin purse automatically.
     Handles automatic switching depending if non-standard coins are in use.
@@ -249,6 +249,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     pouch = get_coins(bagsLoaded, ch)
+    autoCoins = settings.get('autoCoins',False) if autoCoins is None else autoCoins
     
     # check if coins are valid
     error = any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES)
@@ -295,7 +296,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
                 pouch[1].update({larger:pouch[1][larger]+p, coin:pouch[1][coin]-p*rate})
         
         # convert into higher denominations if the settings is enabled
-        if settings.get('autoCoins',False):
+        if autoCoins:
             for coin in COIN_TYPES[:-1:-1]:
                 smaller = COIN_TYPES[COIN_TYPES.index(coin)+1]
                 rate = COIN_RATES[smaller]/COIN_RATES[coin]
