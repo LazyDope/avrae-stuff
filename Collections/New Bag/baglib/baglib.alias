@@ -14,6 +14,7 @@ functions = [
         baglib.new_bag,
         baglib.modify_item,
         baglib.modify_coins,
+        baglib.parsecoins,
         baglib.get_coins,
         baglib.use_coin_purse,
         baglib.find_bag_with_item,
