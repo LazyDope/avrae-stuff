@@ -665,7 +665,7 @@ def deep_copy(a_list: list) -> list:
     :arg a_list: any list
     :return: a deep copy of the list
     """
-    return list(dict(a_list).items())
+    return load_json(dump_json(a_list))
 
 def _as_dict(listordict) -> dict:
     """
