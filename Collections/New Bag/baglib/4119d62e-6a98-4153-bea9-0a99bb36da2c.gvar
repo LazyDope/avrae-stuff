@@ -234,7 +234,7 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1, coins: dict = {}, ch=character()) -> (a_bag, bool):
+def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins: dict = {}, ch=character()) -> (a_bag, bool):
     """
     Modifies the coin pouch or coin purse automatically.
     Handles automatic switching depending if non-standard coins are in use.
@@ -248,19 +248,20 @@ def modify_coins(bagsLoaded: list, coin: str=DEFAULT_COIN, quantity: float|int=1
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
-    coin = coin.lower()
     pouch = None
     
     # check if coins are valid
-    error = any([coin not in COIN_TYPES for coin in coins]) or (coin and coin not in COIN_TYPES)
+    error = any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES)
     total = 0
+    coin = (coin or DEFAULT_COIN).lower()
+    coins = coins.copy()
     
     #prepare the coin diff
     if not error:
         for coin in COIN_TYPES:
             if coin not in coins:
                 coins[coin]=0
-        coins.update({coin:coins[coin]+quantity} if coin and quantity else {})
+        coins.update({coin:coins[coin]+quantity} if quantity else {})
         
         # smooth out any floating point entries
         for coin in COIN_TYPES[:-1:-1]:

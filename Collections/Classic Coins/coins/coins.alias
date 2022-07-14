@@ -11,28 +11,26 @@ def round_nicely(number: int|float) -> str:
     
 ch = character()
 bagsLoaded = baglib.load_bags()
-old_bags = baglib.deep_copy(bagsLoaded)
+old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
 coins, error = baglib.parsecoins("&*&")
 cmd = ctx.prefix + ctx.alias
 focus = None
 title = f"{name} looks inside"
 if coins:
-    coins = list(coins.items())
-    coins.sort(key=lambda x: x[1])
-    if coins[0][1]>0:
-        title = f"{name} adds"
-        positive = True
-    else:
-        title = f"{name} removes"
-        positive = False
     focus, error = baglib.modify_coins(bagsLoaded, coins = coins, ch=ch)
+    if not error:
+        coins = list(coins.items())
+        coins.sort(key=lambda x: x[1], reverse=True)
+        if coins[0][1]>0:
+            title = f"{name} adds"
+            positive = True
+        else:
+            title = f"{name} removes"
+            positive = False
 
 if not error:
     for idx, cointup in enumerate(coins):
         coin, quantity = cointup
-        error = maybe_error or error
-        if error:
-            break
         title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {round_nicely(abs(quantity))} {coin}"
         if positive and quantity<0:
             positive = False
@@ -48,7 +46,7 @@ else:
     success = -1 if error else 1
 if error or not focus:
     focus = baglib.get_coins(bagsLoaded)
-title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford."][success]
+title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
 
 return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
