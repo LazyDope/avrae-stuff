@@ -339,7 +339,6 @@ def parsecoins(args: str|list):
     """
     if typeof(args) == 'SafeList':
         args = ' '.join(args)
-    COIN_TYPES = baglib.COIN_TYPES
     args = [arg.strip() for arg in args.split("+") if arg]
     new_args = []
     for arg in args:
@@ -351,7 +350,7 @@ def parsecoins(args: str|list):
     for arg in args:
         error = False
         if arg.replace("-","").strip().isdecimal():
-            coin = baglib.DEFAULT_COIN
+            coin = DEFAULT_COIN
             arg = arg.strip()
         elif len(possible_types:=[coin for coin in COIN_TYPES if coin.lower() in arg.lower()]) == 1:
             coin = possible_types[0]
