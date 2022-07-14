@@ -80,6 +80,8 @@ def load_bags(ch = character()) -> [a_bag]:
                     bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
     return bagsLoaded
 
+_old_bags = load_bags()
+
 def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     """
     Saves the current bag configuration.
@@ -103,34 +105,6 @@ def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     else:
         ch.set_cvar('bags',dump_json(bagsLoaded))
     return 1
-
-def _as_dict(listordict) -> dict:
-    """
-    Makes sure a list is returned as a dict
-    :var listordict: The list or dict to check
-    :return: a dict
-    """
-    match typeof(listordict):
-        case 'SafeDict':
-            return listordict
-        case 'SafeList' if len(max(listordict, key=len)) == 2:
-            return dict(listordict)
-        case _:
-            err(f"{typeof(listordict)} cannot be converted to a dict.\n{listordict} caused this error.",True)
-            
-def _as_list(listordict) -> list:
-    """
-    Makes sure a dict is returned as a list of lists
-    :var listordict: The list or dict to check
-    :return: a list
-    """
-    match typeof(listordict):
-        case 'SafeDict':
-            return list(listordict.items())
-        case 'SafeList':
-            return listordict
-        case _:
-            err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
 
 def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -> a_bag:
     """
@@ -512,10 +486,15 @@ def display_bag(
     weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    previousState: dict = None
     ) -> (list, float, float, int, bool):  #TODO: handle recursive bags
     """
     Creates the field(s) to display a bag in an embed.
     :arg bag: the bag to get the weight of
+    :var weightDict: the dict to get weights from
+    :var weightTracking: whether to use weight tracking
+    :var ignoreBags: a list of what bags are ignored
+    :var previousState: the bag's contents previous state, for building a delta from
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     """
     
@@ -529,30 +508,37 @@ def display_bag(
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
         item_name = item.lower()
+        quantity = bag[1][item]
+        
+        if item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
+        else:
+            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+        
+        # get item amount differences
+        if previousState is not None:
+            diff = quantity - previousState.get(item, 0)
+            if diff:
+                item_message += f''' ({"+" if diff>0 else ""}{diff})'''
+        
+        # start weight calculation
         if weightTracking and bag[0].lower() not in ignoreBags: # only weigh the bag if it's enabled
             itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount)
             anyUnknownItem = anyUnknownItem or unknownItem
             
-            itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
+            itemWeight = itemWeight*(quantity if typeof(itemWeight) != 'str' else 1)
             
             if typeof(itemWeight) != 'str':
                 total_weight += itemWeight
                 if item_name in COIN_TYPES:
                     coin_weight += itemWeight
             
-            # show the correct message based on the item and weigh retrieved
-            if typeof(itemWeight) in ['int','float'] and item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-                item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item} ({_round_nicely(itemWeight)} lbs.){asterisk if unknownItem else ""}""".strip()
-            elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-                item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item}{f" {itemWeight}" if itemWeight else "" }""".strip()
-            elif typeof(itemWeight) in ['int','float']:
-                item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item} ({_round_nicely(itemWeight)} lbs.){asterisk if unknownItem else ""}""".strip()
+            # add the correct message based on the weight
+            if typeof(itemWeight) in ['int','float']:
+                item_message +=  f'''[{_round_nicely(itemWeight)} lbs.]{asterisk if unknownItem else ""}'''
             else:
-                item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item}{f" {itemWeight}" if itemWeight else "" }""".strip()
-        elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {bag[1][item]:,} {item}""".strip()
-        else:
-            item_message = f"""{bag[1][item]:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+                item_message += f" {itemWeight}" if itemWeight else ""
+                
         item_messages.append(item_message)
     
     # show empty message
@@ -599,6 +585,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     text = []
     weightTracking = settings.get('weightTracking','Off').lower() == 'on'
     ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
+    oldBags = _as_dict(_old_bags)
     
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
@@ -626,7 +613,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
         for bag in loop:
             if not bag:
                 continue
-            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags)
+            fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags, oldBags.get(bag[0], {}))
             text += fields
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
@@ -668,6 +655,34 @@ def carried_weight(bagsLoaded: list) -> float:
             bag_weight, _, _ = weigh_bag(bag, weightDict, 'on')
             carriedWeight += bag_weight
     return float(carriedWeight)
+
+def _as_dict(listordict) -> dict:
+    """
+    Makes sure a list is returned as a dict
+    :var listordict: The list or dict to check
+    :return: a dict
+    """
+    match typeof(listordict):
+        case 'SafeDict':
+            return listordict
+        case 'SafeList' if len(max(listordict, key=len)) == 2:
+            return dict(listordict)
+        case _:
+            err(f"{typeof(listordict)} cannot be converted to a dict.\n{listordict} caused this error.",True)
+            
+def _as_list(listordict) -> list:
+    """
+    Makes sure a dict is returned as a list of lists
+    :var listordict: The list or dict to check
+    :return: a list
+    """
+    match typeof(listordict):
+        case 'SafeDict':
+            return list(listordict.items())
+        case 'SafeList':
+            return listordict
+        case _:
+            err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
 
 def _round_nicely(number: int|float) -> str:
     """
