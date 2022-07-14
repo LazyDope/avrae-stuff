@@ -565,7 +565,7 @@ def display_bag(
             item_message = item_messages.pop(0)
             fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
-        fields[i] += "|inline＂"
+        fields[i] += "|inline＂" if lineLength <= 30 else "＂"
         i += 1
     
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
