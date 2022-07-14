@@ -616,7 +616,74 @@ def display_bag(
         i += 1
     
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
+
+def display_coins(
+    bagsLoaded: list,
+    autoCoins: None,
+    compact: None,
+    old_coins: dict = None
+    ) -> list:  #TODO: handle recursive bags
+    """
+    Creates the field(s) to display coins in an embed.
+    :arg bagsLoaded: the list of bags
+    :var autoCoins: whether to convert to higher denominations
+    :var compact: whether to use compact view
+    :var old_coins: the old coins for comparing to
+    :return: a list of fields to display coins
+    """
     
+    # define variables
+    bag = get_coins(bagsLoaded, autoCoins = autoCoins)[1]
+    item_messages = []
+    if compact:
+        old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/baglib.COIN_RATES[coin] for coin in old_coins if coin.lower() in COIN_RATES])})
+        bag and bag.update({'cointotal':sum([bag.pop(coin)/baglib.COIN_RATES[coin] for coin in old_coins if coin.lower() in COIN_RATES])})
+    
+    # loop over each item, getting the information needed for the display
+    for item in bag[1]:
+        item_name = item.lower()
+        quantity = bag[1][item]
+        if compact and item_name == 'cointotal':
+            item_message = f"""Total Coins: {_round_nicely(quantity)}""".strip()
+        elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
+        else:
+            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+        
+        # get item amount differences
+        if old_bag is not None:
+            diff = quantity - old_bag.get(item, 0)
+            if diff:
+                item_message += f''' ({"+" if diff>0 else ""}{diff})'''
+                        
+        item_messages.append(item_message)
+    
+    # show empty message
+    if not item_messages:
+        item_messages = ['*This bag is empty.*']
+    
+    # add weight counter for coins and total for each bag
+    bag_title = f"""{bag[0]}"""
+    
+    # split up fields if they are too long
+    fields = []
+    i = 0
+    while item_messages:
+        header = bag_title if i == 0 else "*(continued)*"
+        lineLength = len(header)
+        item_message = item_messages.pop(0)
+        fields.append(f"-f ＂{header}|{item_message}")
+        lineLength = max(lineLength, len(item_message))
+        while len(fields[i]) <= 1000:
+            if not item_messages:
+                break
+            item_message = item_messages.pop(0)
+            fields[i] += f"\n{item_message}"
+            lineLength = max(lineLength, len(item_message))
+        fields[i] += "|inline＂" if lineLength <= 30 else "＂"
+        i += 1
+    
+    return fields
 
 def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str = None, old_bags: dict = None) -> list:
     """

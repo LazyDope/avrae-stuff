@@ -11,8 +11,10 @@ def round_nicely(number: int|float) -> str:
     
 ch = character()
 bagsLoaded = baglib.load_bags()
-old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
+old_coins = baglib.get_coins(bagsLoaded)[1]
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
+compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
+openMode = baglib.settings.get('openMode','all').lower()
 coins, coin_error = baglib.parsecoins("&*&")
 focus = None
 error = coin_error
@@ -52,7 +54,9 @@ title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
 else:
-    display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
+    display = ""
+    for field in baglib.display_coins(bagsLoaded, autoCoins, compact, old_coins):
+        display += " -f ＂{field}＂"
 
-return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
+return f"-title ＂{title}＂{display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
