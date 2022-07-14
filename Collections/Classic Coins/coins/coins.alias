@@ -1,0 +1,44 @@
+embed <drac2>
+using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+    
+ch = character()
+bagsLoaded = baglib.load_bags()
+old_bags = baglib.deep_copy(bagsLoaded)
+coins, error = baglib.parse_coins("&*&")
+cmd = ctx.prefix + ctx.alias
+focus = None
+title = f"{name} looks inside"
+if coins:
+    coins = list(coins.items())
+    coins.sort(key=lambda x: x[1])
+    if coins[0][1]>0:
+        title = f"{name} adds"
+        positive = True
+    else:
+        title = f"{name} removes"
+        positive = False
+
+for idx, cointup in enumerate(coins):
+    coin, quantity = cointup
+    focus, maybe_error = baglib.modify_coins(bagsLoaded, coin, quantity, ch)
+    error = maybe_error or error
+    if error:
+        break
+    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {abs(quantity)}{coin}"
+    if positive and quantity<0:
+        positive = False
+if coins:
+    if baglib.use_coin_purse(bagsLoaded):
+        title += " to their Coin Purse" if positive else " from their Coin Purse"
+    else:
+        bag_name = baglib.coinPouchName
+        title += f" to their {bag_name}" if positive else f" from their {bag_name}"
+else:
+    title += " their Coin Purse" if baglib.use_coin_purse(bagsLoaded) else f" their {baglib.coinPouchName}"
+success = baglib.save_bags(bagsLoaded, error)
+if error or not focus:
+    focus = baglib.get_coins(bagsLoaded)
+display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
+
+return f"-title ＂{title}＂ {display} -footer ＂View `{ctx.prefix}help {ctx.alias}` for more help＂"
+</drac2>

@@ -329,6 +329,42 @@ def use_coin_purse(bagsLoaded: list) -> bool:
     """
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
+
+def parse_coins(args: str|list):
+    """
+    Parses args to get the valid coins.
+    :arg args: the string or list of arguments to parse
+    :return: tuple of a dict of coin totals and an error bool
+    """
+    if typeof(args) == 'SafeList':
+        args = ' '.join(args)
+    COIN_TYPES = baglib.COIN_TYPES
+    args = [arg.strip() for arg in args.split("+") if arg]
+    new_args = []
+    for arg in args:
+        new_args += [f"{'-' if idx else ''}{part}" for idx, part in enumerate(arg.split("-")) if part]
+    args = new_args
+    #for arg in new_args:
+    #    new_args += [part for part in arg.split()]
+    coins = {}
+    for arg in args:
+        error = False
+        if arg.replace("-","").strip().isdecimal():
+            coin = baglib.DEFAULT_COIN
+            arg = arg.strip()
+        elif len(possible_types:=[coin for coin in COIN_TYPES if coin.lower() in arg.lower()]) == 1:
+            coin = possible_types[0]
+            arg = arg.lower().replace(coin.lower(),"").strip()
+        else:
+            return {}, True
+        if all([number.strip().isdecimal() for number in (numbers:=arg.strip("-").replace(",","").split("."))]) and len(numbers) in [1,2]:
+            quantity = float(arg.replace(",",""))
+            if quantity:
+                coins.update({coin:coins.get(coin,0)+quantity})
+        else:
+            return {}, True
+    
+    return coins, False
         
 def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
     """
