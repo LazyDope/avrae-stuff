@@ -385,7 +385,6 @@ if focus != "help":
     if success == -1:
         bagsLoaded = baglib.load_bags()
     
-    err(f"{bagsLoaded}\n{old_bags}")
     text += baglib.create_display(bagsLoaded, focus, openMode, old_bags)
     text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
