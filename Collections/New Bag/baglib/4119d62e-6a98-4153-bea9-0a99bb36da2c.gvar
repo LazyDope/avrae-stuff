@@ -630,7 +630,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     :return: a list of embed arguments to display the list of bags
     """
     # define variables
-    openMode = openMode if openMode and openMode.lower() in openModes else settings.get('openMode','All')
+    openMode = openMode.lower() if openMode and openMode.lower() in openModes else settings.get('openMode','All').lower()
     text = []
     weightTracking = settings.get('weightTracking','Off').lower() == 'on'
     ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
@@ -642,7 +642,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     weightDict.update(custWeights)
     
     # define loop based on what mode we're in
-    match openMode.lower():
+    match openMode:
         case 'none':
             loop = []
         case 'all' if bagsLoaded:
@@ -653,7 +653,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
             loop = [focus] if focus else []
             
     if not loop:
-        return "-desc ＂You deleted your only bag and have no bags remaining!＂"
+        return "-desc ＂There are no bags to display.＂"
     else:
         carriedWeight = 0
         unknownTotal = 0
@@ -670,7 +670,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
             carriedWeight += bag_weight
             unknownTotal += fuzzyItemCount
         # add footnotes based on weight results
-        if weightTracking and settings.get('openMode','All').lower() == 'all':
+        if weightTracking and openMode == 'all':
             display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
             if anyUnknownItem:
                 display_footer += "\n*Items marked with a dagger (†) are entirely unrecognized.*"
@@ -681,8 +681,8 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
             text.append(display_footer)
         
         # show encumbrance footer even if 'all' mode is not selected
-        if settings.get('encumbrance','Off').lower() == 'on':
-            if not carriedWeight:
+        if weightTracking and settings.get('encumbrance','Off').lower() == 'on':
+            if openMode not in 'all':
                 carriedWeight = carried_weight(bagsLoaded)
             encumbrance_footer = """\n -f ＂You are Heavily Encumbered| Your speed is reduced by 20 feet and you have disadvantage on ability checks, attack rolls, and saving throws that use Strength, Dexterity, or Constitution.＂""" if carriedWeight>(carryMod*10) else """ -f ＂You are Encumbered|Your speed is reduced by 10 feet.＂""" if carriedWeight>(carryMod*5) else ""
             text.append(encumbrance_footer)
@@ -697,6 +697,7 @@ def carried_weight(bagsLoaded: list) -> float:
     bagsLoaded = _as_list(bagsLoaded)
     coinbag = [get_coins(bagsLoaded)]
     loop = bagsLoaded + coinbag if coinbag not in bagsLoaded else []
+    carriedWeight = 0
     
     # reload settings, just in case
     custWeights = (settings.get('customWeights', default_settings.customWeights))
