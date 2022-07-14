@@ -651,8 +651,8 @@ def display_coins(
             item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         
         # get item amount differences
-        if old_bag is not None:
-            diff = quantity - old_bag.get(item, 0)
+        if old_coins is not None:
+            diff = quantity - old_coins.get(item, 0)
             if diff:
                 item_message += f''' ({"+" if diff>0 else ""}{diff})'''
                         
