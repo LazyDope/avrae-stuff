@@ -271,7 +271,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
                 rate = COIN_RATES[smaller]/COIN_RATES[coin]
                 p = decimal*rate
                 if index == len(COIN_TYPES)-2 and p%1:
-                    return (get_coins(bagsLoaded), True)
+                    return (pouch, True)
                 coins.update({smaller:coins.get(smaller,0)+p,coin:int(coins.get(coin,0)-decimal)})
         
         # finally ensure all are int and calculate total
