@@ -25,7 +25,7 @@ if coins:
     else:
         title = f"{name} removes"
         positive = False
-if use_coin_purse(bagsLoaded):
+if baglib.use_coin_purse(bagsLoaded):
     orig_coins = get_coins(bagsLoaded)
 for idx, cointup in enumerate(coins):
     coin, quantity = cointup
@@ -37,7 +37,7 @@ for idx, cointup in enumerate(coins):
     if positive and quantity<0:
         positive = False
         
-if use_coin_purse(bagsLoaded) and error:
+if baglib.use_coin_purse(bagsLoaded) and error:
     ch.coinpurse.set_coins(orig_coins.pp,orig_coins.gp,orig_coins.ep,orig_coins.sp,orig_coins.cp)
         
 bag_name = "Coin Purse" if baglib.use_coin_purse(bagsLoaded) else baglib.coinPouchName
