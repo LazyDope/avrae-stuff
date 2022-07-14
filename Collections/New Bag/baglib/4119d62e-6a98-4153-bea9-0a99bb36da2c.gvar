@@ -576,7 +576,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
     :var bagsLoaded: the list of bags to display for the 'All' mode
     :var focus: a bag to focus on for the 'One' mode
     :var openMode: an override to the open mode
-    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy()
+    :var old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy(bagsLoaded)
     :return: a list of embed arguments to display the list of bags
     """
     # define variables
