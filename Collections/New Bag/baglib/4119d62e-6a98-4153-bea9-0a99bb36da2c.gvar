@@ -612,7 +612,7 @@ def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str =
         for bag in loop:
             if not bag:
                 continue
-            old_bag = None if old_bags is None else oldBags.get(bag[0], {})
+            old_bag = None if old_bags is None else old_bags.get(bag[0], {})
             fields, bag_weight, _, fuzzyItemCount, anyUnknownItem = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
             text += fields
             carriedWeight += bag_weight
