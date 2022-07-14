@@ -62,11 +62,8 @@ def load_bags(ch = character()) -> [a_bag]:
     for i in range(len(old_bags)):
         ch.delete_cvar(f"bag{i}")
     
-    # create a default bag only if there were no legacy bags
-    defaultbag = '[]' if old_bags else '[["Bag 1",{}]]'
-        
     # load bags
-    bagsLoaded = load_yaml(ch.cvars.get('bags', defaultbag))
+    bagsLoaded = load_yaml(ch.cvars.get('bags', '[]'))
     bagsLoaded = bagsLoaded + old_bags_converted
     
     # remove duplicate names
