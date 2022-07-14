@@ -14,6 +14,7 @@ bagsLoaded = baglib.load_bags()
 old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 coins, coin_error = baglib.parsecoins("&*&")
+focus = None
 error = coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"

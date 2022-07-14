@@ -320,7 +320,7 @@ def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
     # check if we are using coin purse or not
     autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
     if autoCoins:
-        pouch = modify_coins(bagsLoaded, autoCoins=autoCoins, ch=ch)
+        pouch, _ = modify_coins(bagsLoaded, autoCoins=autoCoins, ch=ch)
     elif use_coin_purse(bagsLoaded):
         cname = "Coin Purse"
         purse = ch.coinpurse
