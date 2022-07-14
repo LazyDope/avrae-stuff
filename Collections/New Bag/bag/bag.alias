@@ -105,7 +105,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
-old_bags = load_json(dump_json(bagsLoaded)) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
+old_bags = list(dict(bagsLoaded).items()) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
 openMode = 'all'
 
 # match the input to a subcommand
