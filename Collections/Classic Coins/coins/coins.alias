@@ -28,8 +28,6 @@ if coins:
         else:
             title = f"{name} removes"
             positive = False
-elif autoCoins:
-    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins)
 
 if not error:
     for idx, cointup in enumerate(coins):
@@ -43,12 +41,12 @@ if coins:
     title += f" to their {bag_name}" if positive else f" from their {bag_name}"
 else:
     title += f" their {bag_name}"
+if error or not focus:
+    focus = baglib.get_coins(bagsLoaded)
 if bagsLoaded:
     success = baglib.save_bags(bagsLoaded, error)
 else:
     success = -1 if error else 1
-if error or not focus:
-    focus = baglib.get_coins(bagsLoaded)
 title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
