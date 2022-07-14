@@ -50,4 +50,4 @@ title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f
 display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
 
 return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
-</drac2>
+</drac2> -thumb https://i.imgur.com/auM9MBe.png
