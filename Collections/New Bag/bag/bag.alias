@@ -346,7 +346,7 @@ match args_list:
                 baglib.settings['weightTracking'] = "Off" if baglib.settings.get('weightTracking',baglib.default_settings.weightTracking) == "On" else "On"
         success = 1
         text_dict = {'on':" is watching their weight!", 'off': " thinks weight is just a number!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.get('weightTracking','Off').lower()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('weightTracking','Off').lower()]}＂""")
         
     case [("open"|"o"|"&"), *args] | [input_name, ("open"|"o"|"&"), *args]:
         if not input_name:
@@ -354,7 +354,7 @@ match args_list:
         success = 1
         baglib.settings['openMode'] = input_name.title() if input_name.lower() in openModes else baglib.settings.get('openMode','All')
         text_dict = {'None':" doesn't want to see their full bags when they add or remove an item!",'One':" would like to see the bag they removed something from when they add or remove an item!",'All':" would like to know what's left in all of their bags when they add or remove an item!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.get('openMode','All').title()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('openMode','All').title()]}＂""")
 
     case [("encumbrance"|"e"|"="), *args] | [input_name, ("encumbrance"|"e"|"="), *args]:
         if not input_name:
@@ -368,7 +368,7 @@ match args_list:
                 baglib.settings['encumbrance'] = "Off" if baglib.settings.get('encumbrance',baglib.default_settings.encumbrance) == "On" else "On"
         success = 1
         text_dict = {'on':" is feeling weighed down!", 'off': " wants to get this weight off their shoulders!"}
-        text.append(f"""-title ＂{name}{text_dict[settings.get('encumbrance','Off').lower()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('encumbrance','Off').lower()]}＂""")
         
     case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
         if not input_name:

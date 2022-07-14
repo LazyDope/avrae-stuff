@@ -12,7 +12,8 @@ def round_nicely(number: int|float) -> str:
 ch = character()
 bagsLoaded = baglib.load_bags()
 old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
-coins, error = baglib.parsecoins("&*&")
+coins, coin_error = baglib.parsecoins("&*&")
+error = coin_error
 cmd = ctx.prefix + ctx.alias
 focus = None
 title = f"{name} looks inside"
@@ -47,6 +48,7 @@ else:
 if error or not focus:
     focus = baglib.get_coins(bagsLoaded)
 title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
+if coin
 display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
 
 return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
