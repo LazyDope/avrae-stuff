@@ -330,9 +330,10 @@ def use_coin_purse(bagsLoaded: list) -> bool:
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
 
-def parse_coins(args: str|list):
+def parsecoins(args: str|list):
     """
     Parses args to get the valid coins.
+    (I hate that I can't shadow here)
     :arg args: the string or list of arguments to parse
     :return: tuple of a dict of coin totals and an error bool
     """
