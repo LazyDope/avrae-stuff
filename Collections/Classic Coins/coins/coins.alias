@@ -1,5 +1,13 @@
 embed <drac2>
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+
+def round_nicely(number: int|float) -> str:
+    """
+    Makes the number look nice, regardless of whether it's an int or a float
+    :arg number: an integer or float
+    :return: the rounded number as a string
+    """
+    return f'{number:.2f}'.rstrip('0').rstrip('.')
     
 ch = character()
 bagsLoaded = baglib.load_bags()
@@ -24,7 +32,7 @@ for idx, cointup in enumerate(coins):
     error = maybe_error or error
     if error:
         break
-    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {abs(quantity)} {coin}"
+    title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {round_nicely(abs(quantity))} {coin}"
     if positive and quantity<0:
         positive = False
 if coins:
