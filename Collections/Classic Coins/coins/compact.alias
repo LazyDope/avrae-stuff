@@ -3,7 +3,7 @@ ch = character()
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
 
 bagsLoaded = baglib.load_bags()
-old_bags = baglib.deep_copy(bagsLoaded)
+old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
 focus = baglib.get_coins(bagsLoaded, autoCoins=True)
 success = baglib.save_bags(bagsLoaded)
 display = ' '.join(baglib.create_display(None, focus, 'one', old_bags))
