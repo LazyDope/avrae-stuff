@@ -10,6 +10,6 @@ focus = baglib.get_coins(bagsLoaded, autoCoins=True)
 success = baglib.save_bags(bagsLoaded)
 display = ""
 for field in baglib.display_coins(bagsLoaded, True, compact, old_coins):
-    display += " -f ＂{field}＂"
+    display += " -f {field}"
 return f"-title ＂{name} converts their coins to save space!＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png

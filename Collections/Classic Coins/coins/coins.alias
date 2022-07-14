@@ -56,7 +56,7 @@ if coin_error:
 else:
     display = ""
     for field in baglib.display_coins(bagsLoaded, autoCoins, compact, old_coins):
-        display += f" -f ＂{field}＂"
+        display += f" -f {field}"
 
 return f"-title ＂{title}＂{display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
