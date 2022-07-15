@@ -637,7 +637,7 @@ def display_coins(
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
-        bag[1] and bag[1].update({'cointotal':sum([bag[1].pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in bag[1]])})
+        bag[1] and bag[1].update({'cointotal':sum([log.append(bag[1]) or bag[1].pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in bag[1]])})
     
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
@@ -775,14 +775,14 @@ def carried_weight(bagsLoaded: list) -> float:
             carriedWeight += bag_weight
     return float(carriedWeight)
 
-def deep_copy(a_list: list) -> list:
+def deep_copy(obj) -> T:
     """
     Provides a deep copy of a list.
     Idk just thought this'd be useful with baglib.
-    :arg a_list: any list
-    :return: a deep copy of the list
+    :arg obj: anything
+    :return: a deep copy of obj
     """
-    return load_json(dump_json(a_list))
+    return load_json(dump_json(obj))
 
 def _as_dict(listordict) -> dict:
     """
