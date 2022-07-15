@@ -581,7 +581,6 @@ def display_bag(
     coin_weight = 0
     fuzzyItemCount = 0
     anyUnknownItem = False
-    srd_coins = False
     
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
@@ -589,10 +588,9 @@ def display_bag(
         quantity = bag[1][item]
         
         if item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} `{quantity:,}` {item}""".strip()
-            srd_coins = True
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
         else:
-            item_message = f"""`{quantity:,}{"" if item_name in COIN_TYPES else "x"}` {item}""".strip()
+            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         
         # get item amount differences
         if old_bag is not None:
@@ -686,9 +684,9 @@ def display_coins(
         if compact and item_name == 'cointotal':
             item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {_round_nicely(quantity)} {DEFAULT_COIN}""".strip()
         elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} `{quantity:,}` {item}""".strip()
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
         else:
-            item_message = f"""`{quantity:,}{"" if item_name in COIN_TYPES else "x"}` {item}""".strip()
+            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         
         # get item amount differences
         if old_coins is not None:
