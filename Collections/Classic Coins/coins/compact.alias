@@ -11,10 +11,11 @@ else:
     baglib.settings['compactCoins'] = True
 ch.delete_cvar('compactcoins')
 ch.set_cvar('bagSettings',dump_json(baglib.settings))
+
 if compact:
-    title = f"{name} disables their `compactCoins`"
-else:
     title = f"{name} enables their `compactCoins`"
+else:
+    title = f"{name} disables their `compactCoins`"
     
 if openMode != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, compact))

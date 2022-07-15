@@ -12,9 +12,9 @@ else:
 ch.delete_cvar('autocoins')
 ch.set_cvar('bagSettings',dump_json(baglib.settings))
 if autoCoins:
-    title = f"{name} disables their `autoCoins`"
-else:
     title = f"{name} enables their `autoCoins`"
+else:
+    title = f"{name} disables their `autoCoins`"
     
 if openMode != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, compact))
