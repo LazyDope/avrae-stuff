@@ -45,17 +45,17 @@ if coins:
 else:
     title += f" their {bag_name}"
 
-if coin_error:
-    display = '-f ＂`&*&` contained invalid coins＂'
-elif openMode != 'none':
-    display = ' '.join(baglib.display_coins(bagsLoaded, autoCoins, compact, old_coins))
-else:
-    display = ""
-
 if bagsLoaded:
     success = baglib.save_bags(bagsLoaded, error)
 else:
     success = -1 if error else 1
+    
+if coin_error:
+    display = '-f ＂`&*&` contained invalid coins＂'
+elif openMode != 'none':
+    display = ' '.join(baglib.display_coins(bagsLoaded, compact, old_coins))
+else:
+    display = ""
 
 title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 

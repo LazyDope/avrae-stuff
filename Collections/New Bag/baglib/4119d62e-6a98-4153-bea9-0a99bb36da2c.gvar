@@ -333,6 +333,7 @@ def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
         for coin_type in COIN_TYPES:
             if coin_type not in pouch[1]:
                 pouch[1][coin_type] = 0
+    err(pouch)
     return pouch
 
 def use_coin_purse(bagsLoaded: list) -> bool:
@@ -621,21 +622,20 @@ def display_bag(
 
 def display_coins(
     bagsLoaded: list,
-    autoCoins: None,
     compact: None,
     old_coins: dict = None
     ) -> list:  #TODO: handle recursive bags
     """
     Creates the field(s) to display coins in an embed.
     :arg bagsLoaded: the list of bags
-    :var autoCoins: whether to convert to higher denominations
     :var compact: whether to use compact view
     :var old_coins: the old coins for comparing to
     :return: a list of fields to display coins
     """
     
     # define variables
-    bag = get_coins(bagsLoaded, autoCoins = autoCoins)
+    bag = get_coins(bagsLoaded)
+    err(bag)
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
