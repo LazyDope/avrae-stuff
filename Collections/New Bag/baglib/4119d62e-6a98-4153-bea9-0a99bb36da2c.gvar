@@ -333,7 +333,6 @@ def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
         for coin_type in COIN_TYPES:
             if coin_type not in pouch[1]:
                 pouch[1][coin_type] = 0
-    err(pouch)
     return pouch
 
 def use_coin_purse(bagsLoaded: list) -> bool:
@@ -635,7 +634,6 @@ def display_coins(
     
     # define variables
     bag = get_coins(bagsLoaded)
-    err(bag)
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
