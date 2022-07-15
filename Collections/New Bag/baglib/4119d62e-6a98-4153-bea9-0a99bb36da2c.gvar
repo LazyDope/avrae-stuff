@@ -249,7 +249,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, delta:
     :arg list bagsLoaded: list of all the bags
     :var str coin: the coin that is being modified
     :var int quantity: how much to change the coins by
-    :var dict delta: instead of coin or quantity you can provide coins, a dict of coins and quantities
+    :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities
     :var bool autoCoins: whether to convert into larger denominations
     :var AliasCharacter ch: the character, can be passed through if already loaded
     :return: a bag representing the coins accessed, and an error bool
