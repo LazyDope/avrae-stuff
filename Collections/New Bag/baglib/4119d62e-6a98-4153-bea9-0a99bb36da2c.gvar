@@ -165,8 +165,8 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
     :var str bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
     :var bool create_on_fail: whether to create a new bag if one is not found
     :var bool recursive_search: whether to search for other bags that contain the requested item, only if quantity is negative
-    :return: the bag modified and an error bool
-    :rtype: (a_bag, bool)
+    :return: the bag modified, the final item name and an error bool
+    :rtype: (a_bag, str, bool)
     """
     # setup variables
     bagsLoaded = _as_list(bagsLoaded)
@@ -195,7 +195,7 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
     
     # save the current quantity of the item, then make sure that we have enough of the item in the bag
     c_value = bag[1][item_name] if item_names else 0
-    if (c_value >= -quantity or recursive_search):
+    if c_value >= -quantity:
         
         # update the bag's values, remove the entry if it's empty
         bag[1][item_name] = remainder = (c_value + quantity)
@@ -204,7 +204,7 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
         if remainder < 0 and recursive_search:
             return _remove_item_recursive(bagsLoaded, item, remainder, bag[0])
         error = False
-    return (bag, error)
+    return (bag, item_name, error)
 
 def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_bag: str = None) -> a_bag:
     """

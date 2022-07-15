@@ -231,12 +231,12 @@ match args_list:
                 if input_name.lower() in ("coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower()):
                     bag, error = baglib.modify_coins(bagsLoaded, item, -quantity)
                 else:
-                    bag, error = baglib.modify_item(bagsLoaded, item, -quantity, input_name)
+                    bag, item, error = baglib.modify_item(bagsLoaded, item, -quantity, input_name)
                 if not error:
                     if destination and destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
                         dest_bag, error = baglib.modify_coins(bagsLoaded, item.lower(), quantity)
                     else:
-                        dest_bag, error = baglib.modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
+                        dest_bag, item, error = baglib.modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
                     error = bag == dest_bag or error
         success = baglib.save_bags(bagsLoaded, error)
         focus = bag if error else dest_bag
@@ -273,7 +273,7 @@ match args_list:
                 if (not input_name or input_name.lower() in ("coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
                     bag, error = baglib.modify_coins(bagsLoaded, item, quantity)
                 else:
-                    bag, error = baglib.modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
+                    bag, item, error = baglib.modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
             success = baglib.save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         if buy:
