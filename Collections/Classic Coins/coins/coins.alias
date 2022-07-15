@@ -21,7 +21,7 @@ error = coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"
 if coins:
-    focus, error = baglib.modify_coins(bagsLoaded, coins = coins)
+    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins, coins = coins)
     if not error:
         coins = list(coins.items())
         coins.sort(key=lambda x: x[1], reverse=True)
@@ -44,6 +44,9 @@ if coins:
     title += f" to their {bag_name}" if positive else f" from their {bag_name}"
 else:
     title += f" their {bag_name}"
+    
+if not focus:
+    baglib.get_coins(bagsLoaded)
 
 if bagsLoaded:
     success = baglib.save_bags(bagsLoaded, error)
