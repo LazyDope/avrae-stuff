@@ -374,9 +374,9 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        baglib.settings['handleLongNames'] = input_name.lower() if input_name.lower() in baglib.longModes else baglib.settings.get('openMode','newrow')
+        baglib.settings['handleLongNames'] = input_name.lower() if input_name.lower() in baglib.longModes else baglib.settings.get('handleLongNames','newrow')
         text_dict = {'truncate':" doesn't want to see the full item name if its too long!",'newrow':" would like each item to always have its own line!",'newline':" doesn't mind if their items take up multiple lines!"}
-        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('handleLongNames','newrow').title()]}＂""")
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('handleLongNames','newrow').lower()]}＂""")
         
     case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
         if not input_name:
