@@ -1,6 +1,7 @@
 embed <drac2>
 ch = character()
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+bagsLoaded = baglib.load_bags()
 openMode = baglib.settings.get('openMode','all')
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 
