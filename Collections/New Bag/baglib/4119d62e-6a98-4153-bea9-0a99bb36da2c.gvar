@@ -626,14 +626,16 @@ def display_coins(
     ) -> list:  #TODO: handle recursive bags
     """
     Creates the field(s) to display coins in an embed.
-    :arg bagsLoaded: the list of bags
-    :var compact: whether to use compact view
-    :var old_coins: the old coins for comparing to
+    :arg list bagsLoaded: the loaded list of bags
+    :var bool compact: whether to use compact view
+    :var dict old_coins: the old coins for comparing to
     :return: a list of fields to display coins
     """
     
     # define variables
+    bagsLoaded = _as_list(bagsLoaded)
     bag = get_coins(bagsLoaded)
+    compact = settings.get('compactCoins',get("compactcoins","0")=="1") if compact is None else compact
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
