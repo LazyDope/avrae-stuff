@@ -53,8 +53,10 @@ else:
 title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
-else:
+elif openMode != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, autoCoins, compact, old_coins))
+else:
+    display = ""
 
 return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
