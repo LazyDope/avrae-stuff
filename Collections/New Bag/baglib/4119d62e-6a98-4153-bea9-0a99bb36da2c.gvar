@@ -646,7 +646,7 @@ def display_coins(
         item_name = item.lower()
         quantity = bag[1][item]
         if compact and item_name == 'cointotal':
-            item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {_round_nicely(quantity)}""".strip()
+            item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {_round_nicely(quantity)} {DEFAULT_COIN}""".strip()
         elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
             item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
         else:
