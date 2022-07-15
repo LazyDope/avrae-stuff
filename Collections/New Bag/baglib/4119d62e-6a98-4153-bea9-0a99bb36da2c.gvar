@@ -654,7 +654,7 @@ def display_coins(
         if old_coins is not None:
             diff = quantity - old_coins.get(item, 0)
             if diff:
-                item_message += f''' ({"+" if diff>0 else ""}{diff})'''
+                item_message += f''' ({"+" if diff>0 else ""}{_round_nicely(diff)})'''
                         
         item_messages.append(item_message)
     
