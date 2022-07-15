@@ -3,7 +3,7 @@ ch = character()
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
 
 bagsLoaded = baglib.load_bags()
-old_coins = baglib.get_coins(bagsLoaded)[1]
+old_coins = baglib.get_coins(bagsLoaded)[1].copy()
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
 focus = baglib.get_coins(bagsLoaded, autoCoins=True)
