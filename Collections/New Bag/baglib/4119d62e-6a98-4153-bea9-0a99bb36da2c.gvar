@@ -1,6 +1,7 @@
 #Define constants
 asterisk = '\\*'
 openModes = ["none","one","all"]
+longModes = ["truncate","newrow","newline"]
 doesntdont = ["doesn't","don't"]
 ch = character()
 a_bag = [str, dict]
@@ -559,7 +560,8 @@ def display_bag(
     weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"]),
-    old_bag: dict = None
+    old_bag: dict = None,
+    length_limiter: str = settings.get('handleLongNames','newrow')
     ) -> (list, float, float, int, bool):
     """
     Creates the field(s) to display a bag in an embed.
@@ -568,6 +570,7 @@ def display_bag(
     :var bool weightTracking: whether to use weight tracking
     :var list ignoreBags: a list of what bags are ignored
     :var dict old_bag: the bag's contents previous state, for building a delta from
+    :var str length_limiter: how to limit the length of a long line.
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     :rtype: (list, float, float, int, bool)
     """
@@ -586,10 +589,10 @@ def display_bag(
         quantity = bag[1][item]
         
         if item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} `{quantity:,}` {item}""".strip()
             srd_coins = True
         else:
-            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+            item_message = f"""`{quantity:,}{"" if item_name in COIN_TYPES else "x"}` {item}""".strip()
         
         # get item amount differences
         if old_bag is not None:
@@ -633,10 +636,14 @@ def display_bag(
         header = bag_title if i == 0 else "*(continued)*"
         lineLength = len(header)
         item_message = item_messages.pop(0)
+        max_length = 35
         fields.append(f"-f ＂{header}|{item_message}")
         temp_message = item_message
-        if srd_coins:
-            [(temp_message := temp_message.replace(emoji, "2C")) for emoji in DEFAULT_COIN_EMOJIS.values()]
+        if any(emojis := [emoji for emoji in DEFAULT_COIN_EMOJIS.values() if emoji in item_message]):
+            max_length += len(''.join(emojis)) - 2*len(emojis)
+        if length_limiter == 'truncate':
+            if len(item_message)>max_length:
+                item_message = item_message[:max_length-3]+"..."
         lineLength = max(lineLength, len(temp_message))
         while len(fields[i]) <= 1000:
             if not item_messages:
@@ -644,7 +651,7 @@ def display_bag(
             item_message = item_messages.pop(0)
             fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
-        fields[i] += "|inline＂" if lineLength <= 40 else "＂"
+        fields[i] += "|inline＂" if length_limiter in ['newline','truncate'] or lineLength <= max_length else "＂"
         i += 1
     
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
@@ -679,9 +686,9 @@ def display_coins(
         if compact and item_name == 'cointotal':
             item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {_round_nicely(quantity)} {DEFAULT_COIN}""".strip()
         elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
+            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} `{quantity:,}` {item}""".strip()
         else:
-            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+            item_message = f"""`{quantity:,}{"" if item_name in COIN_TYPES else "x"}` {item}""".strip()
         
         # get item amount differences
         if old_coins is not None:
@@ -713,7 +720,7 @@ def display_coins(
             item_message = item_messages.pop(0)
             fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
-        fields[i] += "|inline＂" if lineLength <= 30 else "＂"
+        fields[i] += "＂"
         i += 1
     
     return fields
