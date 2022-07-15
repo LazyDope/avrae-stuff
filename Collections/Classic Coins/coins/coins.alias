@@ -44,19 +44,20 @@ if coins:
     title += f" to their {bag_name}" if positive else f" from their {bag_name}"
 else:
     title += f" their {bag_name}"
-if error or not focus:
-    focus = baglib.get_coins(bagsLoaded)
-if bagsLoaded:
-    success = baglib.save_bags(bagsLoaded, error)
-else:
-    success = -1 if error else 1
-title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
+
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
 elif openMode != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, autoCoins, compact, old_coins))
 else:
     display = ""
+
+if bagsLoaded:
+    success = baglib.save_bags(bagsLoaded, error)
+else:
+    success = -1 if error else 1
+
+title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 
 return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
