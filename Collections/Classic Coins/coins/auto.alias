@@ -16,6 +16,9 @@ if autoCoins:
 else:
     title = f"{name} disables their `autoCoins`"
     
+if baglib.settings['autoCoins']:
+    baglib.get_coins(bagsLoaded, baglib.settings['autoCoins'])
+    
 if openMode != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, compact))
 else:
