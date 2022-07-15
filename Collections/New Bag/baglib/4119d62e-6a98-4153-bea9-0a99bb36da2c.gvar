@@ -583,7 +583,7 @@ def display_bag(
                     coin_weight += itemWeight
             
             # add the correct message based on the weight
-            if typeof(itemWeight) in ['int','float']:
+            if itemWeight and typeof(itemWeight) in ['int','float']:
                 item_message +=  f''' [{_round_nicely(itemWeight)} lbs.]{asterisk if unknownItem else ""}'''
             else:
                 item_message += f" {itemWeight}" if itemWeight else ""
