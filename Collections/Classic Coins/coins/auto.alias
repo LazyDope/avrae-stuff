@@ -12,7 +12,8 @@ else:
     baglib.settings['autoCoins'] = True
 ch.delete_cvar('autocoins')
 ch.set_cvar('bagSettings',dump_json(baglib.settings))
-if autoCoins:
+
+if baglib.settings['autoCoins']:
     title = f"{name} enables their `autoCoins`"
 else:
     title = f"{name} disables their `autoCoins`"
