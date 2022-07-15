@@ -241,7 +241,7 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins: dict = {}, autoCoins: bool = None, ch=character()) -> (a_bag, bool):
+def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, delta: dict = {}, autoCoins: bool = None, ch=character()) -> (a_bag, bool):
     """
     Modifies the coin pouch or coin purse automatically.
     Handles automatic switching depending if non-standard coins are in use.
@@ -249,7 +249,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     :arg list bagsLoaded: list of all the bags
     :var str coin: the coin that is being modified
     :var int quantity: how much to change the coins by
-    :var dict coins: instead of coin or quantity you can provide coins, a dict of coins and quantities
+    :var dict delta: instead of coin or quantity you can provide coins, a dict of coins and quantities
     :var bool autoCoins: whether to convert into larger denominations
     :var AliasCharacter ch: the character, can be passed through if already loaded
     :return: a bag representing the coins accessed, and an error bool
@@ -261,38 +261,38 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
     
     # check if coins are valid
-    error = bool(any([coin.lower() not in COIN_TYPES for coin in coins]) or (coin and coin.lower() not in COIN_TYPES))
+    error = bool(any([coin.lower() not in COIN_TYPES for coin in delta]) or (coin and coin.lower() not in COIN_TYPES))
     total = 0
     coin = (coin or DEFAULT_COIN).lower()
-    coins = coins.copy()
+    delta = delta.copy()
     
     #prepare the coin diff
     if not error:
-        coins.update({coin:coins.get(coin,0)+quantity} if quantity else {})
+        delta.update({coin:delta.get(coin,0)+quantity} if quantity else {})
         
         # smooth out any floating point entries
         for coin in COIN_TYPES[:-1:-1]:
-            if (decimal:=coins.get(coin,0) % 1):
+            if (decimal:=delta.get(coin,0) % 1):
                 index = COIN_TYPES.index(coin)
                 smaller = COIN_TYPES[index+1]
                 rate = COIN_RATES[smaller]/COIN_RATES[coin]
                 p = decimal*rate
                 if index == len(COIN_TYPES)-2 and p%1:
                     return (pouch, True)
-                coins.update({smaller:coins.get(smaller,0)+p,coin:int(coins.get(coin,0)-decimal)})
+                delta.update({smaller:delta.get(smaller,0)+p,coin:int(delta.get(coin,0)-decimal)})
         
         # finally ensure all are int
-        for coin_type in coins:
-            coins[coin_type] = int(coins[coin_type])
+        for coin_type in delta:
+            delta[coin_type] = int(delta[coin_type])
     else:
-        coins = None
+        delta = None
     
     #prepare coins regardless of if it's coin pouch or coin purse
     if not error:
         negative = False
-        for coin_type in coins:
-            pouch[1][coin_type] += coins[coin_type]
-            negative = negative or coins[coin_type]<0
+        for coin_type in delta:
+            pouch[1][coin_type] += delta[coin_type]
+            negative = negative or delta[coin_type]<0
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         if negative:
@@ -635,18 +635,23 @@ def display_bag(
         lineLength = len(header)
         item_message = item_messages.pop(0)
         max_length = 35
-        fields.append(f"-f ＂{header}|{item_message}")
-        temp_message = item_message
         if any(emojis := [emoji for emoji in DEFAULT_COIN_EMOJIS.values() if emoji in item_message]):
             max_length += len(''.join(emojis)) - 2*len(emojis)
         if length_limiter == 'truncate':
             if len(item_message)>max_length:
                 item_message = item_message[:max_length-3]+"..."
+        fields.append(f"-f ＂{header}|{item_message}")
         lineLength = max(lineLength, len(temp_message))
         while len(fields[i]) <= 1000:
+            max_length = 35
             if not item_messages:
                 break
             item_message = item_messages.pop(0)
+            if any(emojis := [emoji for emoji in DEFAULT_COIN_EMOJIS.values() if emoji in item_message]):
+                max_length += len(''.join(emojis)) - 2*len(emojis)
+            if length_limiter == 'truncate':
+                if len(item_message)>max_length:
+                    item_message = item_message[:max_length-3]+"..."
             fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
         fields[i] += "|inline＂" if length_limiter in ['newline','truncate'] or lineLength <= max_length else "＂"

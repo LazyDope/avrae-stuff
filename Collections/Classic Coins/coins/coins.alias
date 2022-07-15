@@ -15,17 +15,17 @@ old_coins = baglib.get_coins(bagsLoaded)[1].copy()
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
-coins, coin_error = baglib.parsecoins("&*&")
+delta, coin_error = baglib.parsecoins("&*&")
 focus = None
 error = coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"
-if coins:
-    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins, coins = coins)
+if delta:
+    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins, delta = delta)
     if not error:
-        coins = list(coins.items())
-        coins.sort(key=lambda x: x[1], reverse=True)
-        if coins[0][1]>0:
+        delta = list(delta.items())
+        delta.sort(key=lambda x: x[1], reverse=True)
+        if delta[0][1]>0:
             title = f"{name} adds"
             positive = True
         else:
@@ -33,14 +33,14 @@ if coins:
             positive = False
 
 if not error:
-    for idx, cointup in enumerate(coins):
+    for idx, cointup in enumerate(delta):
         coin, quantity = cointup
         title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {round_nicely(abs(quantity))} {coin}"
         if positive and quantity<0:
             positive = False
         
 bag_name = "Coin Purse" if baglib.use_coin_purse(bagsLoaded) else baglib.coinPouchName
-if coins:
+if delta:
     title += f" to their {bag_name}" if positive else f" from their {bag_name}"
 else:
     title += f" their {bag_name}"
