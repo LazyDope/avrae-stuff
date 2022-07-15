@@ -557,7 +557,7 @@ def display_bag(
     weightTracking: bool = (settings.get('weightTracking','Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"]),
     old_bag: dict = None
-    ) -> (list, float, float, int, bool):  #TODO: handle recursive bags
+    ) -> (list, float, float, int, bool):
     """
     Creates the field(s) to display a bag in an embed.
     :arg a_bag bag: the bag to get the weight of
@@ -641,7 +641,7 @@ def display_bag(
             item_message = item_messages.pop(0)
             fields[i] += f"\n{item_message}"
             lineLength = max(lineLength, len(item_message))
-        fields[i] += "|inline＂" if lineLength <= 30 else "＂"
+        fields[i] += "|inline＂" if lineLength <= 40 else "＂"
         i += 1
     
     return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
@@ -650,7 +650,7 @@ def display_coins(
     bagsLoaded: list,
     compact: None,
     old_coins: dict = None
-    ) -> list:  #TODO: handle recursive bags
+    ) -> list:
     """
     Creates the field(s) to display coins in an embed.
     :arg list bagsLoaded: the loaded list of bags
