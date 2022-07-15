@@ -156,7 +156,7 @@ def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
     return bagsLoaded[-1]
     
-def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False) -> (a_bag, bool):
+def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False, conversion_dict: dict = {}) -> (a_bag, bool):
     """
     Modifies an item in a bag by a given quantity.
     :arg list bagsLoaded: the list of bags to modify
@@ -641,7 +641,7 @@ def display_bag(
             if len(item_message)>max_length:
                 item_message = item_message[:max_length-3]+"..."
         fields.append(f"-f ＂{header}|{item_message}")
-        lineLength = max(lineLength, len(temp_message))
+        lineLength = max(lineLength, len(item_message))
         while len(fields[i]) <= 1000:
             max_length = 35
             if not item_messages:
