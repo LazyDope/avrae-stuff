@@ -5,7 +5,7 @@ bagsLoaded = baglib.load_bags()
 openMode = baglib.settings.get('openMode','all')
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 
-if (compact := baglib.settings.get('compactCoins',get("compactcoins","0")=="1")):
+if baglib.settings.get('compactCoins',get("compactcoins","0")=="1"):
     baglib.settings['compactCoins'] = False
 else:
     baglib.settings['compactCoins'] = True
