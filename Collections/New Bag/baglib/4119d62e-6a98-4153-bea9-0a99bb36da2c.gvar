@@ -189,7 +189,7 @@ def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fai
         return (bag_name, error)
     
     # try to find the closest match for the item we want, ignoring case
-    item_names = [x for x in bag[1] if item.lower() == x.lower()]
+    item_names = [x for x in bag[1] if item.lower() == x.lower()] + [x for x in bag[1] if item.lower() in x.lower()]
     item_name = item_names[0] if item_names else item
     
     # save the current quantity of the item, then make sure that we have enough of the item in the bag
@@ -398,11 +398,14 @@ def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
     :return: the first bag with the desired item.
     :rtype: a_bag
     """
+    possible_bags = []
     bagsLoaded = _as_list(bagsLoaded)
     for bag_name, items in bagsLoaded:
-        if any([item.lower() in i.lower() for i in items]):
+        if any([item.lower() == i.lower() for i in items]):
             return [bag_name, items]
-    return None
+        if any([item.lower() in i.lower() for i in items]):
+            possible_bags.append([bag_name, items])
+    return possible_bags[0] if possible_bags else None
 
 def find_valid_name(a_dict: dict, input_str: str) -> str:
     """
