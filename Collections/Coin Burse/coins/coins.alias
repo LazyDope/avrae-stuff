@@ -24,7 +24,7 @@ if coins and not compat:
         ch.coinpurse.modify_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     elif not get('coinburse_firstrun') and not all([ch.coinpurse[coin] == coins[coin] for coin in coin_types]):
         ch.set_cvar('coinburse_firstrun','Delete me if you want to see another warning :)')
-        return(f"embed -title 'Warning' -desc '**No changes made.**{n}Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}`.{n*2}If you have not used `!g coins` then you can ignore this warning.{n*2}If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
+        return(f"embed -title 'Warning' -desc '**No changes made.**{n}Running this command again will overwrite the coins in your native `!g coins`/`character().coinpurse` with the coins in bag named `{coinpouch_name}` and then will delete the bag.{n*2}If you have not used `!g coins` then you can ignore this warning and run the command again.{n*2}If you have already converted to the new system, run `{ctx.prefix}{ctx.alias} remove_old` to safely remove the coins from your bag first.'")
     else:
         ch.coinpurse.set_coins(coins.pop('pp'), coins.pop('gp'), coins.pop('ep'), coins.pop('sp'), coins.pop('cp'))
     if len(coins) > 0:
