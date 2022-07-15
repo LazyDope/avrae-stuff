@@ -260,7 +260,7 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, coins:
     
     #prepare the coin diff
     if not error:
-        coins.update({coin:coins[coin]+quantity} if quantity else {})
+        coins.update({coin:coins.get(coin,0)+quantity} if quantity else {})
         
         # smooth out any floating point entries
         for coin in COIN_TYPES[:-1:-1]:
