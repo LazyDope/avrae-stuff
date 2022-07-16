@@ -302,7 +302,6 @@ def modify_coins(
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     pouch = get_coins(bagsLoaded, autoCoins=False, ch=ch)
-    autoCoins =  if autoCoins else autoCoins
     
     # check if coins are valid
     error = bool(any([coin.lower() not in COIN_TYPES for coin in delta]) or (coin and coin.lower() not in COIN_TYPES))
