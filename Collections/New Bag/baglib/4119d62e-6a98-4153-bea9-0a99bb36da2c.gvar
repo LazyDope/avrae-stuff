@@ -138,8 +138,7 @@ def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -
     if not bag:
         return None
     else:
-        bag = bag[0]
-        return [bag[0], bag[1]]
+        return bag[0]
     
 def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     """
@@ -291,10 +290,10 @@ def modify_coins(
     Handles automatic switching depending if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
     :arg list bagsLoaded: list of all the bags
-    :var str coin: the coin that is being modified default: DEFAULT_COIN
+    :var str coin: the coin that is being modified default: self.DEFAULT_COIN
     :var int quantity: how much to change the coins by default: 0
     :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities default: {}
-    :var bool autoCoins: whether to convert into larger denominations default: settings.autoCoins
+    :var bool autoCoins: whether to convert into larger denominations default: self.settings.autoCoins
     :var AliasCharacter ch: the character, can be passed through if already loaded default: character()
     :return: a bag representing the coins accessed, and an error bool
     :rtype: (a_bag, bool)
@@ -367,7 +366,7 @@ def get_coins(bagsLoaded: list, autoCoins=settings.get('autoCoins',get("autocoin
     Returns a bag of how many coins you currently have.
     Will not update your coins if modified.
     :arg list bagsLoaded: a list of bags
-    :var bool autoCoins: whether to convert coins into larger denominations default: settings.autoCoins
+    :var bool autoCoins: whether to convert coins into larger denominations default: self.settings.autoCoins
     :return: a bag representing your coins
     :rtype: a_bag
     """
@@ -401,8 +400,8 @@ def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN)
     """
     Parses args to get the valid coins.
     :arg str|list args: the string or list of arguments to parse
-    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold` default: COIN_TYPES
-    :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given) default: DEFAULT_COIN
+    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold` default: self.COIN_TYPES
+    :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given) default: self.DEFAULT_COIN
     :return: tuple of a dict of coin totals and an error bool
     :rtype: (dict, bool)
     """
@@ -466,22 +465,22 @@ def find_valid_name(a_dict: dict, input_str: str) -> str:
         input_str = f"""{input_str.rstrip(" 1234567890")} {i}"""
     return input_str
 
-def rename_bag(bags_dict: dict, old_name: str, new_name: str) -> (str, str):
+def rename_bag(bagsLoaded: list, old_name: str, new_name: str) -> (str, str):
     """
     Renames a bag given the old name, and a new name.
-    :arg dict bags_dict: the dict of bags to modify
+    :arg list bagsLoaded: the list of bags to modify
     :arg str old_name: the current name of the bag
     :arg str new_name: the new name of the bag
     :return: a tuple of the old name and the new name as strings
     :rtype: (str, str)
     """
-    bags_dict = _as_dict(bags_dict)
-    old_bag = get_bag(bags_dict, old_name)
+    bagsLoaded = _as_list(bagsLoaded)
+    old_bag = get_bag(bagsLoaded, old_name)
+    old_name = old_bag[0]
     if not old_bag:
         return (old_name, None)
-    new_name = find_valid_name(bags_dict, new_name)
-    bags_dict[new_name] = bags_dict.pop(old_bag[0])
-    return (old_bag[0], new_name)
+    old_bag[0] = find_valid_name(bagsLoaded, new_name)
+    return (old_name, old_bag[0])
 
 def swap_pos(bagsLoaded: list, bag_name: str, position=1) -> (str, int):
     """

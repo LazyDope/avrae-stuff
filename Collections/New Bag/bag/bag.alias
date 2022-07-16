@@ -180,7 +180,6 @@ match args_list:
         text.append(f"""-title ＂{name}{[" has no bags after they get rid of "," gets rid of ", " fails to get rid of "][success]}{title_bag}＂""")
     
     case [("name"|"n"|"@"), *args] | [input_name, ("name"|"n"|"@"), *args]:
-        bagsLoaded = dict(bagsLoaded)
         if not input_name:
             input_name = args.pop(0)
         new_name = ' '.join(args)
