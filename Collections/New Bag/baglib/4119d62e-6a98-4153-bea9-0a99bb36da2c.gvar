@@ -50,7 +50,7 @@ carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRac
 def load_bags(ch = character()) -> [a_bag]:
     """
     Loads the current character's bags as a list.
-    :arg AliasCharacter ch: The current character, will be loaded if none is provided.
+    :arg AliasCharacter ch: The current character, will be loaded if none is provided. default: character()
     :return: a list of bags
     :rtype: [a_bag]
     """
@@ -82,9 +82,9 @@ def load_bags(ch = character()) -> [a_bag]:
 def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     """
     Saves the current bag configuration.
-    :var list bagsLoaded: The dict or list of bags
-    :arg bool error: Whether an error occurred before trying to save
-    :arg AliasCharacter ch: The current character, will be loaded if none is provided.
+    :arg list bagsLoaded: The dict or list of bags
+    :var bool error: Whether an error occurred before trying to save default: False
+    :var AliasCharacter ch: The current character default: character()
     :return: the success state; 0 for no bags, 1 for success, and -1 for failure
     :rtype: int
     """
@@ -109,8 +109,8 @@ def get_bag(bagsLoaded: list, bag_id, exact_match=False, create_on_fail=False) -
     Retrieves a bag from the provided list, given the name or index.
     :arg list bagsLoaded: the list of bags to search
     :arg str|int bag_id: the identifier, either index or name, to try to find
-    :var bool exact_match: whether to only return the bag if it's an exact match
-    :var bool create_on_fail: whether to create a new bag if one is not found
+    :var bool exact_match: whether to only return the bag if it's an exact match default: False
+    :var bool create_on_fail: whether to create a new bag if one is not found default: False
     :return: the bag that matches the request if it could be found.
     :rtype: a_bag
     """
@@ -146,7 +146,7 @@ def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     Creates a new bag with the given name.
     Will try to find an unused name if the given one is not available
     :arg list bagsLoaded: the list of bags to create in
-    :var str bag_name: the name of the new bag
+    :var str bag_name: the name of the new bag default: "New Bag"
     :return: the new bag
     :rtype: a_bag
     """
@@ -169,13 +169,13 @@ def modify_item(
     """
     Modifies an item in a bag by a given quantity.
     :arg list bagsLoaded: the list of bags to modify
-    :var str item: the name of the item to modify
-    :var int quantity: the delta of the item to modify, positive adds, negative removes
-    :var str bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
-    :var bool create_on_fail: whether to create a new bag if one is not found
-    :var bool recursive_search: whether to search for other bags that contain the requested item, only if quantity is negative
-    :var dict delta: instead of item, quantity, a dict of item quantity deltas can be provided and handled instead. All deltas must be int.
-    :var dict conversion_rates: the rates at which to convert one item to another. Eg. 0.1:10 = 1:100 ratio. If a conversion rate is present, will try to convert instead of searching recusively.
+    :var str item: the name of the item to modify default: None
+    :var int quantity: the delta of the item to modify, positive adds, negative removes default: 0
+    :var str bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it default: None
+    :var bool create_on_fail: whether to create a new bag if one is not found default: False
+    :var bool recursive_search: whether to search for other bags that contain the requested item, only if quantity is negative default: False
+    :var dict delta: instead of item, quantity, a dict of item quantity deltas can be provided and handled instead. All deltas must be int. default: {}
+    :var dict conversion_rates: the rates at which to convert one item to another. Eg. 0.1:10 = 1:100 ratio. If a conversion rate is present, will try to convert instead of searching recusively. default: {}
     :return: the bag modified, all the final item names, and an error bool
     :rtype: (a_bag, list, bool)
     """
@@ -216,6 +216,7 @@ def modify_item(
         # save the current quantity of the item, then make sure that we have enough of the item in the bag
         c_value = bag[1][item_name] if item_names else 0
         if c_value >= -delta[item] or conversion_rates:
+            # load conversion rates in the correct order
             if conversion_rates:
                 conversion_rates = list(conversion_rates.items())
                 conversion_rates.sort(key=lambda x: x[1])
@@ -225,6 +226,7 @@ def modify_item(
             # update the bag's values, remove the entry if it's empty
             bag[1][item_name] = remainder = (c_value + delta[item])
             error = False
+            # convert if possible
             if index and remainder < 0:
                 for item_type in conversion_types[:index-1:-1]:
                     if bag[1][item_type] < 0:
@@ -276,29 +278,36 @@ def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_ba
     else:
         return ([", ".join(names), {item: total_items}], False)
 
-def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, delta: dict = {}, autoCoins: bool = None, ch=character()) -> (a_bag, bool):
+def modify_coins(
+    bagsLoaded: list,
+    coin: str=DEFAULT_COIN,
+    quantity: float|int=0,
+    delta: dict = {},
+    autoCoins: bool = settings.get('autoCoins',get("autocoins","0")=="1"),
+    ch=character()
+    ) -> (a_bag, bool):
     """
     Modifies the coin pouch or coin purse automatically.
     Handles automatic switching depending if non-standard coins are in use.
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
     :arg list bagsLoaded: list of all the bags
-    :var str coin: the coin that is being modified
-    :var int quantity: how much to change the coins by
-    :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities
-    :var bool autoCoins: whether to convert into larger denominations
-    :var AliasCharacter ch: the character, can be passed through if already loaded
+    :var str coin: the coin that is being modified default: DEFAULT_COIN
+    :var int quantity: how much to change the coins by default: 0
+    :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities default: {}
+    :var bool autoCoins: whether to convert into larger denominations default: settings.autoCoins
+    :var AliasCharacter ch: the character, can be passed through if already loaded default: character()
     :return: a bag representing the coins accessed, and an error bool
     :rtype: (a_bag, bool)
     """
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     pouch = get_coins(bagsLoaded, autoCoins=False, ch=ch)
-    autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
+    autoCoins =  if autoCoins else autoCoins
     
     # check if coins are valid
     error = bool(any([coin.lower() not in COIN_TYPES for coin in delta]) or (coin and coin.lower() not in COIN_TYPES))
     total = 0
-    coin = (coin or DEFAULT_COIN).lower()
+    coin = coin.lower()
     delta = delta.copy()
     
     #prepare the coin diff
@@ -354,17 +363,16 @@ def modify_coins(bagsLoaded: list, coin: str=None, quantity: float|int=0, delta:
             ch.coinpurse.set_coins(pouch[1].pp,pouch[1].gp,pouch[1].ep,pouch[1].sp,pouch[1].cp)
     return (pouch, error)
 
-def get_coins(bagsLoaded: list, autoCoins=None, ch=character()) -> a_bag:
+def get_coins(bagsLoaded: list, autoCoins=settings.get('autoCoins',get("autocoins","0")=="1"), ch=character()) -> a_bag:
     """
     Returns a bag of how many coins you currently have.
     Will not update your coins if modified.
     :arg list bagsLoaded: a list of bags
-    :var bool autoCoins: whether to convert coins into larger denominations
+    :var bool autoCoins: whether to convert coins into larger denominations default: settings.autoCoins
     :return: a bag representing your coins
     :rtype: a_bag
     """
     # check if we are using coin purse or not
-    autoCoins = settings.get('autoCoins',get("autocoins","0")=="1") if autoCoins is None else autoCoins
     if autoCoins:
         pouch, _ = modify_coins(bagsLoaded, autoCoins=autoCoins, ch=ch)
     elif use_coin_purse(bagsLoaded):
@@ -390,17 +398,15 @@ def use_coin_purse(bagsLoaded: list) -> bool:
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
 
-def parsecoins(args: str|list, coin_types=None, default_coin=None) -> dict:
+def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN) -> dict:
     """
     Parses args to get the valid coins.
     :arg str|list args: the string or list of arguments to parse
-    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold`
-    :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given)
+    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold` default: COIN_TYPES
+    :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given) default: DEFAULT_COIN
     :return: tuple of a dict of coin totals and an error bool
     :rtype: (dict, bool)
     """
-    coin_types = coin_types or COIN_TYPES
-    default_coin = default_coin or DEFAULT_COIN
     if typeof(args) == 'SafeList':
         args = ' '.join(args)
     args = [arg.strip() for arg in args.split("+") if arg]
@@ -483,7 +489,7 @@ def swap_pos(bagsLoaded: list, bag_name: str, position=1) -> (str, int):
     Swaps the position of a bag in the display.
     :arg list bagsLoaded: the list of bags to modify
     :arg str bag_name: the name of the bag you want to move
-    :var int position: the new position you want the bag in, indexed from 1
+    :var int position: the new position you want the bag in, indexed from 1 default: 1
     :return: a tuple of the name and the new position, or `(None, -1)` if the bag didn't exist
     :rtype: (str, int)
     """
@@ -514,9 +520,9 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
     """
     Adds a custom weight to the custWeights cvar.
     :arg str item_name: the name of the item you want to configure
-    :var float weight: the weight of the item represented as a float or int
-    :var str cost: the cost of the item, represented as <number><denomination> eg "1gp" for 1 gold piece
-    :var int bundle: how many items in a bundle, this is the grouping you have to buy these items in
+    :var float weight: the weight of the item represented as a float or int default: None
+    :var str cost: the cost of the item, represented as <number><denomination> eg "1gp" for 1 gold piece default: None
+    :var int bundle: how many items in a bundle, this is the grouping you have to buy these items in default: None
     :return: a boolean representing the success of the modification
     :rtype: bool
     """
@@ -533,8 +539,8 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
     Grabs the weight of the given item.
     Also allows keeping track of how many items have used a fuzzy search, which is more intensive.
     :arg str item: the name of the item
-    :var int fuzzyItemCount: the current count of how many fuzzy matches have been made
-    :var dict weightDict: the dict to pull weights from
+    :var int fuzzyItemCount: the current count of how many fuzzy matches have been made default: 0
+    :var dict weightDict: the dict to pull weights from default: weightDict
     :return: the weigh, the total number of fuzzy items, and whether no matching weight was found.
     :rtype: (float|str, int, bool)
     """
@@ -566,9 +572,9 @@ def weigh_bag(
     """
     Returns a tuple of values relevant to the weighing of a bag.
     :arg a_bag bag: the bag to get the weight of
-    :var dict weightDict: the dict to pull weights from
-    :var bool weightTracking: whether to track weight
-    :var list ignoreBags: the list of lowercase bag name to skip weight tracking for
+    :var dict weightDict: the dict to pull weights from default: weightDict
+    :var bool weightTracking: whether to track weight default: settings.weightTracking
+    :var list ignoreBags: the list of lowercase bag name to skip weight tracking for default: settings.weightlessBags
     :return: the total and coin weight in lbs, and the total number of fuzzy matches
     :rtype: (float, float, int)
     """
@@ -604,11 +610,11 @@ def display_bag(
     """
     Creates the field(s) to display a bag in an embed.
     :arg a_bag bag: the bag to get the weight of
-    :var dict weightDict: the dict to get weights from
-    :var bool weightTracking: whether to use weight tracking
-    :var list ignoreBags: a list of what bags are ignored
-    :var dict old_bag: the bag's contents previous state, for building a delta from
-    :var str length_limiter: how to limit the length of a long line.
+    :var dict weightDict: the dict to get weights from default: weightDict
+    :var bool weightTracking: whether to use weight tracking default: settings.weightTracking
+    :var list ignoreBags: a list of what bags are ignored default: settings.weightlessBags
+    :var dict old_bag: the bag's contents previous state, for building a delta from default: {}
+    :var str length_limiter: how to limit the length of a long line. default: settings.handleLongNames
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     :rtype: (list, float, float, int, bool)
     """
@@ -703,14 +709,14 @@ def display_bag(
 
 def display_coins(
     bagsLoaded: list,
-    compact: None,
-    old_coins: dict = None
+    compact: settings.get('compactCoins',get("compactcoins","0")=="1"),
+    old_coins: dict = {}
     ) -> list:
     """
     Creates the field(s) to display coins in an embed.
     :arg list bagsLoaded: the loaded list of bags
-    :var bool compact: whether to use compact view
-    :var dict old_coins: the old coins for comparing to
+    :var bool compact: whether to use compact view default: settings.compactCoins
+    :var dict old_coins: the old coins for comparing to default: {}
     :return: a list of fields to display coins
     :rtype: list
     """
@@ -718,7 +724,6 @@ def display_coins(
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     bag = get_coins(bagsLoaded)
-    compact = settings.get('compactCoins',get("compactcoins","0")=="1") if compact is None else compact
     item_messages = []
     if compact:
         old_coins and old_coins.update({'cointotal':sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
@@ -770,23 +775,28 @@ def display_coins(
     
     return fields
 
-def create_display(bagsLoaded: list = None, focus: a_bag = None, openMode: str = None, old_bags: dict = None) -> list:
+def create_display(
+    bagsLoaded: list = [],
+    focus: a_bag = None,
+    openMode: str = settings.get('openMode','All'),
+    old_bags: dict = {}
+    ) -> list:
     """
     Creates the full display for a list of bags.
     If a focus is provided but bagsLoaded is not, displays focus instead.
-    :var list bagsLoaded: the list of bags to display for the 'All' mode
-    :var a_bag focus: a bag to focus on for the 'One' mode
-    :var str openMode: an override to the open mode
-    :var dict old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy(bagsLoaded)
+    :var list bagsLoaded: the list of bags to display for the 'All' mode default: []
+    :var a_bag focus: a bag to focus on for the 'One' mode default: None
+    :var str openMode: an override to the open mode default: settings.openMode
+    :var dict old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy(bagsLoaded) default: {}
     :return: a list of embed arguments to display the list of bags
     :rtype: list
     """
     # define variables
-    openMode = openMode.lower() if openMode and openMode.lower() in openModes else settings.get('openMode','All').lower()
+    openMode = openMode.lower() if openMode.lower() in openModes else settings.get('openMode','All').lower()
     text = []
     weightTracking = settings.get('weightTracking','Off').lower() == 'on'
     ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
-    old_bags = None if old_bags is None else _as_dict(old_bags)
+    old_bags = _as_dict(old_bags)
     
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
