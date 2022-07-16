@@ -156,55 +156,90 @@ def new_bag(bagsLoaded: list, bag_name = "New Bag") -> a_bag:
     bagsLoaded.append([bag_name, {coin:0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
     return bagsLoaded[-1]
     
-def modify_item(bagsLoaded: list, item, quantity=1, bag_name=None, create_on_fail=False, recursive_search = False, conversion_dict: dict = {}) -> (a_bag, bool):
+def modify_item(
+    bagsLoaded: list,
+    item: str = None,
+    quantity: int = 0,
+    bag_name: str = None,
+    create_on_fail: bool = False,
+    recursive_search: bool = False,
+    delta: dict = {},
+    conversion_rates: dict = {}
+    ) -> (a_bag, list, bool):
     """
     Modifies an item in a bag by a given quantity.
     :arg list bagsLoaded: the list of bags to modify
-    :arg str item: the name of the item to modify
+    :var str item: the name of the item to modify
     :var int quantity: the delta of the item to modify, positive adds, negative removes
     :var str bag_name: the desired bag to search in, otherwise uses the first bag with the item already in it
     :var bool create_on_fail: whether to create a new bag if one is not found
     :var bool recursive_search: whether to search for other bags that contain the requested item, only if quantity is negative
-    :return: the bag modified, the final item name and an error bool
-    :rtype: (a_bag, str, bool)
+    :var dict delta: instead of item, quantity, a dict of item quantity deltas can be provided and handled instead. All deltas must be int.
+    :var dict conversion_rates: the rates at which to convert one item to another. Eg. 0.1:10 = 1:100 ratio. If a conversion rate is present, will try to convert instead of searching recusively.
+    :return: the bag modified, all the final item names, and an error bool
+    :rtype: (a_bag, list, bool)
     """
     # setup variables
     bagsLoaded = _as_list(bagsLoaded)
     bag = None
     error = True
     quantity = int(quantity)
+    delta.update({item:delta.get(item,0)+quantity} if item and quantity else {})
     
     # try to find a bag with the given name, failing to do so, fallback to searching for a bag with the item already in it
     if bag_name:
         bag = get_bag(bagsLoaded, bag_name)
     if not bag:
-        bag = find_bag_with_item(bagsLoaded, item)
-        recursive_search = True
+        for item in delta:
+            bag = find_bag_with_item(bagsLoaded, item)
+            recursive_search = True
+            if bag:
+                break
         
     # create a new bag if the option is set, otherwise grab the first bag in the list
-    if not bag and create_on_fail:
+    if bag_name and not bag and create_on_fail:
         bag = new_bag(bagsLoaded, bag_name)
     if not bag and len(bagsLoaded)>0:
         bag = get_bag(bagsLoaded, 0)
+    if not bag and create_on_fail:
+        bag = new_bag(bagsLoaded)
     if not bag:
         return (bag_name, error)
     
-    # try to find the closest match for the item we want, ignoring case
-    item_names = [x for x in bag[1] if item.lower() == x.lower()] + ([x for x in bag[1] if item.lower() in x.lower()] if quantity<0 else [])
-    item_name = item_names[0] if item_names else item
-    
-    # save the current quantity of the item, then make sure that we have enough of the item in the bag
-    c_value = bag[1][item_name] if item_names else 0
-    if c_value >= -quantity:
+    all_item_names = []
+    for item in delta:
+        # try to find the closest match for the item we want, ignoring case
+        item_names = [x for x in bag[1] if item.lower() == x.lower()] + ([x for x in bag[1] if item.lower() in x.lower()] if quantity<0 else [])
+        item_name = item_names[0] if item_names else item
+        all_item_names.append(item_name)
         
-        # update the bag's values, remove the entry if it's empty
-        bag[1][item_name] = remainder = (c_value + quantity)
-        if bag[1][item_name] <= 0:
-            bag[1].pop(item_name)
-        if remainder < 0 and recursive_search:
-            return _remove_item_recursive(bagsLoaded, item, remainder, bag[0])
-        error = False
-    return (bag, item_name, error)
+        # save the current quantity of the item, then make sure that we have enough of the item in the bag
+        c_value = bag[1][item_name] if item_names else 0
+        if c_value >= -quantity or conversion_rates:
+            if conversion_rates:
+                conversion_rates = list(conversion_rates.items())
+                conversion_rates.sort(key=lambda x: x[1])
+                conversion_rates = dict(conversion_rates)
+            conversion_types = list(conversion_rates)
+            index = conversion_types.index(item_name) if item_name in conversion_types else None
+            # update the bag's values, remove the entry if it's empty
+            bag[1][item_name] = remainder = (c_value + quantity)
+            error = False
+            if index and remainder < 0:
+                for item_type in conversion_types[:index-1:-1]:
+                    if bag[1][item_type] < 0:
+                        larger = conversion_types[conversion_types.index(item_type)-1]
+                        ratio = _get_ratio(conversion_rates[larger], conversion_rates[item_type])
+                        p = bag[1][item_type]//ratio[1]
+                        bag[1].update({larger:int(bag[1].get(larger,0)+p*ratio[0]), item_type:int(bag[1].get(item_type,0)-p*ratio[1])})
+                        bag[1].pop(larger) if bag[1][larger] == 0 else ()
+                        bag[1].pop(item_type) if item_type != item_type and bag[1][item_type] == 0 else ()
+                error = any([bag[1][item_type]<0 for item_type in bag[1]])
+            elif remainder < 0 and recursive_search:
+                return _remove_item_recursive(bagsLoaded, item, remainder, bag[0])
+            if bag[1][item_name] <= 0:
+                bag[1].pop(item_name)
+    return (bag, all_item_names, error)
 
 def _remove_item_recursive(bagsLoaded: list, item: str, remainder: int, first_bag: str = None) -> a_bag:
     """
@@ -355,13 +390,17 @@ def use_coin_purse(bagsLoaded: list) -> bool:
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
 
-def parsecoins(args: str|list) -> dict:
+def parsecoins(args: str|list, coin_rates=None, default_coin=None) -> dict:
     """
     Parses args to get the valid coins.
     :arg str|list args: the string or list of arguments to parse
+    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold`
+    :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given)
     :return: tuple of a dict of coin totals and an error bool
     :rtype: (dict, bool)
     """
+    coin_types = coin_types or COIN_TYPES
+    default_coin = default_coin or DEFAULT_COIN
     if typeof(args) == 'SafeList':
         args = ' '.join(args)
     args = [arg.strip() for arg in args.split("+") if arg]
@@ -369,17 +408,16 @@ def parsecoins(args: str|list) -> dict:
     for arg in args:
         new_args += [f"{'-' if idx else ''}{part}" for idx, part in enumerate(arg.split("-")) if part]
     args = new_args
-    #for arg in new_args:
-    #    new_args += [part for part in arg.split()]
     coins = {}
     for arg in args:
         error = False
-        if arg.replace("-","").strip().isdecimal():
-            coin = DEFAULT_COIN
+        if default_coin in coin_types and arg.replace("-","").strip().isdecimal():
+            coin = default_coin
             arg = arg.strip()
-        elif len(possible_types:=[coin for coin in COIN_TYPES if arg.lower() in coin.lower() or coin.lower() in arg.lower()]) == 1:
+        elif len(possible_types:=[coin for coin in coin_types if arg.lower() in coin.lower() or coin.lower() in arg.lower()]) == 1:
             coin = possible_types[0]
-            arg = arg.lower().replace(coin.lower(),"").strip()
+            for part in coin.lower().split():
+                arg = arg.lower().replace(part,"").strip()
         else:
             return {}, True
         if all([number.strip().isdecimal() for number in (numbers:=arg.strip("-").replace(",","").split("."))]) and len(numbers) in [1,2]:
@@ -618,6 +656,10 @@ def display_bag(
                 
         item_messages.append(item_message)
     
+    for item in old_bag:
+        if item not in bag[1]:
+            item_messages.append(f"0x {item} (-{old_bag[item]})")
+    
     # show empty message
     if not item_messages:
         item_messages = ['*This bag is empty.*']
@@ -820,10 +862,19 @@ def carried_weight(bagsLoaded: list) -> float:
             carriedWeight += bag_weight
     return float(carriedWeight)
 
-def deep_copy(obj) -> T:
+def save_state(bagsLoaded: list) -> list:
     """
-    Provides a deep copy of a list.
-    Idk just thought this'd be useful with baglib.
+    Returns a copy of bags that won't be modified.
+    Useful for old_bags in create_display
+    :arg list bagsLoaded: the list of bags
+    :return: a copy of bagsLoaded, plus the coin pouch if appropriate
+    :rtype: list
+    """
+    return _deep_copy(bagsLoaded) + ([get_coins(bagsLoaded)] if use_coin_purse(bagsLoaded) else [])
+
+def _deep_copy(obj) -> T:
+    """
+    Provides a deep copy of an object.
     :arg T obj: anything
     :return: a deep copy of obj
     :rtype: T
@@ -869,9 +920,11 @@ def _round_nicely(number: int|float) -> str:
     """
     return f'{number:.2f}'.rstrip('0').rstrip('.')
 
-def _get_ratio(a: int|float, b: int|float) -> (int, int):
-    """Calculate the Greatest Common Divisor of a and b. Also returns the decimal adjustment used to avoid floating point errors.
-    Best used on simple floating points
+def _get_ratio(a: int|float|str, b: int|float|str) -> (int, int):
+    """
+    Determines the simplest integer ratio between a and b.
+    Calculate the Greatest Common Divisor of a and b. Also returns the decimal adjustment used to avoid floating point errors.
+    Best used on floating points less than 2 decimals long. Fractions as strings are also supported, eg. '2/3' or '1/7'.
 
     Unless b==0, the result will have the same sign as b (so that when
     b is divided by it, the result comes out positive).
@@ -881,6 +934,28 @@ def _get_ratio(a: int|float, b: int|float) -> (int, int):
     :return: a pair of numbers that is the reduced ratio
     :rtype: (int, int)
     """
+    match (typeof(a),typeof(b)):
+        case ('str','str'):
+            a = [int(x) for x in a.split('/') if x.isdecimal()][:2]
+            while len(a)<2:
+                a.append(1)
+            b = [int(x) for x in b.split('/') if x.isdecimal()][:2]
+            while len(b)<2:
+                b.append(1)
+            a = a[0]*b[1]
+            b = a[1]*b[0]
+        case ('str',_):
+            a = [int(x) for x in a.split('/') if x.isdecimal()][:2]
+            while len(a)<2:
+                a.append(1)
+            a = a[0]*b
+            b *= a[1]
+        case (_,'str'):
+            b = [int(x) for x in b.split('/') if x.isdecimal()][:2]
+            while len(b)<2:
+                b.append(1)
+            b = b[0]*a
+            a *= b[1]
     decimal = 1
     a1 = a
     b1 = b

@@ -105,7 +105,7 @@ text = []
 success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
-old_bags = baglib.deep_copy(bagsLoaded) + ([baglib.get_coins(bagsLoaded)] if baglib.use_coin_purse(bagsLoaded) else [])
+old_bags = baglib.save_state(bagsLoaded)
 openMode = 'all'
 
 # match the input to a subcommand
@@ -231,12 +231,14 @@ match args_list:
                 if input_name.lower() in ("coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower()):
                     bag, error = baglib.modify_coins(bagsLoaded, item, -quantity)
                 else:
-                    bag, item, error = baglib.modify_item(bagsLoaded, item, -quantity, input_name)
+                    bag, items, error = baglib.modify_item(bagsLoaded, item, -quantity, input_name)
+                    item = items[0]
                 if not error:
                     if destination and destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
                         dest_bag, error = baglib.modify_coins(bagsLoaded, item.lower(), quantity)
                     else:
-                        dest_bag, item, error = baglib.modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
+                        dest_bag, items, error = baglib.modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
+                        item = items[0]
                     error = bag == dest_bag or error
         success = baglib.save_bags(bagsLoaded, error)
         focus = bag if error else dest_bag
@@ -273,7 +275,8 @@ match args_list:
                 if (not input_name or input_name.lower() in ("coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
                     bag, error = baglib.modify_coins(bagsLoaded, item, quantity)
                 else:
-                    bag, item, error = baglib.modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
+                    bag, items, error = baglib.modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
+                    item = items[0]
             success = baglib.save_bags(bagsLoaded, error)
             item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
         if buy:

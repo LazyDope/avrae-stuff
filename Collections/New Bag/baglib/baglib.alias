@@ -28,7 +28,8 @@ functions = [
         baglib.display_bag,
         baglib.display_coins,
         baglib.create_display,
-        baglib.carried_weight
+        baglib.carried_weight,
+        baglib.save_state
     ]
 body = docgen.get_embed(functions, &ARGS&)
 footer = " -footer ＂baglib gvar: 4119d62e-6a98-4153-bea9-0a99bb36da2c＂"
