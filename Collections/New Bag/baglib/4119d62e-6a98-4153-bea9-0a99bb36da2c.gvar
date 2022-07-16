@@ -215,7 +215,7 @@ def modify_item(
         
         # save the current quantity of the item, then make sure that we have enough of the item in the bag
         c_value = bag[1][item_name] if item_names else 0
-        if c_value >= -quantity or conversion_rates:
+        if c_value >= -delta[item] or conversion_rates:
             if conversion_rates:
                 conversion_rates = list(conversion_rates.items())
                 conversion_rates.sort(key=lambda x: x[1])
@@ -223,7 +223,7 @@ def modify_item(
             conversion_types = list(conversion_rates)
             index = conversion_types.index(item_name) if item_name in conversion_types else None
             # update the bag's values, remove the entry if it's empty
-            bag[1][item_name] = remainder = (c_value + quantity)
+            bag[1][item_name] = remainder = (c_value + delta[item])
             error = False
             if index and remainder < 0:
                 for item_type in conversion_types[:index-1:-1]:
