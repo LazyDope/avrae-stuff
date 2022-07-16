@@ -1,6 +1,23 @@
 def _get_docs(func):
     docs = func.doc
     docs = docs.split('\n')
+    args = []
+    kwargs = []
+    rtype = None
+    for doc in docs:
+        if len(doc.split(':')) >= 3:
+            match (docsplit:=doc.split(':')[1].split())[0]:
+                case 'arg'|'param':
+                    args.append(f"{docsplit[1]}: {docsplit[0]}" if len(docsplit)>1 else args.append(docksplit[0]))
+                case 'var'|'kwarg':
+                    index = doc.lower().index("default:") if "default:" in doc.lower() else None
+                    default = doc[index+8:] if index is not None and len(doc)>=index else ""
+                    kwargs.append((f"{docsplit[1]}: {docsplit[0]}" if len(docsplit)>1 else docksplit[0]) + (f" = {default}" if default else ""))
+                case 'rtype':
+                    rtype = doc.split(':')[2].strip()
+    header = f"""```py
+    {func.name}({', '.join(args+kwargs)}){f' -> {rtype}' if rtype else ''}
+    ```"""
     docs = [f"`{x.lstrip(':').replace(':','`:')}" if x.startswith(":") else x for x in docs]
     return '\n'.join(docs)
 
