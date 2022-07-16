@@ -28,12 +28,25 @@ def _get_docs(func):
     docs = [f"""`{x.lstrip(':').replace(':','`:',1)[:x.index("default:") if "default:" in x else None]}""" if x.startswith(":") else x for x in docs]
     return '\n'.join(header+docs)
 
-def get_embed(functions: list=[get_embed], args: list|str = '', subcmd=''):
+def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') -> str:
     """
     Create embed arguments for documentation.
-    By default will show its own documentation
-    :var functions: a list of functions
-    :var args: 
+    By default will show its own documentation.
+    If you're looking at the GVAR you can use me as an example of how to format your docs.
+    The first line is displayed as a summary
+    Any line that starts with `:` are considered arg definitions and will be attempted to be formatted as such
+    The first section inside of `::` is your arg definition
+    Required args will start with `arg` or `param` while optional kwargs start with `kwarg` or `var`
+    The middle is for type hints, generally you would use `|` to denote it accepts multiple types.
+    The last part is for the name of your variable, this is most important for kwargs.
+    After that you can put a description which will be displayed as is
+    You can end your description with a `default:` tag, which will not be included, instead everything after it will be displayed as a default.
+    :var list functions: a list of functions default: [self.get_embed]
+    :var list|str args: the args you want to pass through default: ''
+    :var str subcmd: The subcommand used to show your docs, if any default: ''
+    :return: the arguments for the embed command
+    :rtype: str
+    
     """
     newline = "\n"
     cmd = ctx.prefix + ctx.alias
