@@ -25,7 +25,7 @@ def _get_docs(func):
     {f',{n}    '.join(args+kwargs)}
 ){f' -> {rtype}' if rtype else ''}```"""]
 
-    docs = [f"`{x.lstrip(':').replace(':','`:',1)[:x.index("default:") if "default:" in x else None]}" if x.startswith(":") else x for x in docs]
+    docs = [f"""`{x.lstrip(':').replace(':','`:',1)[:x.index("default:") if "default:" in x else None]}""" if x.startswith(":") else x for x in docs]
     return '\n'.join(header+docs)
 
 def get_embed(functions: list=[get_embed], args: list|str = '', subcmd=''):
