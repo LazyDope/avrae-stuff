@@ -61,7 +61,9 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
         previous_funcs = []
         delete_uvar('docs_multiple_choice')
         
-    if previous_funcs:
+    if len(functions) == 1:
+        possible_func = functions
+    elif previous_funcs:
         possible_func = [func for func in functions if any([func_name == func.name for func_name in previous_funcs])]
     else:
         possible_func = args and [func for func in functions if args in func.name]
