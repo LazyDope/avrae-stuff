@@ -11,7 +11,7 @@ def _get_docs(func):
                     args.append(f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else args.append(docksplit[1]))
                 case 'var'|'kwarg':
                     index = doc.lower().index("default:") if "default:" in doc.lower() else None
-                    default = doc[index+8:] if index is not None and len(doc)>=index else ""
+                    default = doc[index+8:].strip() if index is not None and len(doc)>=index else ""
                     kwargs.append((f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else docksplit[1]) + (f" = {default}" if default else ""))
                 case 'rtype':
                     rtype = doc.split(':')[2].strip()
