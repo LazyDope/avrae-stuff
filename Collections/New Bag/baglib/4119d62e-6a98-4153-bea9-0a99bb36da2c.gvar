@@ -793,7 +793,7 @@ def create_display(
     :rtype: list
     """
     # define variables
-    openMode = openMode.lower() if openMode or openMode.lower() in openModes else settings.get('openMode','All').lower()
+    openMode = openMode.lower() if openMode and openMode.lower() in openModes else settings.get('openMode','All').lower()
     text = []
     weightTracking = settings.get('weightTracking','Off').lower() == 'on'
     ignoreBags = settings.get('weightlessBags',["bag of holding","handy haversack","heward's handy haversack"])
