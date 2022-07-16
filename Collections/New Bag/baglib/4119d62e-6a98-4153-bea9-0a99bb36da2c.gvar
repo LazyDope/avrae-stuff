@@ -367,6 +367,7 @@ def get_coins(bagsLoaded: list, autoCoins=settings.get('autoCoins',get("autocoin
     Will not update your coins if modified.
     :arg list bagsLoaded: a list of bags
     :var bool autoCoins: whether to convert coins into larger denominations default: self.settings.autoCoins
+    :var AliasCharacter ch: your character default: character()
     :return: a bag representing your coins
     :rtype: a_bag
     """
@@ -514,13 +515,14 @@ def delete_bag(bagsLoaded: list, bag_name: str) -> (str, bool):
     bagsLoaded.remove(old_bag)
     return (old_bag[0], False)
 
-def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None) -> bool:
+def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle: int=None, ch=character()) -> bool:
     """
     Adds a custom weight to the custWeights cvar.
     :arg str item_name: the name of the item you want to configure
     :var float weight: the weight of the item represented as a float or int default: None
     :var str cost: the cost of the item, represented as <number><denomination> eg "1gp" for 1 gold piece default: None
     :var int bundle: how many items in a bundle, this is the grouping you have to buy these items in default: None
+    :var AliasCharacter ch: your character default: character()
     :return: a boolean representing the success of the modification
     :rtype: bool
     """
@@ -530,6 +532,7 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
     if item:
         custWeights.update({item_name.lower(): item})
         success = True
+        ch.set_cvar('bagSettings',dump_json(settings))
     return success
 
 def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weightDict) -> (float|str, int, bool):
