@@ -18,7 +18,7 @@ def _get_docs(func):
     
     header = [f"""```py
 {func.name}({', '.join(args+kwargs)}){f' -> {rtype}' if rtype else ''}```"""]
-    if len(header.strip())>50:
+    if len(header[0].strip())>50:
         n='\n'
         header = [f"""```py
 {func.name}(
