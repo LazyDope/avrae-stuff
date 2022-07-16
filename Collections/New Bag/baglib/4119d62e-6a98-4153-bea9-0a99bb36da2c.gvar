@@ -538,7 +538,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
     Also allows keeping track of how many items have used a fuzzy search, which is more intensive.
     :arg str item: the name of the item
     :var int fuzzyItemCount: the current count of how many fuzzy matches have been made default: 0
-    :var dict weightDict: the dict to pull weights from default: weightDict
+    :var dict weightDict: the dict to pull weights from default: self.weightDict
     :return: the weigh, the total number of fuzzy items, and whether no matching weight was found.
     :rtype: (float|str, int, bool)
     """
@@ -570,9 +570,9 @@ def weigh_bag(
     """
     Returns a tuple of values relevant to the weighing of a bag.
     :arg a_bag bag: the bag to get the weight of
-    :var dict weightDict: the dict to pull weights from default: weightDict
-    :var bool weightTracking: whether to track weight default: settings.weightTracking
-    :var list ignoreBags: the list of lowercase bag name to skip weight tracking for default: settings.weightlessBags
+    :var dict weightDict: the dict to pull weights from default: self.weightDict
+    :var bool weightTracking: whether to track weight default: self.settings.weightTracking
+    :var list ignoreBags: the list of lowercase bag name to skip weight tracking for default: self.settings.weightlessBags
     :return: the total and coin weight in lbs, and the total number of fuzzy matches
     :rtype: (float, float, int)
     """
@@ -608,11 +608,11 @@ def display_bag(
     """
     Creates the field(s) to display a bag in an embed.
     :arg a_bag bag: the bag to get the weight of
-    :var dict weightDict: the dict to get weights from default: weightDict
-    :var bool weightTracking: whether to use weight tracking default: settings.weightTracking
-    :var list ignoreBags: a list of what bags are ignored default: settings.weightlessBags
+    :var dict weightDict: the dict to get weights from default: self.weightDict
+    :var bool weightTracking: whether to use weight tracking default: self.settings.weightTracking
+    :var list ignoreBags: a list of what bags are ignored default: self.settings.weightlessBags
     :var dict old_bag: the bag's contents previous state, for building a delta from default: {}
-    :var str length_limiter: how to limit the length of a long line. default: settings.handleLongNames
+    :var str length_limiter: how to limit the length of a long line. default: self.settings.handleLongNames
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     :rtype: (list, float, float, int, bool)
     """
@@ -713,7 +713,7 @@ def display_coins(
     """
     Creates the field(s) to display coins in an embed.
     :arg list bagsLoaded: the loaded list of bags
-    :var bool compact: whether to use compact view default: settings.compactCoins
+    :var bool compact: whether to use compact view default: self.settings.compactCoins
     :var dict old_coins: the old coins for comparing to default: {}
     :return: a list of fields to display coins
     :rtype: list
@@ -784,7 +784,7 @@ def create_display(
     If a focus is provided but bagsLoaded is not, displays focus instead.
     :var list bagsLoaded: the list of bags to display for the 'All' mode default: []
     :var a_bag focus: a bag to focus on for the 'One' mode default: None
-    :var str openMode: an override to the open mode default: settings.openMode
+    :var str openMode: an override to the open mode default: self.settings.openMode
     :var dict old_bags: a copy of bagsLoaded made before any changes were made, used for item diffs. Make sure the copy is deep by running baglib.deep_copy(bagsLoaded) default: {}
     :return: a list of embed arguments to display the list of bags
     :rtype: list
