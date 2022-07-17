@@ -815,7 +815,7 @@ def create_display(
             loop = [focus] if focus else []
             
     if not loop:
-        return "-desc ＂There are no bags to display.＂"
+        return ["-desc ＂There are no bags to display.＂"]
     else:
         carriedWeight = 0
         unknownTotal = 0
