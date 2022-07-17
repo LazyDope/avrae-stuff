@@ -808,10 +808,9 @@ def create_display(
     match openMode:
         case 'none':
             loop = []
-        case 'all' if bagsLoaded:
+        case 'all':
             bagsLoaded = _as_list(bagsLoaded)
-            coinbag = [get_coins(bagsLoaded)]
-            loop = bagsLoaded + (coinbag if use_coin_purse(bagsLoaded) else [])
+            loop = bagsLoaded + ([get_coins(bagsLoaded)] if use_coin_purse(bagsLoaded) else [])
         case _:
             loop = [focus] if focus else []
             
