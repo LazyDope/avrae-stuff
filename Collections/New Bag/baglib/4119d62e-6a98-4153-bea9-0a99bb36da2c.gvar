@@ -680,7 +680,7 @@ def display_bag(
     fields = []
     i = 0
     while item_messages:
-        header = bag_title if i == 0 else "*(continued)*"
+        header = bag_title if i == 0 else f"{bag[0]} *(continued)*"
         lineLength = len(header)
         item_message = item_messages.pop(0)
         max_length = 35
