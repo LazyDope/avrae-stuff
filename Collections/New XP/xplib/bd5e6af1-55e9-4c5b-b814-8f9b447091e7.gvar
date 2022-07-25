@@ -102,7 +102,7 @@ def get_log(ch=character()) -> dict:
     #Setup Calendar
     calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
     monthLengths=[x.length for x in calendar.months]
-    hourOffset=int(calendar.get('hourOffset',0))+int(get_xp('timezone',0))
+    hourOffset=int(calendar.get('hourOffset',0))+int(ch.get_cvar('timezone',0))
 
     #Load xp log
     log = load_yaml(get_xp('xplog','{}'))
