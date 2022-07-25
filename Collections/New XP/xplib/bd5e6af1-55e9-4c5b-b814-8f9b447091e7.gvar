@@ -105,12 +105,12 @@ def get_log(ch=character()) -> dict:
     hourOffset=int(calendar.get('hourOffset',0))+int(ch.get_cvar('timezone',0))
 
     #Load xp log
-    log = load_yaml(get_xp('xplog','{}'))
+    log = load_yaml(ch.get_cvar('xplog','{}'))
     if log == {} and 'xplog0' in c.cvars:
         i = 0
         templog = ''
         while f'xplog{i}' in c.cvars:
-            templog += get_xp(f'xplog{i}','')
+            templog += ch.get_cvar(f'xplog{i}','')
             i += 1
         log = load_yaml(templog)
 
