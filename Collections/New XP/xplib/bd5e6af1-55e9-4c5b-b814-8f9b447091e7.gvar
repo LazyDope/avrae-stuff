@@ -6,7 +6,7 @@ def _update_old(ch=character()) -> bool:
     cc_name = _cc_name(ch)
     if ch.cc_exists(cc_name):
         if ch.get_cc(cc_name) > 0:
-            ch.set_cvar_nx(counter,str(c.get_cc(cc_name)))
+            ch.set_cvar_nx(counter,str(ch.get_cc(cc_name)))
         ch.delete_cc(cc_name)
 
 def get_xp(ch=character()) -> float:
@@ -106,10 +106,10 @@ def get_log(ch=character()) -> dict:
 
     #Load xp log
     log = load_yaml(ch.get_cvar('xplog','{}'))
-    if log == {} and 'xplog0' in c.cvars:
+    if log == {} and 'xplog0' in ch.cvars:
         i = 0
         templog = ''
-        while f'xplog{i}' in c.cvars:
+        while f'xplog{i}' in ch.cvars:
             templog += ch.get_cvar(f'xplog{i}','')
             i += 1
         log = load_yaml(templog)
@@ -138,7 +138,7 @@ def get_log(ch=character()) -> dict:
                 t = x
             newlog.update({t: f"{newlog[t]}; {log[x]}"}) if t in newlog else newlog.update({t: log[x]})
         log = newlog
-        c.set_cvar('xplog',dump_yaml(log))
+        ch.set_cvar('xplog',dump_yaml(log))
     
     return log
     
