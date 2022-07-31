@@ -383,6 +383,7 @@ match args_list:
     case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
         if not input_name:
             input_name = ' '.join(args)
+        success = 1
         focus = baglib.get_bag(bagsLoaded, input_name) if input_name else focus
         openMode = "One" if focus else "All"
         title_bag = f"""their {focus[0]}""" if focus else "a bag"
