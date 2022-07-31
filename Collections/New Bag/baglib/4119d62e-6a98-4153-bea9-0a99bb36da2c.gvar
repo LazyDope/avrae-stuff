@@ -18,10 +18,6 @@ DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
 coinPouchName = get_svar("coinPouchName") or ch.cvars.get("coinPouchName","Coin Pouch")
 coinWeighs = float(get_svar("coinWeighs") or ch.cvars.get("coinWeighs",0.02))
 
-for var in ['coinRates','coinPouchName','coinWeighs']:
-    if (svar:=get_svar(var)):
-        ch.set_cvar(var, svar)
-
 default_packs = [["Priest's Pack",{"Backpack":1,"Blanket":1,"Candle":10,"Tinderbox":1,"Alms Box":1,"Block of Incense":2,"Censer":1,"Vestments":1,"Days of Rations":2,"Waterskin (Full)":1}],["Burglar's Pack",{"Backpack":1,"Ball Bearings (Bag of 1,000)":1,"String (10 feet)":1,"Bell":1,"Candle":5,"Crowbar":1,"Hammer":1,"Pitons":10,"Hooded Lantern":1,"Oil (Flask)":2,"Days of Rations":5,"Tinderbox":1,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Scholar's Pack",{"Backpack":1,"Book of Lore":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Parchment (Sheet)":10,"Little Bag of Sand":1,"Small Knife":1}],["Diplomat's Pack",{"Chest":1,"Map or Scroll Case":2,"Fine Clothes":1,"Ink (1 ounce Bottle)":1,"Ink Pen":1,"Lamp":1,"Oil (Flask)":2,"Paper (Sheet)":5,"Perfume (Vial)":1,"Sealing Wax":1,"Soap":1}],["Explorer's Pack",{"Backpack":1,"Bedroll":1,"Mess Kit":1,"Tinderbox":1,"Torch":10,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Dungeoneer's Pack",{"Backpack":1,"Crowbar":1,"Hammer":1,"Piton":10,"Torch":10,"Tinderbox":1,"Days of Rations":10,"Waterskin (Full)":1,"Hempen Rope (50 feet)":1}],["Entertainer's Pack",{"Backpack":1,"Bedroll":1,"Clothes, Costume":2,"Candle":5,"Days of Rations":5,"Waterskin (Full)":1,"Disguise Kit":1}],["Monster Hunter's Pack",{"Chest":1,"Crowbar":1,"Hammer":1,"Wooden Stake":3,"Holy Symbol":1,"Holy Water (Flask)":1,"Manacles":1,"Steel Mirror":1,"Oil (Flask)":1,"Tinderbox":1,"Torch":3}],["Soldier's Pack",{"Backpack":1,"Bedroll":1,"Fuse (50 feet)":1,"Small Knife":1,"Mess Kit":1,"Musket":1,"Musket Bullets":100,"Tinderbox":1,"Torch":10,"Shovel":1,"Waterskin":1,"Vial of Antitoxin":1,"Hempen Rope (50 feet)":1}],["Exploder's Pack",{"Gunpowder Horn":3,"Gunpowder Keg":1,"Tinderbox":1,"Torch":10,"Oil (Flask)":3,"Fuse (50 feet)":1}]]
 hb_packs = load_yaml(get_svar("extraPacks",'[]'))+load_yaml(ch.cvars.get("extraPacks",'[]'))
 
@@ -70,13 +66,27 @@ def load_bags(ch = character()) -> [a_bag]:
     
     # remove duplicate names
     bag_names = [bag[0] for bag in bagsLoaded]
-    if any([bag_names.count(bag_name)>1 for bag_name in bag_names]):
-        for bag in bagsLoaded:
-            if bag_names.count(bag[0]) > 1:
-                i = int(bag[0].split(' ')[-1]) if bag[0].split(' ')[-1].isdecimal() else 1
+    if (dupe_bags := [bag_name for bag_name in set(bag_names) if bag_names.count(bag_name)>1]):
+        for bag in bagsLoaded[::-1]:
+            if bag[0] in dupe_bags:
+                i = int(num) if (num:=bag[0].split(' ')[-1]).isdecimal() else 1
+                dupe_bags.remove(bag[0])
                 while [bag[0] for bag in bagsLoaded].count(bag[0]) > 1:
                     i += 1
                     bag[0] = f"""{bag[0].rstrip(" 1234567890")} {i}"""
+                
+    
+    # remove entries with 0 items
+    for bag in bagsLoaded:
+        if bag[0] != coinPouchName:
+            for item_name in [item for item, count in bag[1].items() if count <= 0]:
+                bag[1].pop(item_name)
+    
+    # makes sure if bags are used, variables follow character
+    for var in ['coinRates','coinPouchName','coinWeighs']:
+        if (svar:=get_svar(var)):
+            ch.set_cvar(var, svar)
+    
     return bagsLoaded
 
 def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
@@ -889,7 +899,7 @@ def _deep_copy(obj) -> T:
     :return: a deep copy of obj
     :rtype: T
     """
-    return load_json(dump_json(obj))
+    return load_yaml(dump_yaml(obj))
 
 def _as_dict(listordict) -> dict:
     """
