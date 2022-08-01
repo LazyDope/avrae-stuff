@@ -102,7 +102,7 @@ def get_log(ch=character()) -> dict:
     #Setup Calendar
     calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
     monthLengths=[x.length for x in calendar.months]
-    hourOffset=int(calendar.get('hourOffset',0))+int(ch.get_cvar('timezone',0))
+    timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
 
     #Load xp log
     log = load_yaml(ch.get_cvar('xplog','{}'))
@@ -130,7 +130,7 @@ def get_log(ch=character()) -> dict:
                     hour, minute, second = clock.strip("()").split(":")
                 else:
                     hour, minute, second = (0, 0, 0)
-                t = int(second) + int(minute) * 60 + (int(hour) - hourOffset) * 3600 + int(day) * 24 * 3600
+               t = int(second) + (int(minute) - int(timezoneOffset%1 * 60)) * 60 + (int(hour) - int(timezoneOffset)) * 3600 + int(day) * 24 * 3600
                 t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
                 t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
                 t = int(round(float(t) / 60.0))
