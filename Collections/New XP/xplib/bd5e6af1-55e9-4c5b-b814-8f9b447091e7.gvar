@@ -99,11 +99,6 @@ def get_log(ch=character()) -> dict:
     t_since = 18262*24*60*60
     timestamp=round(time() - t_since)//60
 
-    #Setup Calendar
-    calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
-    monthLengths=[x.length for x in calendar.months]
-    timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
-
     #Load xp log
     log = load_yaml(ch.get_cvar('xplog','{}'))
     if log == {} and 'xplog0' in ch.cvars:
@@ -116,6 +111,11 @@ def get_log(ch=character()) -> dict:
 
     #Convert old log
     if log and any([typeof(x) == "str" for x in list(log)]):
+        #Setup Calendar
+        calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
+        monthLengths=[x.length for x in calendar.months]
+        timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
+        
         newlog = {}
         for x in log:
             if typeof(x) == 'str':
