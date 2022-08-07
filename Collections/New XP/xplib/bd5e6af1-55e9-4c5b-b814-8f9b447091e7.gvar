@@ -1,7 +1,7 @@
-def _update_old(ch=character()) -> bool:
+def _update_old(ch=character()):
     """
     Converts CC into cvar.
-    :var ch: the character
+    :var ch: the character default: character()
     """
     cc_name = _cc_name(ch)
     if ch.cc_exists(cc_name):
@@ -12,51 +12,57 @@ def _update_old(ch=character()) -> bool:
 def get_xp(ch=character()) -> float:
     """
     Load the XP or similar from the cvar.
-    :var ch: the character
-    :return: a float representing the XP or the like the current character has.
+    :var ch: the character default: character()
+    :return: the XP or the like the current character has.
+    :rtype: float
     """
     counter="xp"
     _update_old(ch)
     return float(ch.cvars.get(counter,"0"))
     
-def set_xp(value: int|float, log_message: str=None, ch=character()) -> float:
+def set_xp(value: int|float, log_message: str=None, ch=character()) -> float, [(int, str)]:
     """
     Sets the cvar to a new value.
-    :arg value: the new value
-    :var log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value
-    :var ch: the character
-    :return: a tuple of the value set and a list of the log messages removed, if any.
+    :arg int|float value: the new value
+    :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: None
+    :var ch: the character default: character()
+    :return: the value set and a list of the log messages removed, if any.
+    :rtype: float, [(int, str)]
     """
     counter="xp"
     _update_old(ch)
-    log_message = f"Set value to {_round_nicely(value)}" if log_message is None else str(log_message).replace("[value]", _round_nicely(value))
+    value_str = _round_nicely(value)
+    log_message = f"Set value to {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", value_str)
     removed = log(log_message, ch)
-    ch.set_cvar(counter, _round_nicely(value))
-    return value, removed
+    ch.set_cvar(counter, value_str)
+    return float(value_str), removed
     
-def modify_xp(value: int|float, log_message: str, ch=character()) -> float:
+def modify_xp(value: int|float, log_message: str=None, ch=character()) -> float, [(int, str)]:
     """
     Modifies the cvar by the given value.
-    :arg value: value to modify by
-    :var log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp.
-    :var ch: the character
-    :return: a tuple of the new total and a list of the log messages removed, if any.
+    :arg int|float value: value to modify by
+    :var str log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp. default: None
+    :var ch: the character default: character()
+    :return: the new total and a list of the log messages removed, if any.
+    :rtype: float, [(int, str)]
     """
     counter="xp"
-    _update_old(ch)
     c_val = get_xp(ch)
     new_val = c_val + value
-    log_message = f"{_round_nicely(value)}" if log_message is None else str(log_message).replace("[value]", _round_nicely(value)).replace("[total]", _round_nicely(new_val))
+    value_str = _round_nicely(value)
+    new_str = _round_nicely(new_val)
+    log_message = f"{value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", new_str)
     removed = log(log_message, ch)
-    ch.set_cvar(counter, _round_nicely(new_val))
+    ch.set_cvar(counter, new_str)
     return new_val, removed
     
-def next_lvl(xp=None, ch=character()) -> (int, float, float):
+def next_lvl(xp: float=None, ch=character()) -> int, float, float:
     """
     Gets the next level for a character.
-    :var xp: the xp to compare for the difference, generally passed from another function.
-    :var ch: the character
+    :var float xp: the xp to compare for the difference, generally passed from another function. default: None
+    :var ch: the character default: character()
     :return: the next level, the xp needed for the next level, and the difference between that and the current value.
+    :rtype: int, float, float
     """
     totals = totals(ch)
     c_level = ch.levels.total_level
@@ -64,13 +70,15 @@ def next_lvl(xp=None, ch=character()) -> (int, float, float):
     index = min(c_level, len(totals)-1)
     return index+1, float(totals[index]), float(totals[index]-xp)
     
-def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
+def level(lvl: int=None, xp: float=None, ch=character()) -> int, float, float:
     """
     Gets the values for a specific level.
-    :var lvl: the level you want information about
-    :var xp: the xp value to override loading it again
-    :var ch: the character
-    :return: If `lvl` is given, will return itself, xp needed for that level, and the difference between that and given or current xp. If `xp` is present but `lvl` is not, will return what level a character would be if they had that much xp, itself, and the difference between the needed xp for that level, and the xp given. If neither are provided it will return the player's level, how much xp they needed to be that level, and how much xp they are above that.
+    If `lvl` is given, will return itself, xp needed for that level, and the difference between that and given or current xp. If `xp` is present but `lvl` is not, will return what level a character would be if they had that much xp, itself, and the difference between the needed xp for that level, and the xp given. If neither are provided it will return the player's level, how much xp they needed to be that level, and how much xp they are above that.
+    :var int lvl: the level you want information about default: None
+    :var float xp: the xp value to override loading it again default: None
+    :var ch: the character default: character()
+    :return: A level, a total xp, and a difference between the level's xp and the total.
+    :rtype: int, float, float
     """
     totals = totals(ch)
     if lvl is not None:
@@ -89,11 +97,12 @@ def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
         xp_diff = totals[index]-xp
     return lvl, float(xp), float(xp_diff)
 
-def get_log(ch=character()) -> dict:
+def get_log(ch=character()) -> {int: str}:
     """
     Grabs the log cvars and returns as a single dict.
-    :var ch: the character
+    :var ch: the character default: character()
     :return: a dict representing the character's full log
+    :rtype: {int: str}
     """
     #Calculate Current Time
     t_since = 18262*24*60*60
@@ -142,12 +151,13 @@ def get_log(ch=character()) -> dict:
     
     return log
     
-def log(log_message, ch=character()) -> list:
+def log(log_message: str, ch=character()) -> [(int, str)]:
     """
     Adds a log entry with a given message.
-    :arg log_message: the message to be added to the log
+    :arg str log_message: the message to be added to the log
     :var ch: the character
     :return: a list of log entries that got removed
+    :rtype: [(int, str)]
     """
     t_since = 18262*24*60*60
     log = get_log(ch)
@@ -163,12 +173,13 @@ def log(log_message, ch=character()) -> list:
     removed += set_log(log, ch)
     return removed
 
-def set_log(log, ch=character()) -> list:
+def set_log(log, ch=character()) -> [(int, str)]:
     """
     Dumps the log to one or more cvars depending on its length, removing those that are too long.
-    :arg log: the dict representing the log to dump
+    :arg str log: the dict representing the log to dump
     :var ch: the character
     :return: a list of removed log entries
+    :rtype: [(int, str)]
     """
     removed = []
     if len(dump_yaml(log)) > 9999:
@@ -196,21 +207,24 @@ def set_log(log, ch=character()) -> list:
 def log_to_epoch(log_time: int) -> int:
     """
     Converts log time into epoch time.
-    :arg log_time: the time stored in the log2
-    :return: the time since epoch (00:00 UTC+0, January 1st, 1970)
+    Useful for displaying the log time in timestamps.
+    :arg int log_time: the time stored in the log.
+    :return: the time since epoch (00:00 UTC+0, January 1st, 1970), which is used in timestamps
+    :rtype: int
     """
     t_since = 18262*24*60*60
     return log_time*60+t_since
 
-def totals(ch=character()) -> list:
+def totals(ch=character()) -> [int]:
     """
     Gets the xp totals needed for each level.
     Also saves the server's totals to a cvar so they can be used in DMs.
     :var ch: the character
     :return: a list of integers representing the xp needed for each level
+    :rtype: [int]
     """
-    totals = [int(x.strip()) for x in (get_svar("xptotals") or ch.get_cvar("xptotals","0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000")).split(",")]
-    ch.set_cvar('xptotals',get_svar("xptotals")) if get_svar("xptotals") else ()
+    totals = [int(x.strip()) for x in ((svar := get_svar("xptotals")) or ch.get_cvar("xptotals","0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000")).split(",")]
+    ch.set_cvar('xptotals',svar) if svar else ()
     return totals
 
 def xp_name(ch=character()) -> str:
@@ -218,17 +232,19 @@ def xp_name(ch=character()) -> str:
     Gets the xp name to be used.
     Also saves the server's name to a cvar so they can be used in DMs.
     :var ch: the character
-    :return: a string representing the xp name
+    :return: the xp name
+    :rtype: str
     """
-    xp_name = get_svar("xpname") or ch.get_cvar("xpname","Experience")
-    ch.set_cvar('xpname',xp_name) if get_svar("xpname") else ()
+    xp_name = (svar := get_svar("xpname")) or ch.get_cvar("xpname","Experience")
+    ch.set_cvar('xpname',svar) if svar else ()
     return xp_name
     
-def _cc_name(ch=character()):
+def _cc_name(ch=character()) -> str:
     """
     Gets the CC name to be used, used in conversion process.
     :var ch: the character
-    :return: a string representing the cc name
+    :return: the cc name
+    :rtype: str
     """
     cc_name = get_svar("xp_ccname") or ch.get_cvar("xp_ccname","Experience")
     return cc_name
@@ -237,5 +253,7 @@ def _round_nicely(number, include_sign=True) -> str:
     """
     Makes the number look nice, regardless of whether it's an int or a float
     :arg number: an integer or float
+    :return: the rounded number
+    :rtype: str
     """
-    return f"""{f'{"+" if number>0 else ""}{number:.2f}'.rstrip('0').rstrip('.')}"""
+    return f'{number:+.2f}'.rstrip('0').rstrip('.')
