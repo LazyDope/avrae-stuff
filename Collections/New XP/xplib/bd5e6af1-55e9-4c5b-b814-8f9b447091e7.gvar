@@ -20,7 +20,7 @@ def get_xp(ch=character()) -> float:
     _update_old(ch)
     return float(ch.cvars.get(counter,"0"))
     
-def set_xp(value: int|float, log_message: str=None, ch=character()) -> float, [(int, str)]:
+def set_xp(value: int|float, log_message: str=None, ch=character()) -> (float, [(int, str)]):
     """
     Sets the cvar to a new value.
     :arg int|float value: the new value
@@ -37,7 +37,7 @@ def set_xp(value: int|float, log_message: str=None, ch=character()) -> float, [(
     ch.set_cvar(counter, value_str)
     return float(value_str), removed
     
-def modify_xp(value: int|float, log_message: str=None, ch=character()) -> float, [(int, str)]:
+def modify_xp(value: int|float, log_message: str=None, ch=character()) -> (float, [(int, str)]):
     """
     Modifies the cvar by the given value.
     :arg int|float value: value to modify by
@@ -56,7 +56,7 @@ def modify_xp(value: int|float, log_message: str=None, ch=character()) -> float,
     ch.set_cvar(counter, new_str)
     return new_val, removed
     
-def next_lvl(xp: float=None, ch=character()) -> int, float, float:
+def next_lvl(xp: float=None, ch=character()) -> (int, float, float):
     """
     Gets the next level for a character.
     :var float xp: the xp to compare for the difference, generally passed from another function. default: None
@@ -70,7 +70,7 @@ def next_lvl(xp: float=None, ch=character()) -> int, float, float:
     index = min(c_level, len(totals)-1)
     return index+1, float(totals[index]), float(totals[index]-xp)
     
-def level(lvl: int=None, xp: float=None, ch=character()) -> int, float, float:
+def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
     """
     Gets the values for a specific level.
     If `lvl` is given, will return itself, xp needed for that level, and the difference between that and given or current xp. If `xp` is present but `lvl` is not, will return what level a character would be if they had that much xp, itself, and the difference between the needed xp for that level, and the xp given. If neither are provided it will return the player's level, how much xp they needed to be that level, and how much xp they are above that.
