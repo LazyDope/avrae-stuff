@@ -27,7 +27,7 @@ def set_xp(value: int|float, log_message: str=None, ch=character()) -> (float, [
     :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: None
     :var ch: the character default: character()
     :return: the value set and a list of the log messages removed, if any.
-    :rtype: float, [(int, str)]
+    :rtype: (float, [(int, str)])
     """
     counter="xp"
     _update_old(ch)
@@ -44,7 +44,7 @@ def modify_xp(value: int|float, log_message: str=None, ch=character()) -> (float
     :var str log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp. default: None
     :var ch: the character default: character()
     :return: the new total and a list of the log messages removed, if any.
-    :rtype: float, [(int, str)]
+    :rtype: (float, [(int, str)])
     """
     counter="xp"
     c_val = get_xp(ch)
@@ -62,7 +62,7 @@ def next_lvl(xp: float=None, ch=character()) -> (int, float, float):
     :var float xp: the xp to compare for the difference, generally passed from another function. default: None
     :var ch: the character default: character()
     :return: the next level, the xp needed for the next level, and the difference between that and the current value.
-    :rtype: int, float, float
+    :rtype: (int, float, float)
     """
     totals = totals(ch)
     c_level = ch.levels.total_level
@@ -78,7 +78,7 @@ def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
     :var float xp: the xp value to override loading it again default: None
     :var ch: the character default: character()
     :return: A level, a total xp, and a difference between the level's xp and the total.
-    :rtype: int, float, float
+    :rtype: (int, float, float)
     """
     totals = totals(ch)
     if lvl is not None:
