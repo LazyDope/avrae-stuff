@@ -46,7 +46,7 @@ carryMod = ch.stats.strength*(2 if ch.cvars.get('race',ch.race).lower() in pbRac
 def load_bags(ch = character()) -> [a_bag]:
     """
     Loads the current character's bags as a list.
-    :arg AliasCharacter ch: The current character, will be loaded if none is provided. default: character()
+    :var ch: The current character, will be loaded if none is provided. default: character()
     :return: a list of bags
     :rtype: [a_bag]
     """
@@ -94,7 +94,7 @@ def save_bags(bagsLoaded: list, error = False, ch = character()) -> int:
     Saves the current bag configuration.
     :arg list bagsLoaded: The dict or list of bags
     :var bool error: Whether an error occurred before trying to save default: False
-    :var AliasCharacter ch: The current character default: character()
+    :var ch: The current character default: character()
     :return: the success state; 0 for no bags, 1 for success, and -1 for failure
     :rtype: int
     """
@@ -304,7 +304,7 @@ def modify_coins(
     :var int quantity: how much to change the coins by default: 0
     :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities default: {}
     :var bool autoCoins: whether to convert into larger denominations default: self.settings.autoCoins
-    :var AliasCharacter ch: the character, can be passed through if already loaded default: character()
+    :var ch: the character, can be passed through if already loaded default: character()
     :return: a bag representing the coins accessed, and an error bool
     :rtype: (a_bag, bool)
     """
@@ -377,7 +377,7 @@ def get_coins(bagsLoaded: list, autoCoins=settings.get('autoCoins',get("autocoin
     Will not update your coins if modified.
     :arg list bagsLoaded: a list of bags
     :var bool autoCoins: whether to convert coins into larger denominations default: self.settings.autoCoins
-    :var AliasCharacter ch: your character default: character()
+    :var ch: your character default: character()
     :return: a bag representing your coins
     :rtype: a_bag
     """
@@ -532,7 +532,7 @@ def set_custom_weight(item_name: str, weight: float=None, cost: str=None, bundle
     :var float weight: the weight of the item represented as a float or int default: None
     :var str cost: the cost of the item, represented as <number><denomination> eg "1gp" for 1 gold piece default: None
     :var int bundle: how many items in a bundle, this is the grouping you have to buy these items in default: None
-    :var AliasCharacter ch: your character default: character()
+    :var ch: your character default: character()
     :return: a boolean representing the success of the modification
     :rtype: bool
     """
