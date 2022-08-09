@@ -158,7 +158,7 @@ match args_list:
         __Loaded Items__
         `{limit_length(baglib.server_weights or ["None"])}`
         __Default__
-        [GVar Here](https://avrae.io/dashboard/gvars?lookup=19753bce-e2c1-42af-8c4f-baf56e2f6749)
+        [GVar Here](https://avrae.io/dashboard/gvars?lookup=9eac80b1-1e1a-41ea-9a99-81a5f0f3be8e)
         
         `{ctx.prefix}cvar bagSettings`
         This variable stores changes you've made to your settings in the alias, best not to edit manually.
