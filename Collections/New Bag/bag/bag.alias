@@ -242,8 +242,9 @@ match args_list:
         success = baglib.save_bags(bagsLoaded, error)
         focus = bag if error else dest_bag
         title_bag = f"""their {bag[0][0]}""" if bag else "a bag"
+        dest_title = dest_bag[0] if dest_bag else ""
         item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
-        text.append(f"""-title ＂{name}{[" fails to move anything, as they have no bags!",f" moves {quantity} {item_name} from {title_bag} to their {dest_bag[0]}",f" fails to move some {item_name} from {title_bag}"][success]}＂""")
+        text.append(f"""-title ＂{name}{[" fails to move anything, as they have no bags!",f" moves {quantity} {item_name} from {title_bag} to their {dest_title}",f" fails to move some {item_name} from {title_bag}"][success]}＂""")
         
     case [("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args] | [input_name, ("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args]:
         buy, add, remove = sign in "buy.", sign in "add+", sign in "remove-"
