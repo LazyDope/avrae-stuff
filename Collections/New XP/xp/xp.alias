@@ -19,7 +19,7 @@ cc_name = get_svar("xp_ccname") or get("xp_ccname",default="Experience")
 c.set_cvar('xpname',xp_name) if get_svar("xpname") else ()
 c.set_cvar('xptotals',get_svar("xptotals")) if get_svar("xptotals") else ()
 if c.cc_exists(cc_name):
-    if not get('xp_firstrun'):
+    if (get_svar('no_warn') is not None) or not get('xp_firstrun'):
         c.set_cvar('xp_firstrun','Delete me if you want to see another warning :)')
         return(f"-title 'Warning' -desc '**No changes made.**{n}Running this command again will convert CC named `{cc_name}` into a cvar named `xp` and convert your xp log into a format incompatible with the old alias (although it is more compact).{n*2}This is done so that it works with the new alias as some of the formats have changed.{n*2}Ignore this warning if you are not using other older aliases to handle experience.'")
     elif c.get_cc(cc_name) > 0:
