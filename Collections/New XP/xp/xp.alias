@@ -142,6 +142,8 @@ out+=[f"""-desc ＂{n.join(pages[calledPage-1])+(f"{n}{n}Page {calledPage}/{len(
     (Default: `0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000`)
 Use a cvar or svar called `xpname` to change the name of your XP system. Prefers server choice.
     (Default: `Experience`)
+Create an svar called `no_warn` if you do not want any warnings about converting XP.
+    (Default: `None`)
 Use a cvar or svar called `xp_ccname` to change the name of the cc for your old XP system. Prefers server choice.
     (Default: `Experience`)
 Use a cvar or uvar called `log_entries` to choose how many lines per page in the log.
