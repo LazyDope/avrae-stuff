@@ -70,7 +70,7 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
     """
     max_len = float('inf') if max_len is None else max_len
     log_entries = log.items()
-    pages = [""]
+    pages = []
     dir = -1 if page<0 else 1
     c_page = 0
     c_entries = 0
@@ -91,9 +91,11 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
         else:
             pages[c_page] = left + '\n' + right
             c_entries += 1
+    if not pages:
+        return None
             
     page = max(page, -len(pages)) if page<0 else min(page, len(pages)-1)
-    return pages
+    return pages[page]
     
     
 def log_to_epoch(log_time: int) -> int:
