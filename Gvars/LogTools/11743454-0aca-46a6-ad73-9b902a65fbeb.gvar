@@ -70,7 +70,7 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
     """
     max_len = float('inf') if max_len is None else max_len
     log_entries = log.items()
-    pages = []
+    pages = [""]
     dir = -1 if page<0 else 1
     c_page = 0
     c_entries = 0
