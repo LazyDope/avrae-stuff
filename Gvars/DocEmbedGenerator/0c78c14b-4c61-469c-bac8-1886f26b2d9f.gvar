@@ -1,3 +1,8 @@
+# Thanks for using DocGen
+# The purpose of this module is to generate arguments for embeds from docstrings
+# created by:
+# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+
 def _get_docs(func: _Function|dict) -> str:
     if typeof(func) == '_Function':
         docs = func.doc

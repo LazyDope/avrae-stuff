@@ -72,6 +72,7 @@
  "breastplate armor":{"weight":20,"cost":"400gp"},
  "half plate armor":{"weight":40,"cost":"750gp"},
  "ring mail armor":{"weight":40,"cost":"30gp"},
+ "spiked armor":{"weight":45,"cost":"75gp"},
  "chain mail armor":{"weight":55,"cost":"75gp"},
  "splint armor":{"weight":60,"cost":"200gp"},
  "plate armor":{"weight":65,"cost":"1500gp"},

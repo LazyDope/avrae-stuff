@@ -1,3 +1,7 @@
+# Thanks for using XPLib
+# created by:
+# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+
 def _update_old(ch=character()):
     """
     Converts CC into cvar.
@@ -155,7 +159,7 @@ def log(log_message: str, ch=character()) -> [(int, str)]:
     """
     Adds a log entry with a given message.
     :arg str log_message: the message to be added to the log
-    :var ch: the character
+    :var ch: the character default: character()
     :return: a list of log entries that got removed
     :rtype: [(int, str)]
     """
@@ -177,7 +181,7 @@ def set_log(log, ch=character()) -> [(int, str)]:
     """
     Dumps the log to one or more cvars depending on its length, removing those that are too long.
     :arg str log: the dict representing the log to dump
-    :var ch: the character
+    :var ch: the character default: character()
     :return: a list of removed log entries
     :rtype: [(int, str)]
     """
