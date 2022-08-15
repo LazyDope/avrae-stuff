@@ -1,0 +1,117 @@
+# Thanks for using LogTools
+# The purpose of this module is to provide tools for displaying logs
+# created by:
+# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+
+def as_valid_number(inp_str: str) -> float:
+    """
+    Check if the value input is valid for modifying by
+    :arg str inp_str: The string to test
+    :return: the value of the string
+    :rtype: float
+    """
+    if inp_str.strip("+-").isdecimal():
+        return float(inp_str)
+    if all(parts := [x.isdecimal() for x in inp_str.strip("+-").split(".")]) and len(parts) == 2:
+        return float(inp_str)
+    return None
+
+def entries_per_page(ch: AliasCharacter=None, default: int=15) -> int:
+    """
+    Checks the vars and determines the log entries per page.
+    :var AliasCharacter ch: the character to check if any default: None
+    :var int default: the default value to return default: 15
+    :return: the entires per page
+    :rtype: int
+    """
+    user_set = None
+    if ch and (cvar:=ch.get_cvar("log_entries")).isdecimal():
+        user_set = int(cvar)
+    if not user_set and (uvar:=get_uvar("log_entries")).isdecimal():
+        user_set = int(uvar)
+    serv_set = (svar:=get_svar("log_entries")).isdecimal() and int(svar) or None
+    if serv_set and user_set:
+        return min(serv_set, user_set)
+    elif serv_set or user_set:
+        return serv_set or user_set
+    return default
+
+def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int, str)]=None) -> [str]:
+    """
+    Display the changes made to the log
+    :var str name: The name to be displayed with the log entry default: None
+    :var [(int,str)] added: the list of new logs in timestamp, message pairs default: None
+    :var [(int,str)] removed: the list of removed logs in timestamp, message pairs default: None
+    :return: fields for an embed or embeds
+    :rtype: [str]
+    """
+    out = []
+    name = name + " " if name else ""
+    if removed:
+        rmd_f = f"-f ＂{name} Log Entr{'ies' if len(removed)>1 else 'y'} Removed|"
+        rmd_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in removed)
+        rmd_f += "＂"
+        out.append(rmd_f)
+    if added:
+        add_f = f"-f ＂{name} Log Entr{'ies' if len(removed)>1 else 'y'} Added|"
+        add_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in removed)
+        add_f += "＂"
+        out.append(add_f)
+    return out
+
+def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str:
+    """
+    Creates the display for a page of a log
+    :arg dict log: the log to parse
+    :var int page: the page to display default: -1
+    :var int max_len: the maximum length that each page is allowed to be. Set to None to ignore. default: 4096
+    :return: the formatted page desired
+    :rtype: str
+    """
+    max_len = float('inf') if max_len is None else max_len
+    log_entries = log.items()
+    pages = []
+    dir = -1 if page<0 else 1
+    c_page = 0
+    c_entries = 0
+    for ts, entry in log_entries:
+        msg = f'**<t:{log_to_epoch(ts)}:D>: {entry}'
+        len(msg) > max_len:
+            msg = f'**<t:{log_to_epoch(ts)}:D>: entry too long'
+        left, right = [pages[c_page], msg][::dir]
+        if (len(left) + len(right) + 1)>max_len or c_entries >= entries:
+            c_page += max(dir,0)
+            pages.insert(min(-dir,0), msg)
+            c_entries = 1
+        elif c_entries == 0:
+            pages.insert(min(-dir,0), msg)
+            c_entries = 1
+        else:
+            pages[c_page] = left + '\n' + right
+            c_entries += 1
+            
+    page = max(page, -len(pages)) if page<0 else min(page, len(pages)-1)
+    return pages[page]
+    
+    
+def log_to_epoch(log_time: int) -> int:
+    """
+    Converts log time into epoch time.
+    Useful for displaying the log time in timestamps.
+    :arg int log_time: the time stored in the log.
+    :return: the seconds since epoch (00:00 UTC+0, January 1st, 1970), which is used in timestamps
+    :rtype: int
+    """
+    t_since = 18262*24*60*60
+    return log_time*60+t_since
+
+def epoch_to_log(epoch_time: int) -> int:
+    """
+    Converts epoch time into log time.
+    Used when storing the time in a more compact format.
+    :arg int epoch_time: the time to store in the log.
+    :return: the minutes since (00:00 UTC+0, January 1st, 2020), which is used in the log
+    :rtype: int
+    """
+    t_since = 18262*24*60*60
+    return (log_time-t_since)//60

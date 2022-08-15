@@ -1,0 +1,239 @@
+# Thanks for using DMPLib
+# The purpose of this is to aid in handling DM Points, or other points that are tracked per user, per server.
+# created by:
+# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+
+_cache = {}
+def get_guild_settings(guild: int=ctx.guild.id) -> dict:
+    """
+    Loads the settings for the server, loads from cache if available.
+    :var int guild: The id of the guild to search, will default to the current one. default: ctx.guild.id
+    :return: The settings to be used.
+    :rtype: dict
+    """
+    # try to load from cache
+    if 'serv_settings' in _cache:
+        return _cache['serv_settings'][guild]
+    
+    # load settings uvar
+    settings = _get_all_serv_settings(cache_results=False)
+    
+    settings[guild] = {'rate': '1:1', 'dmp_names': ['DM Point'], 'log_method': 'discard', 'dmp_limit': [0.0, float('inf')]} | settings.get(guild, {})
+    _cache['serv_settings'] = settings
+    return _cache['serv_settings'][guild]
+
+def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
+    """
+    Loads all server settings from cache or from uvar.
+    :var bool cache_results: whether to cache the results
+    :return: all known servers settings
+    :rtype: dict
+    """
+    # try to load from cache
+    if 'serv_settings' in _cache:
+        return _cache['serv_settings']
+    
+    # load yaml from uvar
+    load_yaml(get_uvar('dmp_server_settings',"{}"))
+    
+    if ctx.guild.id:
+        if ctx.guild.id not in settings:
+            settings[ctx.guild.id] = {}
+        rate = _valid_pair(get_svar('dmp_conversion_rate'))
+        settings[ctx.guild.id] |= ({'rate':rate} if rate else {}) | {'name':ctx.guild.name}
+        settings[ctx.guild.id] |= {'dmp_types':dict(load_yaml(svar))} if (svar:=get_svar('dmp_names')) is not None else {}
+        settings[ctx.guild.id] |= {'log_method':svar} if (svar:=get_svar('log_method')).replace("O:","") in ['discard', 'keep'] else {}
+        set_uvar('dmp_server_settings', dump_yaml(settings))
+    
+    if cache_results:
+        _cache['serv_settings'] = settings
+    
+    return settings
+
+def _valid_pair(inp_str: str, splitter: str=":", filler: float=1.0) -> [float, float]:
+    """
+    Ensures the input is a valid ratio and returns it as a list.
+    :arg str inp_str: the input ratio as a string
+    :var str splitter: what to split the pair by default: ":"
+    :var float filler: what to fill in the space by if the input is not a pair
+    :return: the ratio
+    :rtype: [float, float]
+    """
+    try:
+        ratio = [float(x) for i, x in enumerate(inp_str.split(splitter)) if i < 2]
+        while len(ratio)<2:
+            ratio.append(filler)
+        return ratio
+    except:
+        return []
+
+def str_to_id(inp_str: str) -> int:
+    """
+    Takes a string and returns a matching guild ID if one is found.
+    :arg str inp_str: the string to try to match
+    :return: the guild id
+    :rtype: int
+    """
+    known_settings = _get_all_serv_settings()
+    if inp_str.isdecimal() and int(inp_str) in known_settings:
+        return int(inp_str)
+    itemized = known_settings.items()
+    if (possible_names := [x for x, y in itemized if inp_str.lower() in y.get('name','').lower() or inp_str.lower() in y.get('nick','').lower()]):
+        return possible_names[0]
+    return None
+
+def get_dmp_storage() -> dict:
+    """
+    Load the DM Points or similar from the uvar.
+    :return: the DM Points for each server that have had DM Points used.
+    :rtype: dict
+    """
+    if 'storage' in _cache:
+        return _cache['storage']
+    storage = load_yaml(get_uvar('dmp', "{}"))
+    _cache['storage'] = storage
+    return _cache['storage']
+
+def get_guild_storage(storage: dict, guild: int=ctx.guild.id) -> dict:
+    """
+    Loads the DM Points storage for a specific guild.
+    :arg dict storage: the full storage dict
+    :var int guild: the id of the guild to load. default: ctx.guild.id
+    :return: the current dmp and total converted for the guild
+    :rtype: dict
+    """
+    settings = get_guild_settings(guild)
+    if guild not in storage:
+        storage[guild] = {dmp_type: 0.0 for dmp_type in settings['dmp_names']}
+    
+    return storage[guild]
+
+def update_storage(dmp_dict: dict):
+    """
+    Saves the updated storage
+    :arg dict dmp_dict: the full dict for the dmp storage.
+    """
+    set_uvar('dmp', dump_yaml(dmp_dict))
+
+def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, [(int, str)]):
+    """
+    Sets the current DM Points to an exact value.
+    :arg int|float value: the new value
+    :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: None
+    :var str dmp_type: the type of DM Points you want to interact with. default: dmp_names[0]
+    :var int guild: The id for the guild to use. default: ctx.guild.id
+    :return: the value set and a list of the log messages removed, if any.
+    :rtype: (float, [(int, str)])
+    """
+    settings = get_guild_settings(guild)
+    limit = settings['dmp_limit']
+    if not (limit[0] <= value <= limit[1]):
+        return None, []
+    value_str = _round_nicely(value)
+    dmp_type = dmp_type if dmp_type in settings['dmp_names'] else settings['dmp_names'][0]
+    log_message = f"Set {dmp_type} to {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", value_str).replace("[type]", dmp_type)
+    removed = log(log_message)
+    storage = get_dmp_storage()
+    storage[guild] |= {dmp_type: float(value_str)}
+    update_storage(storage)
+    return float(value_str), removed
+
+def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, [(int, str)]):
+    """
+    Modifies the DM Points by the given value.
+    :arg int|float value: value to modify by
+    :var str log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp. default: None
+    :var str dmp_type: the type of DM Points you want to interact with. default: dmp_names[0]
+    :var int guild: The id for the guild to use. default: ctx.guild.id
+    :return: the new total and a list of the log messages removed, if any.
+    :rtype: (float, [(int, str)])
+    """
+    settings = get_guild_settings(guild)
+    limit = settings['dmp_limit']
+    
+    storage = get_dmp_storage()
+    dmp_type = dmp_type if dmp_type in settings['dmp_names'] else settings['dmp_names'][0]
+    c_val = get_guild_storage(storage, guild)
+    c_val[dmp_type] = float(_round_nicely(c_val[dmp_type] + value))
+    if not (limit[0] <= c_val[dmp_type] <= limit[1]):
+        return None, []
+    value_str = _round_nicely(value)
+    new_str = _round_nicely(c_val[dmp_type])
+    log_message = f"{dmp_type}: {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", new_str).replace("[type]", dmp_type)
+    removed = log(log_message)
+    update_storage(storage)
+    return new_val, removed
+
+def get_log(guild=ctx.guild.id) -> {int: str}:
+    """
+    Grabs the log uvars for the server and returns as a single dict.
+    :var int guild: the guild to pull the logs for
+    :return: the log for the given server
+    :rtype: {int: str}
+    """
+    
+    # prepare dmp_log uvars
+    return load_yaml(''.join([y for x,y in get_uvars().items() if x.startswith(f"dmp_log_{guild}")]))
+
+def log(log_message: str, guild: int=ctx.guild.id) -> [(int, str)]:
+    """
+    Adds a log entry with a given message.
+    :arg str log_message: the message to be added to the log
+    :var int guild: the id of the guild default: ctx.guild.id
+    :return: a list of log entries that got removed
+    :rtype: [(int, str)]
+    """
+    t_since = 18262*24*60*60
+    log = get_log(guild)
+    timestamp = round(time() - t_since)//60
+    removed = []
+    
+    if timestamp in log:
+        log_message = log[timestamp] + "; " + log_message
+    while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_message}))) > 200000:
+        removed.append((list(log)[0],log[list(log)[0]]))
+        log.pop(list(log)[0])
+    log.update({timestamp:log_message})
+    removed += set_log(log, guild)
+    return removed
+
+def set_log(log, guild: int=ctx.guild.id) -> [(int, str)]:
+    """
+    Dumps the log to one or more cvars depending on its length, removing those that are too long.
+    :arg str log: the dict representing the log to dump
+    :var int guild: the id of the guild default: ctx.guild.id
+    :return: a list of removed log entries
+    :rtype: [(int, str)]
+    """
+    removed = []
+    if len(dump_yaml(log)) > 9999:
+        server_met = get_guild_settings(guild)["log_method"]
+        user_met = uvar if (uvar:=get_uvar("log_method", "")) in ['discard', 'keep'] else ''
+        override = server_met.split(":")[0] == "O"
+        server_met = (server_met.split(":")[1] if len(server_met.split(":")) > 1 else server_met)
+        log_method = override and server_met or user_met or server_met
+        if log_method == 'keep':
+            delete_uvar(f'dmp_log_{guild}')
+            max_i = (len(dump_yaml(log))-1)//9999 + 1
+            for i in range(max_i):
+                set_uvar(f'dmp_log_{guild}_{i}',dump_yaml(log)[9999*i:9999*(i+1)-1])
+            while get_uvar(f'dmp_log_{guild}_{max_i}'):
+                delete_uvar(f'dmp_log_{guild}_{max_i}')
+                max_i += 1
+        else:
+            while len(dump_yaml(log)) > 9999:
+                removed.append((list(log)[0],log[list(log)[0]]))
+                log.pop(list(log)[0])
+            set_uvar(f'dmp_log_{guild}',dump_yaml(log))
+    else:
+        set_uvar(f'dmp_log_{guild}',dump_yaml(log))
+    return removed
+
+def _round_nicely(number, include_sign=True) -> str:
+    """
+    Makes the number look nice, regardless of whether it's an int or a float
+    :arg number: an integer or float
+    :return: the rounded number
+    :rtype: str
+    """
+    return f'{number:+.2f}'.rstrip('0').rstrip('.')
