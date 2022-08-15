@@ -118,7 +118,7 @@ if len(dump_yaml(log)) > 9999:
     if log_method == 'keep':
         c.delete_cvar('xplog')
         for i in range((len(dump_yaml(log))-1)//9999 + 1):
-            c.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)-1])
+            c.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)])
     else:
         while len(dump_yaml(log)) > 9999:
             out += [f"""-f ＂Log entry automatically removed|**<t:{list(log)[0]*60+t_since}:D>:** {log[list(log)[0]]}＂"""]
