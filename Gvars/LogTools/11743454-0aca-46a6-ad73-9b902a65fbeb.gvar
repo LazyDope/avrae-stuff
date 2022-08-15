@@ -81,7 +81,7 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
         if len(msg) > max_len:
             msg = f'**<t:{log_to_epoch(ts)}:D>:** entry too long'
         if c_entries == 0:
-            pages[c_page] = msg
+            pages.insert(0, msg)
             c_entries = 1
             continue
         left, right = [pages[c_page], msg][::dir]
