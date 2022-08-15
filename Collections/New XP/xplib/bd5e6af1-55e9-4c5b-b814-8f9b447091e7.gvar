@@ -198,7 +198,7 @@ def set_log(log, ch=character()) -> [(int, str)]:
         if log_method == 'keep':
             ch.delete_cvar('xplog')
             for i in range((len(dump_yaml(log))-1)//9999 + 1):
-                ch.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)-1])
+                ch.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)])
         else:
             while len(dump_yaml(log)) > 9999:
                 removed.append((list(log)[0],log[list(log)[0]]))

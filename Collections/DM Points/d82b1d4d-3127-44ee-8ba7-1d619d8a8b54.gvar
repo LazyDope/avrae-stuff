@@ -216,7 +216,7 @@ def set_log(log, guild: int=ctx.guild.id) -> [(int, str)]:
             delete_uvar(f'dmp_log_{guild}')
             max_i = (len(dump_yaml(log))-1)//9999 + 1
             for i in range(max_i):
-                set_uvar(f'dmp_log_{guild}_{i}',dump_yaml(log)[9999*i:9999*(i+1)-1])
+                set_uvar(f'dmp_log_{guild}_{i}',dump_yaml(log)[9999*i:9999*(i+1)])
             while get_uvar(f'dmp_log_{guild}_{max_i}'):
                 delete_uvar(f'dmp_log_{guild}_{max_i}')
                 max_i += 1
