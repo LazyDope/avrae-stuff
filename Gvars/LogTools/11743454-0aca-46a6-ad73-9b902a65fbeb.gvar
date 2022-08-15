@@ -74,7 +74,7 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
     dir = -1 if page<0 else 1
     c_page = 0
     c_entries = 0
-    for ts, entry in log_entries[::dir]:
+    for ts, entry in list(log_entries)[::dir]:
         msg = f'**<t:{log_to_epoch(ts)}:D>:** {entry}'
         if len(msg) > max_len:
             msg = f'**<t:{log_to_epoch(ts)}:D>:** entry too long'
