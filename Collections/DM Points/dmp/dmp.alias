@@ -29,6 +29,6 @@ At most you can have {dmp_settings.get['max']} and at minimum you can have {dmp_
 else:
     out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)[dmp_type]
-out.append(f"""-f ＂Current {}|{storage['current']}{f"; Converted: {storage['converted']}" if 'converted' in storage else ''}＂""")
+out.append(f"""-f ＂Current {plural_dmp}|{logtools.round_nicely(storage['current'])}{f"; Converted: {logtools.round_nicely(storage['converted'])}" if 'converted' in storage else ''}＂""")
 return ' '.join(out)
 </drac2>
