@@ -11,24 +11,31 @@ guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
 if not guild:
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
     return ' '.join(out)
-dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x)) or dmplib.get_dmp_type(guild)
+inp_dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x))
+dmp_type = inp_dmp_type or dmplib.get_dmp_type(guild)
 if not dmp_type:
     out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
     return ' '.join(out)
-plural_dmp = logtools.make_plural(dmp_type)
-dmp_settings = dmplib.get_guild_settings(guild)['dmp_types'][dmp_type]
+dmp_settings = dmplib.get_guild_settings(guild)['dmp_types']
 if num:
+    plural_dmp = logtools.make_plural(dmp_type)
     msg = ' '.join(args[:min(args.index("-s"), args.index("-t"))]) + (" (added externally)" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
+    dmp_type_sets = dmp_settings[dmp_type]
     if success is None:
         out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {plural_dmp}.
-At most you can have {dmp_settings.get['max']} and at minimum you can have {dmp_settings['min']}＂""")
+At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_type_sets['min']}＂""")
         return ' '.join(out)
     out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
     out += logtools.display_log_changes(dmp_type, added, removed)
+    dmp_types = [dmp_type]
 else:
     out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
-storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)[dmp_type]
-out.append(f"""-f ＂Current {plural_dmp}|{logtools.round_nicely(storage['current'], False)}{f"; Converted: {logtools.round_nicely(storage['converted'], False)}" if 'converted' in storage else ''}＂""")
+    dmp_types = [dmp_type] if inp_dmp_type else 
+storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
+for dmp_type in dmp_settings:
+    c_stor = storage[dmp_type]
+    plural_dmp = logtools.make_plural(dmp_type)
+    out.append(f"""-f ＂Current {plural_dmp}|{logtools.round_nicely(c_stor['current'], False)}{f"; Converted: {logtools.round_nicely(c_stor['converted'], False)}" if 'converted' in c_stor else ''}＂""")
 return ' '.join(out)
 </drac2>
