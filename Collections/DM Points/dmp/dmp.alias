@@ -19,7 +19,8 @@ if not dmp_type:
 dmp_settings = dmplib.get_guild_settings(guild)['dmp_types']
 if num:
     plural_dmp = logtools.make_plural(dmp_type)
-    msg = ' '.join(args[:min(args.index("-s"), args.index("-t"))]) + (" (added externally)" if guild!=ctx.guild.id else "")
+    end_i = min(args.find("-s"), args.find("-t"), key=lambda x: x if x!=-1 else len(args))
+    msg = ' '.join(args[:end_i]) + (" (added externally)" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
     dmp_type_sets = dmp_settings[dmp_type]
     if success is None:
