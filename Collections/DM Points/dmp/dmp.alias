@@ -28,6 +28,6 @@ At most you can have {dmp_settings.get['max']} and at minimum you can have {dmp_
 else:
     out.append(f"-title ＂{ctx.author.display_name} checks their {logtools.make_plural(dmp_type)}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)[dmp_type]
-out.append(f"""-f ＂Current {dmp_type}|{storage['current']}{f"; Converted: {storage['converted'] if 'converted' in storage else ''}"}""")
+out.append(f"""-f ＂Current {dmp_type}|{storage['current']}{f"; Converted: {storage['converted'] if 'converted' in storage else ''}"}＂""")
 return ' '.join(out)
 </drac2>
