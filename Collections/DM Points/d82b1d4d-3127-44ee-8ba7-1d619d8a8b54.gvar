@@ -45,7 +45,7 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
                 rate = _valid_pair(type['rate'])
                 if rate:
                     type['rate'] = rate
-        settings[ctx.guild.id] |= {'dmp_types':dmp_types)} if dmp_types else {}
+        settings[ctx.guild.id] |= {'dmp_types':dmp_types} if dmp_types else {}
         set_uvar('dmp_server_settings', dump_yaml(settings))
     
     if cache_results:
