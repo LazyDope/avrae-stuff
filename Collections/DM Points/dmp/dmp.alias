@@ -3,7 +3,7 @@ using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54",
       logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
 
 guild = None
-out = [f"-footer ＂|{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
+out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
 args = &ARGS&
 num = as_valid_number(args[0]) if args else 0
 pargs = argparse(args)
@@ -15,19 +15,20 @@ dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x)) or dmp
 if not dmp_type:
     out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
     return ' '.join(out)
+plural_dmp = logtools.make_plural(dmp_type)
 dmp_settings = dmplib.get_guild_settings(guild)['dmp_types'][dmp_type]
 if num:
     msg = ' '.join(args[:min(args.index("-s"), args.index("-t"))]) + (" (added externally)" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
     if success is None:
-        out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {logtools.make_plural(dmp_type)}.
+        out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {plural_dmp}.
 At most you can have {dmp_settings.get['max']} and at minimum you can have {dmp_settings['min']}＂""")
         return ' '.join(out)
-    out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {logtools.make_plural(dmp_type)}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
+    out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
     out += logtools.display_log_changes(dmp_type, added, removed)
 else:
-    out.append(f"-title ＂{ctx.author.display_name} checks their {logtools.make_plural(dmp_type)}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
+    out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)[dmp_type]
-out.append(f"""-f ＂Current {dmp_type}|{storage['current']}{f"; Converted: {storage['converted']}" if 'converted' in storage else ''}＂""")
+out.append(f"""-f ＂Current {}|{storage['current']}{f"; Converted: {storage['converted']}" if 'converted' in storage else ''}＂""")
 return ' '.join(out)
 </drac2>
