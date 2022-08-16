@@ -253,11 +253,14 @@ def _cc_name(ch=character()) -> str:
     cc_name = get_svar("xp_ccname") or ch.get_cvar("xp_ccname","Experience")
     return cc_name
 
-def _round_nicely(number, include_sign=True) -> str:
+def _round_nicely(number, include_sign: bool=True) -> str:
     """
     Makes the number look nice, regardless of whether it's an int or a float
     :arg number: an integer or float
+    :var bool include_sign: whether to include the + sign on positive numbers
     :return: the rounded number
     :rtype: str
     """
-    return f'{number:+.2f}'.rstrip('0').rstrip('.')
+    if include_sign:
+        return f'{number:+.2f}'.rstrip('0').rstrip('.')
+    return f'{number:.2f}'.rstrip('0').rstrip('.')

@@ -1,7 +1,7 @@
 # Thanks for using DMPLib
 # The purpose of this is to aid in handling DM Points, or other points that are tracked per user, per server.
 # created by:
-# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: 
 
 _cache = {}
 def get_guild_settings(guild: int=ctx.guild.id) -> dict:
@@ -18,7 +18,7 @@ def get_guild_settings(guild: int=ctx.guild.id) -> dict:
     # load settings uvar
     settings = _get_all_serv_settings(cache_results=False)
     
-    settings[guild] = {'rate': '1:1', 'dmp_names': ['DM Point'], 'log_method': 'discard', 'dmp_limit': [0.0, float('inf')]} | settings.get(guild, {})
+    settings[guild] = {'dmp_types': {"DM Points": {"rate": [1,1], "min": 0, "max": float('inf')}}} | settings.get(guild, {})
     _cache['serv_settings'] = settings
     return _cache['serv_settings'][guild]
 
@@ -37,12 +37,15 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
     load_yaml(get_uvar('dmp_server_settings',"{}"))
     
     if ctx.guild.id:
-        if ctx.guild.id not in settings:
-            settings[ctx.guild.id] = {}
-        rate = _valid_pair(get_svar('dmp_conversion_rate'))
-        settings[ctx.guild.id] |= ({'rate':rate} if rate else {}) | {'name':ctx.guild.name}
-        settings[ctx.guild.id] |= {'dmp_types':dict(load_yaml(svar))} if (svar:=get_svar('dmp_names')) is not None else {}
-        settings[ctx.guild.id] |= {'log_method':svar} if (svar:=get_svar('log_method')).replace("O:","") in ['discard', 'keep'] else {}
+        settings[ctx.guild.id] |= {'name':ctx.guild.name}
+        dmp_types = dict(load_yaml(svar)) if (svar:=get_svar('dmp_types'))
+        for type in dmp_types.values():
+            type.update({'rate':"1:1", 'min':0, 'max': float('inf')} | type)
+            if 'rate' in type:
+                rate = _valid_pair(type['rate'])
+                if rate:
+                    type['rate'] = rate
+        settings[ctx.guild.id] |= {'dmp_types':dmp_types)} if dmp_types else {}
         set_uvar('dmp_server_settings', dump_yaml(settings))
     
     if cache_results:
@@ -66,20 +69,38 @@ def _valid_pair(inp_str: str, splitter: str=":", filler: float=1.0) -> [float, f
         return ratio
     except:
         return []
+    
+def get_dmp_type(guild: int, dmp_type: str=None) -> str:
+    """
+    Gets a valid DM Points type
+    :arg int guild: the guild to pull settings for
+    :var str dmp_type: what type to search for, returns the first if None default: None
+    :return: known DM Points type for the guild
+    :rtype: str
+    """
+    settings = get_guild_settings(guild)
+    if dmp_type:
+        types = [type for type in settings['dmp_types'] if dmp_type.lower() in type.lower()]
+        return types[0] if types else settings['dmp_types'][0]
+    else:
+        return settings['dmp_types'][0]
+        
 
-def str_to_id(inp_str: str) -> int:
+def to_id(inp: str) -> int:
     """
     Takes a string and returns a matching guild ID if one is found.
-    :arg str inp_str: the string to try to match
+    :arg str inp: the string to try to match
     :return: the guild id
     :rtype: int
     """
+    if not inp:
+        return None
     known_settings = _get_all_serv_settings()
-    if inp_str.isdecimal() and int(inp_str) in known_settings:
-        return int(inp_str)
+    if inp.isdecimal() and int(inp) in known_settings:
+        return int(inp)
     itemized = known_settings.items()
-    if (possible_names := [x for x, y in itemized if inp_str.lower() in y.get('name','').lower() or inp_str.lower() in y.get('nick','').lower()]):
-        return possible_names[0]
+    if (possible_ids := [x for x, y in itemized if inp.lower() in y.get('name','').lower() or inp.lower() in y.get('nick','').lower()]):
+        return possible_ids[0]
     return None
 
 def get_dmp_storage() -> dict:
@@ -104,7 +125,7 @@ def get_guild_storage(storage: dict, guild: int=ctx.guild.id) -> dict:
     """
     settings = get_guild_settings(guild)
     if guild not in storage:
-        storage[guild] = {dmp_type: 0.0 for dmp_type in settings['dmp_names']}
+        storage[guild] = {dmp_type: {'current': 0.0} for dmp_type in settings['dmp_names']}
     
     return storage[guild]
 
@@ -115,30 +136,42 @@ def update_storage(dmp_dict: dict):
     """
     set_uvar('dmp', dump_yaml(dmp_dict))
 
-def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, [(int, str)]):
+def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, list, list):
     """
     Sets the current DM Points to an exact value.
     :arg int|float value: the new value
     :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: None
     :var str dmp_type: the type of DM Points you want to interact with. default: dmp_names[0]
     :var int guild: The id for the guild to use. default: ctx.guild.id
-    :return: the value set and a list of the log messages removed, if any.
-    :rtype: (float, [(int, str)])
+    :return: the value set and a list of the log messages added and removed, if any.
+    :rtype: (float, list, list)
     """
+    # load stuff
+    using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
     settings = get_guild_settings(guild)
-    limit = settings['dmp_limit']
+    dmp_type = dmp_type if dmp_type in settings['dmp_types'] else list(settings['dmp_types'])[0]
+    type_sets = settings['dmp_types'][dmp_type]
+    limit = type_sets.get
+    
+    # check limits
     if not (limit[0] <= value <= limit[1]):
-        return None, []
-    value_str = _round_nicely(value)
-    dmp_type = dmp_type if dmp_type in settings['dmp_names'] else settings['dmp_names'][0]
+        return None, [], []
+    
+    # add log message
+    value_str = logtools.round_nicely(value)
+    
     log_message = f"Set {dmp_type} to {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", value_str).replace("[type]", dmp_type)
-    removed = log(log_message)
+    added, removed = logtools.log(log_message, f"dmp_log_{guild}")
+    
+    # update storage
     storage = get_dmp_storage()
     storage[guild] |= {dmp_type: float(value_str)}
+    
+    # update saved values
     update_storage(storage)
-    return float(value_str), removed
+    return float(value_str), added, removed
 
-def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, [(int, str)]):
+def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, list, list):
     """
     Modifies the DM Points by the given value.
     :arg int|float value: value to modify by
@@ -146,94 +179,29 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     :var str dmp_type: the type of DM Points you want to interact with. default: dmp_names[0]
     :var int guild: The id for the guild to use. default: ctx.guild.id
     :return: the new total and a list of the log messages removed, if any.
-    :rtype: (float, [(int, str)])
+    :rtype: (float, list, list)
     """
+    # load stuff
+    using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
     settings = get_guild_settings(guild)
     limit = settings['dmp_limit']
     
+    # load current values
     storage = get_dmp_storage()
     dmp_type = dmp_type if dmp_type in settings['dmp_names'] else settings['dmp_names'][0]
     c_val = get_guild_storage(storage, guild)
-    c_val[dmp_type] = float(_round_nicely(c_val[dmp_type] + value))
+    c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type] + value))
+    
+    # verify within limits
     if not (limit[0] <= c_val[dmp_type] <= limit[1]):
-        return None, []
-    value_str = _round_nicely(value)
-    new_str = _round_nicely(c_val[dmp_type])
+        return None, [], []
+    
+    # add log message
+    value_str = logtools.round_nicely(value)
+    new_str = logtools.round_nicely(c_val[dmp_type])
     log_message = f"{dmp_type}: {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", new_str).replace("[type]", dmp_type)
-    removed = log(log_message)
+    added, removed = logtools.log(log_message, f"dmp_log_{guild}")
+    
+    # update saved values
     update_storage(storage)
-    return new_val, removed
-
-def get_log(guild=ctx.guild.id) -> {int: str}:
-    """
-    Grabs the log uvars for the server and returns as a single dict.
-    :var int guild: the guild to pull the logs for
-    :return: the log for the given server
-    :rtype: {int: str}
-    """
-    
-    # prepare dmp_log uvars
-    return load_yaml(''.join([y for x,y in get_uvars().items() if x.startswith(f"dmp_log_{guild}")]))
-
-def log(log_message: str, guild: int=ctx.guild.id) -> [(int, str)]:
-    """
-    Adds a log entry with a given message.
-    :arg str log_message: the message to be added to the log
-    :var int guild: the id of the guild default: ctx.guild.id
-    :return: a list of log entries that got removed
-    :rtype: [(int, str)]
-    """
-    t_since = 18262*24*60*60
-    log = get_log(guild)
-    timestamp = round(time() - t_since)//60
-    removed = []
-    
-    if timestamp in log:
-        log_message = log[timestamp] + "; " + log_message
-    while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_message}))) > 200000:
-        removed.append((list(log)[0],log[list(log)[0]]))
-        log.pop(list(log)[0])
-    log.update({timestamp:log_message})
-    removed += set_log(log, guild)
-    return removed
-
-def set_log(log, guild: int=ctx.guild.id) -> [(int, str)]:
-    """
-    Dumps the log to one or more cvars depending on its length, removing those that are too long.
-    :arg str log: the dict representing the log to dump
-    :var int guild: the id of the guild default: ctx.guild.id
-    :return: a list of removed log entries
-    :rtype: [(int, str)]
-    """
-    removed = []
-    if len(dump_yaml(log)) > 9999:
-        server_met = get_guild_settings(guild)["log_method"]
-        user_met = uvar if (uvar:=get_uvar("log_method", "")) in ['discard', 'keep'] else ''
-        override = server_met.split(":")[0] == "O"
-        server_met = (server_met.split(":")[1] if len(server_met.split(":")) > 1 else server_met)
-        log_method = override and server_met or user_met or server_met
-        if log_method == 'keep':
-            delete_uvar(f'dmp_log_{guild}')
-            max_i = (len(dump_yaml(log))-1)//9999 + 1
-            for i in range(max_i):
-                set_uvar(f'dmp_log_{guild}_{i}',dump_yaml(log)[9999*i:9999*(i+1)])
-            while get_uvar(f'dmp_log_{guild}_{max_i}'):
-                delete_uvar(f'dmp_log_{guild}_{max_i}')
-                max_i += 1
-        else:
-            while len(dump_yaml(log)) > 9999:
-                removed.append((list(log)[0],log[list(log)[0]]))
-                log.pop(list(log)[0])
-            set_uvar(f'dmp_log_{guild}',dump_yaml(log))
-    else:
-        set_uvar(f'dmp_log_{guild}',dump_yaml(log))
-    return removed
-
-def _round_nicely(number, include_sign=True) -> str:
-    """
-    Makes the number look nice, regardless of whether it's an int or a float
-    :arg number: an integer or float
-    :return: the rounded number
-    :rtype: str
-    """
-    return f'{number:+.2f}'.rstrip('0').rstrip('.')
+    return new_val, added, removed

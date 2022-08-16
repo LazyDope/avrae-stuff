@@ -5,7 +5,7 @@
 
 def as_valid_number(inp_str: str) -> float:
     """
-    Check if the value input is valid for modifying by
+    Check if the value input is valid to convert
     :arg str inp_str: The string to test
     :return: the value of the string
     :rtype: float
@@ -59,15 +59,24 @@ def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int
         out.append(add_f)
     return out
 
-def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str:
+def log_page(
+        log: dict,
+        page: int=-1,
+        entries: int=None,
+        max_len: int=4096,
+        ch: AliasCharacter=None
+    ) -> (int, str):
     """
     Creates the display for a page of a log
     :arg dict log: the log to parse
     :var int page: the page to display default: -1
+    :var int entries: the max number of entries per page. Will try to load from c/u/svar in that order or default to 15 if set to None. default: None
     :var int max_len: the maximum length that each page is allowed to be. Set to None to ignore. default: 4096
+    :var AliasCharacter ch: the character to load display settings from, if any default: None
     :return: the formatted page desired
-    :rtype: str
+    :rtype: (int, str)
     """
+    entries = entries or entries_per_page(ch)
     max_len = float('inf') if max_len is None else max_len
     log_entries = log.items()
     pages = []
@@ -75,8 +84,6 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
     c_page = -1 if page<0 else 0
     c_entries = 0
     for ts, entry in list(log_entries)[::dir]:
-        if c_page-dir == page:
-            break
         msg = f'**<t:{log_to_epoch(ts)}:D>:** {entry}'
         if len(msg) > max_len:
             msg = f'**<t:{log_to_epoch(ts)}:D>:** entry too long'
@@ -93,11 +100,90 @@ def log_page(log: dict, page: int=-1, entries: int=15, max_len: int=4096) -> str
             pages[c_page] = left + '\n' + right
             c_entries += 1
     if not pages:
-        return "No logs available"
+        return 0, "No logs available"
             
     page = max(page, -len(pages)) if page<0 else min(page, len(pages)-1)
-    return pages[page]
+    return len(pages), pages[page]
     
+def get_log(name: str, ch=None) -> {int: str}:
+    """
+    Grabs the log uvars for the server and returns as a single dict.
+    :arg str name: the base name for the log
+    :var AliasCharacter ch: the character to search for the log in. Setting to None will search uvars. default: None
+    :return: the log for the given server
+    :rtype: {int: str}
+    """
+    
+    # prepare dmp_log uvars
+    if ch:
+        get_vars = ch.cvars
+    else:
+        get_vars = get_uvars()
+    return load_yaml(''.join([y for x,y in get_vars.items() if x.startswith(name)]))
+
+def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> ([(int, str)], [(int, str)]):
+    """
+    Adds a log entry with a given message.
+    :arg str log_message: the message to be added to the log
+    :arg str name: the base name for the log
+    :var str sep: the seperator between the name and the number default: "_"
+    :var AliasCharacter ch: the character to search for the log in. Setting to None will search uvars. default: None
+    :return: a list of log entries that got added as well as removed
+    :rtype: [(int, str)]
+    """
+    log = get_log(name)
+    timestamp = epoch_to_log(time())
+    removed = []
+    
+    if timestamp in log:
+        log_message = log[timestamp] + "; " + log_message
+    while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_message}))) > 200000:
+        removed.append((list(log)[0],log[list(log)[0]]))
+        log.pop(list(log)[0])
+    log.update({timestamp:log_message})
+    removed += set_log(log, name, sep, ch)
+    return [(timestamp, log_message)], removed
+
+def set_log(log: dict, name: str, sep: str="_", ch=None) -> [(int, str)]:
+    """
+    Dumps the log to one or more cvars depending on its length, removing those that are too long.
+    :arg str log: the dict representing the log to dump
+    :arg str name: the base name for the log
+    :var str sep: the seperator between the name and the number default: "_"
+    :var AliasCharacter ch: the character to search for the log in. Setting to None will search uvars. default: None
+    :return: a list of removed log entries
+    :rtype: [(int, str)]
+    """
+    # different functions for cvar vs uvar
+    if ch:
+        get_var = ch.get_cvar
+        set_var = ch.set_cvar
+        del_var = ch.delete_cvar
+    else:
+        get_var = get_uvar
+        set_var = set_uvar
+        del_var = delete_uvar
+    
+    max_i = 0
+    removed = []
+    if len(dump_yaml(log)) > 9999:
+        log_method = var if (var:=get_var("log_method", "discard")) in ['discard', 'keep'] else 'discard'
+        if log_method == 'keep':
+            del_var(name)
+            max_i = (len(dump_yaml(log))-1)//9999 + 1
+            for i in range(max_i):
+                set_var(f'{name}{sep}{i}',dump_yaml(log)[9999*i:9999*(i+1)])
+        else:
+            while len(dump_yaml(log)) > 9999:
+                removed.append((list(log)[0],log[list(log)[0]]))
+                log.pop(list(log)[0])
+            set_var(name,dump_yaml(log))
+    else:
+        set_var(name,dump_yaml(log))
+    while get_var(f'{name}{sep}{max_i}'):
+        del_var(f'{name}{sep}{max_i}')
+        max_i += 1
+    return removed
     
 def log_to_epoch(log_time: int) -> int:
     """
@@ -120,3 +206,32 @@ def epoch_to_log(epoch_time: int) -> int:
     """
     t_since = 18262*24*60*60
     return (log_time-t_since)//60
+
+def round_nicely(number, include_sign: bool=True) -> str:
+    """
+    Makes the number look nice, regardless of whether it's an int or a float
+    :arg number: an integer or float
+    :var bool include_sign: whether to include the + sign on positive numbers
+    :return: the rounded number
+    :rtype: str
+    """
+    if include_sign:
+        return f'{number:+.2f}'.rstrip('0').rstrip('.')
+    return f'{number:.2f}'.rstrip('0').rstrip('.')
+
+def make_plural(word: str, quantity: int = 0) -> str:
+    """
+    Does what is says on the tin
+    :args word: the word to modify
+    :var quantity: quantity passthough
+    """
+    if quantity != 1:
+        match word[-1]:
+            case ("s"|"x"):
+                return f"{word}es"
+            case "y":
+                return f"{word[:-1]}ies"
+            case _:
+                return f"{word}s"
+    else:
+        return word
