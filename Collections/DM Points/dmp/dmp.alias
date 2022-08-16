@@ -15,7 +15,7 @@ dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x)) or dmp
 if not dmp_type:
     out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
     return ' '.join(out)
-dmp_settings = get_guild_settings(guild)[dmp_type]
+dmp_settings = dmplib.get_guild_settings(guild)[dmp_type]
 if num:
     msg = ' '.join(args[:min(args.index("-s"), args.index("-t"))]) + (" (added externally)" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
