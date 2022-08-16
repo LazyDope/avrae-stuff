@@ -5,7 +5,7 @@ using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54",
 guild = None
 out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
 args = &ARGS&
-num = as_valid_number(args[0]) if args else 0
+num = logtools.as_valid_number(args[0]) if args else 0
 pargs = argparse(args)
 guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
 if not guild:
