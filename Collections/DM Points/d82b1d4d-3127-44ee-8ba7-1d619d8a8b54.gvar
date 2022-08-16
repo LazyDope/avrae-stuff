@@ -81,9 +81,9 @@ def get_dmp_type(guild: int, dmp_type: str=None) -> str:
     settings = get_guild_settings(guild)
     if dmp_type:
         types = [type for type in settings['dmp_types'] if dmp_type.lower() in type.lower()]
-        return types[0] if types else settings['dmp_types'][0]
+        return types[0] if types else list(settings['dmp_types'])[0]
     else:
-        return settings['dmp_types'][0]
+        return list(settings['dmp_types'])[0]
         
 
 def to_id(inp: str) -> int:
