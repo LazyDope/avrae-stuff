@@ -11,7 +11,7 @@ guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
 if not guild:
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
     return ' '.join(out)
-dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x))
+dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x)) or dmplib.get_dmp_type(guild)
 if not dmp_type:
     out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
     return ' '.join(out)
