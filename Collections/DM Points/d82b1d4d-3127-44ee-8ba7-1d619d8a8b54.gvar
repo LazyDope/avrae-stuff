@@ -134,6 +134,7 @@ def update_storage(dmp_dict: dict):
     Saves the updated storage
     :arg dict dmp_dict: the full dict for the dmp storage.
     """
+    _cache['storage'] = dmp_dict
     set_uvar('dmp', dump_yaml(dmp_dict))
 
 def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, list, list):
