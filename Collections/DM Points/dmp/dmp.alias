@@ -17,7 +17,7 @@ if not dmp_type:
     return ' '.join(out)
 dmp_settings = get_guild_settings(guild)[dmp_type]
 if num:
-    msg = args[:min(args.index("-s"), args.index("-t"))]
+    msg = ' '.join(args[:min(args.index("-s"), args.index("-t"))]) + (" outside server" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
     if success is None:
         out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {logtools.make_plural(dmp_type)}.
