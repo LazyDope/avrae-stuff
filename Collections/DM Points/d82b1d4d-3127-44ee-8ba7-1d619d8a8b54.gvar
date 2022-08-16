@@ -38,7 +38,7 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
     
     if ctx.guild.id:
         settings[ctx.guild.id] |= {'name':ctx.guild.name}
-        dmp_types = dict(load_yaml(svar)) if (svar:=get_svar('dmp_types'))
+        dmp_types = dict(load_yaml(svar)) if (svar:=get_svar('dmp_types')) else {}
         for type in dmp_types.values():
             type.update({'rate':"1:1", 'min':0, 'max': float('inf')} | type)
             if 'rate' in type:
