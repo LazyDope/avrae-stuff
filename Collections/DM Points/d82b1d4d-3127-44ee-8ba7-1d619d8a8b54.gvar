@@ -194,16 +194,16 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     # load current values
     storage = get_dmp_storage()
     dmp_type = dmp_type if dmp_type in settings['dmp_types'] else settings['dmp_types'][0]
-    c_val = get_guild_storage(storage, guild)
-    c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type]['current'] + value))
+    c_val = get_guild_storage(storage, guild)[dmp_type]
+    c_val['current'] = float(logtools.round_nicely(c_val['current'] + value))
     
     # verify within limits
-    if not (limit[0] <= c_val[dmp_type] <= limit[1]):
+    if not (limit[0] <= c_val['current'] <= limit[1]):
         return None, [], []
     
     # add log message
     value_str = logtools.round_nicely(value)
-    new_str = logtools.round_nicely(c_val[dmp_type])
+    new_str = logtools.round_nicely(c_val['current'])
     log_message = f"{dmp_type}: {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", new_str).replace("[type]", dmp_type)
     added, removed = logtools.log(log_message, f"dmp_log_{guild}")
     
