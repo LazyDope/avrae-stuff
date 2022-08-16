@@ -31,8 +31,9 @@ At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_typ
     out += logtools.display_log_changes(dmp_type, added, removed)
     dmp_types = [dmp_type]
 else:
-    out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
     dmp_types = [dmp_type] if inp_dmp_type else dmp_settings
+    plural_dmp = logtools.make_plural(dmp_type) if len(dmp_types)==1 else "Points"
+    out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
 for dmp_type in dmp_settings:
     c_stor = storage[dmp_type]
