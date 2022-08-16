@@ -188,15 +188,14 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     # load stuff
     using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
     settings = get_guild_settings(guild)
-    limit = settings['dmp_limit']
+    type_sets = settings['dmp_types'][dmp_type]
+    limit = (type_sets['min'], type_sets['max'])
     
     # load current values
     storage = get_dmp_storage()
     dmp_type = dmp_type if dmp_type in settings['dmp_types'] else settings['dmp_types'][0]
     c_val = get_guild_storage(storage, guild)
     c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type] + value))
-    type_sets = settings['dmp_types'][dmp_type]
-    limit = (type_sets['min'], type_sets['max'])
     
     # verify within limits
     if not (limit[0] <= c_val[dmp_type] <= limit[1]):
