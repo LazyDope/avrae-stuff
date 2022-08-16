@@ -169,7 +169,7 @@ def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: 
     
     # update storage
     storage = get_dmp_storage()
-    storage[guild] |= {dmp_type: float(value_str)}
+    storage[guild][dmp_type] |= {'current': float(value_str)}
     
     # update saved values
     update_storage(storage)
@@ -195,7 +195,7 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     storage = get_dmp_storage()
     dmp_type = dmp_type if dmp_type in settings['dmp_types'] else settings['dmp_types'][0]
     c_val = get_guild_storage(storage, guild)
-    c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type] + value))
+    c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type]['current'] + value))
     
     # verify within limits
     if not (limit[0] <= c_val[dmp_type] <= limit[1]):
