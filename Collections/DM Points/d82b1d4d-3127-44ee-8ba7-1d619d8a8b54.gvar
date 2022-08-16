@@ -80,6 +80,8 @@ def get_dmp_type(guild: int, dmp_type: str=None) -> str:
     """
     settings = get_guild_settings(guild)
     if dmp_type:
+        if dmp_type in settings['dmp_types']:
+            return dmp_type
         types = [type for type in settings['dmp_types'] if logtools.make_plural(dmp_type).lower() in type.lower()]
         return types[0] if types else list(settings['dmp_types'])[0]
     else:
@@ -153,7 +155,7 @@ def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: 
     settings = get_guild_settings(guild)
     dmp_type = dmp_type if dmp_type in settings['dmp_types'] else list(settings['dmp_types'])[0]
     type_sets = settings['dmp_types'][dmp_type]
-    limit = type_sets.get
+    limit = (type_sets['min'], type_sets['max'])
     
     # check limits
     if not (limit[0] <= value <= limit[1]):
@@ -193,6 +195,8 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     dmp_type = dmp_type if dmp_type in settings['dmp_types'] else settings['dmp_types'][0]
     c_val = get_guild_storage(storage, guild)
     c_val[dmp_type] = float(logtools.round_nicely(c_val[dmp_type] + value))
+    type_sets = settings['dmp_types'][dmp_type]
+    limit = (type_sets['min'], type_sets['max'])
     
     # verify within limits
     if not (limit[0] <= c_val[dmp_type] <= limit[1]):
