@@ -1,44 +1,67 @@
 embed <drac2>
+# load modules
 using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54",
       logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
 
+# set default variables
+arg_list = ("-s", "-t")
 guild = None
 out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
+
+# load and parse args
 args = &ARGS&
 num = logtools.as_valid_number(args[0]) if args else 0
 pargs = argparse(args)
 guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
 if not guild:
+    # trying to use in DMs without specifying a server to load from
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
     return ' '.join(out)
 inp_dmp_type = pargs.last("t", type_=lambda x: dmplib.get_dmp_type(guild, x))
 dmp_type = inp_dmp_type or dmplib.get_dmp_type(guild)
 if not dmp_type:
-    out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
+    # server has really bad settings, shouldn't really happen
+    out.append("-title ＂Invalid settings＂ -desc ＂No point types found. Please check with your server admins to fix this.＂")
     return ' '.join(out)
+
+# load settings for DM Point types
 settings = dmplib.get_guild_settings(guild)
 dmp_settings = settings['dmp_types']
+
+# modify if a non-zero number was given, otherwise display all
 if num:
     plural_dmp = logtools.make_plural(dmp_type)
-    end_i = min((args.index(x) for x in ("-s", "-t") if x in args), default=len(args))
+    end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
     msg = plural_dmp + ": " + ' '.join(args[:end_i]) + (" (added externally)" if guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
     dmp_type_sets = dmp_settings[dmp_type]
+    
     if success is None:
-        out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {plural_dmp}.
+        # input was outside limits
+        out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that many {plural_dmp}.
 At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_type_sets['min']}＂""")
         return ' '.join(out)
+    
+    # append log changes to display
     out.append(f"""-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
     out += logtools.display_log_changes(plural_dmp, added, removed)
+    
+    # only show input type
     dmp_types = [dmp_type]
 else:
+    # show input type if given, or all of them
     dmp_types = [dmp_type] if inp_dmp_type else dmp_settings
     plural_dmp = logtools.make_plural(dmp_type) if len(dmp_types)==1 else "Points"
     out.append(f"""-title ＂{ctx.author.display_name} checks their {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
+    
+# load storage
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
+
+# display dmp_types, either input or all
 for dmp_type in dmp_types:
     c_stor = storage[dmp_type]
     plural_dmp = logtools.make_plural(dmp_type)
     out.append(f"""-f ＂Current {plural_dmp}|{logtools.round_nicely(c_stor['current'], False)}{f"; Converted: {logtools.round_nicely(c_stor['converted'], False)}" if 'converted' in c_stor else ''}＂""")
+    
 return ' '.join(out)
 </drac2>
