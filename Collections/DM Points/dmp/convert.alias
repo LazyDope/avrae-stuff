@@ -7,7 +7,7 @@ using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54",
 # set default variables
 arg_list = ("-s", "-t")
 guild = None
-out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
+out = ["embed", f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
 ch = character()
 
 # load and parse args
