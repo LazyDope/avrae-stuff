@@ -11,10 +11,6 @@ functions = [
         xplib.modify_xp,
         xplib.next_lvl,
         xplib.level,
-        xplib.get_log,
-        xplib.log,
-        xplib.set_log,
-        xplib.log_to_epoch,
         xplib.totals,
         xplib.xp_name
     ]
