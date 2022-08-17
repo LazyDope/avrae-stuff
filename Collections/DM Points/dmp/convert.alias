@@ -69,10 +69,11 @@ total_xp, removed, added = xplib.modify_xp(num*rate[1], ' '.join(msg), ch, retur
 out += logtools.display_log_changes(xp_name, added, removed)
     
 # load storage
-storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
+storage = dmplib.get_dmp_storage()
+serv_storage = dmplib.get_guild_storage(storage, guild)
 
 # update converted
-c_stor = storage[dmp_type]
+c_stor = serv_storage[dmp_type]
 if 'converted' not in c_stor:
     c_stor['converted'] = 0.0
 c_stor['converted'] += num*rate[0]
