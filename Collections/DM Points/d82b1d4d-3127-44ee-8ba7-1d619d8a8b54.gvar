@@ -57,7 +57,7 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
     
     return settings
 
-def _valid_pair(inp_str: str, splitter: str=":", filler: float=1.0) -> [float, float]:
+def _valid_pair(inp_str: str, splitter: str=":", filler: int|float=1) -> [float, float]:
     """
     Ensures the input is a valid ratio and returns it as a list.
     :arg str inp_str: the input ratio as a string
@@ -66,13 +66,18 @@ def _valid_pair(inp_str: str, splitter: str=":", filler: float=1.0) -> [float, f
     :return: the ratio
     :rtype: [float, float]
     """
-    if all(all(x.isdecimal() for x in y.split(".",1)) for y in (inp_split:=inp_str.split(splitter))): #try:
+    inp_split = inp_str.split(splitter,1)
+    if all(x.isdecimal for x in inp_split):
+        ratio = [int(x) for i, x in enumerate(inp_split) if i < 2]
+        while len(ratio)<2:
+            ratio.append(int(filler))
+    elif all(all(x.isdecimal() for x in (inp_split:=y.split(".",1))) for y in inp_split): #try:
         ratio = [float(x) for i, x in enumerate(inp_split) if i < 2]
         while len(ratio)<2:
-            ratio.append(filler)
+            ratio.append(float(filler))
         return ratio
     else: #except:
-        return [0, float("inf")]
+        return None
     
 def get_dmp_type(guild: int, dmp_type: str=None) -> str:
     """

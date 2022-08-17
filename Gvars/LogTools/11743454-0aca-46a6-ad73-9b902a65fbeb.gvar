@@ -118,9 +118,44 @@ def get_log(name: str, ch=None) -> {int: str}:
     # prepare dmp_log uvars
     if ch:
         get_vars = ch.cvars
+        set_var = ch.set_cvar
     else:
         get_vars = get_uvars()
-    return load_yaml(''.join([y for x,y in get_vars.items() if x.startswith(name)])) or {}
+        set_var = set_uvar
+        
+    log = load_yaml(''.join([y for x,y in get_vars.items() if x.startswith(name)])) or {}
+        
+    #Convert legacy log
+    if log and any([typeof(x) == "str" for x in list(log)]):
+        #Setup Calendar
+        calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
+        monthLengths=[x.length for x in calendar.months]
+        timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
+        
+        newlog = {}
+        for x in log:
+            if typeof(x) == 'str':
+                log_time = x.split(" ")
+                clock = None
+                if len(log_time) == 2:
+                    date, clock = log_time
+                else:
+                    date = log_time[0]
+                day, month, year = date.split(".")
+                if clock:
+                    hour, minute, second = clock.strip("()").split(":")
+                else:
+                    hour, minute, second = (0, 0, 0)
+                t = int(second) + (int(minute) - int(timezoneOffset%1 * 60)) * 60 + (int(hour) - int(timezoneOffset)) * 3600 + int(day) * 24 * 3600
+                t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
+                t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
+                t = int(round(float(t) / 60.0))
+            else:
+                t = x
+            newlog.update({t: f"{newlog[t]}; {log[x]}"}) if t in newlog else newlog.update({t: log[x]})
+        log = newlog
+        set_var(name, dump_yaml(log))
+    return log
 
 def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> ([(int, str)], [(int, str)]):
     """
