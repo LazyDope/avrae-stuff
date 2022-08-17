@@ -5,7 +5,7 @@ using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54",
       xplib="bd5e6af1-55e9-4c5b-b814-8f9b447091e7")
 
 # set default variables
-arg_list = ("-s", "-t")
+arg_list = ("-s", "-t", "-rate")
 guild = None
 out = ["embed", f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
 ch = character()
@@ -32,6 +32,13 @@ if not dmp_type:
     # server has really bad settings, shouldn't really happen
     out.append("-title ＂Invalid settings＂ -desc ＂No point types found. Please check with your server admins to fix this.＂")
     return ' '.join(out)
+custom_rate = pargs.last("rate")
+if custom_rate:
+    custom_rate = dmplib._valid_pair(custom_rate)
+    if not custom_rate:
+        # custom rate was invalid
+        out.append("-title ＂Invalid custom rate＂ -desc ＂The custom rate you entered was invalid, it must be in the format #:# where # are integer or decimal numbers.＂")
+        return ' '.join(out)
 
 # load settings for DM Point types
 settings = dmplib.get_guild_settings(guild)
@@ -47,8 +54,10 @@ end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
 msg = [f"{plural_dmp}: [value] to {ch.name}", ' '.join(args[:end_i])]
 if guild!=ctx.guild.id:
     msg.append("(added externally)")
+if custom_rate:
+    mst.append(f"(rate used: f{custom_rate[0]}:{custom_rate[1]}")
 dmp_type_sets = dmp_settings[dmp_type]
-rate = dmp_type_sets['rate']
+rate = custom_rate or dmp_type_sets['rate']
 num = num//rate[0] if all(typeof(x) == 'int' for x in rate) else num/rate[0]
 success, added, removed = dmplib.modify_dmp(-num*rate[0], ' '.join(msg), dmp_type, guild)
 msg[0] = f"[value] from {plural_dmp}"
