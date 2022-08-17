@@ -9,18 +9,24 @@ out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble
 
 # load and parse args
 args = &ARGS&
-page = logtools.as_valid_number(args[0]) if args else -1
+page = int(num) if args and (num:=args[0]).strip("+-").isdecimal() else -1
 pargs = argparse(args)
 guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
 if not guild:
     # trying to use in DMs without specifying a server to load from
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
     return ' '.join(out)
+
+# load settings
 settings = dmplib.get_guild_settings(guild)
+
+# display log and title
 out.append(f"-title ＂{ctx.author.display_name} checks their logs for {settings['name']}＂")
 log = logtools.get_log(f"dmp_log_{guild}")
 page_str, page_i, pages_len = logtools.log_page(log, page)
 out.append(f"-desc ＂{page_str}＂")
+
+# add page footer
 out.append(f"""-f ＂Page {page_i+1}/{pages_len}
 Use `{ctx.prefix}{ctx.alias} log #` to view another page.＂""")
 
