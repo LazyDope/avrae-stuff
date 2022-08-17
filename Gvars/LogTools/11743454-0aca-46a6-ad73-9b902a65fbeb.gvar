@@ -53,8 +53,8 @@ def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int
         rmd_f += "＂"
         out.append(rmd_f)
     if added:
-        add_f = f"-f ＂{name} Log Entr{'ies' if len(removed)>1 else 'y'} Added|"
-        add_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in removed)
+        add_f = f"-f ＂{name} Log Entr{'ies' if len(added)>1 else 'y'} Added|"
+        add_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in added)
         add_f += "＂"
         out.append(add_f)
     return out
