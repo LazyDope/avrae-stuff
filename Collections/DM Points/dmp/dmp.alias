@@ -36,7 +36,7 @@ else:
     plural_dmp = logtools.make_plural(dmp_type) if len(dmp_types)==1 else "Points"
     out.append(f"""-title ＂{ctx.author.display_name} checks their {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
-for dmp_type in dmp_settings:
+for dmp_type in dmp_types:
     c_stor = storage[dmp_type]
     plural_dmp = logtools.make_plural(dmp_type)
     out.append(f"""-f ＂Current {plural_dmp}|{logtools.round_nicely(c_stor['current'], False)}{f"; Converted: {logtools.round_nicely(c_stor['converted'], False)}" if 'converted' in c_stor else ''}＂""")
