@@ -20,12 +20,12 @@ def get_guild_settings(guild: int=ctx.guild.id) -> dict:
     
     settings[guild] = {'dmp_types': {"DM Point": {"rate": "1:1", "min": 0, "max": float('inf')}}} | settings.get(guild, {})
     #TODO: Move back to _get_all_serv_settings once #1849 is merged >>>
-    for type in settings[guild]['dmp_types'].values():
-        type.update({'min': 0, 'max': float('inf')} | type)
-        if 'rate' in type:
-            rate = _valid_pair(type['rate'])
+    for dmp_type, values in settings[guild]['dmp_types'].items():
+        values.update({'min': 0, 'max': float('inf')} | values)
+        if 'rate' in values:
+            rate = _valid_pair(values['rate'])
             if rate:
-                type['rate'] = rate
+                settings[guild][dmp_type]['rate'] = rate
     #<<<
     _cache['serv_settings'] = settings
     return _cache['serv_settings'][guild]
@@ -66,7 +66,7 @@ def _valid_pair(inp_str: str, splitter: str=":", filler: int|float=1) -> [float,
     :return: the ratio
     :rtype: [float, float]
     """
-    inp_split = inp_str.split(splitter,1)
+    inp_split = inp_str.split(splitter, 1)
     if all(x.isdecimal for x in inp_split):
         ratio = [int(x) for i, x in enumerate(inp_split) if i < 2]
         while len(ratio)<2:
