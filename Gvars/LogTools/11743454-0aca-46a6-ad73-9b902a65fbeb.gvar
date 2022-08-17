@@ -25,11 +25,11 @@ def entries_per_page(ch: AliasCharacter=None, default: int=15) -> int:
     :rtype: int
     """
     user_set = None
-    if ch and (cvar:=ch.get_cvar("log_entries")).isdecimal():
+    if ch and (cvar:=ch.get_cvar("log_entries", "")).isdecimal():
         user_set = int(cvar)
-    if not user_set and (uvar:=get_uvar("log_entries")).isdecimal():
+    if not user_set and (uvar:=get_uvar("log_entries", "")).isdecimal():
         user_set = int(uvar)
-    serv_set = (svar:=get_svar("log_entries")).isdecimal() and int(svar) or None
+    serv_set = (svar:=get_svar("log_entries", "")).isdecimal() and int(svar) or None
     if serv_set and user_set:
         return min(serv_set, user_set)
     elif serv_set or user_set:
