@@ -24,41 +24,49 @@ def get_xp(ch=character()) -> float:
     _update_old(ch)
     return float(ch.cvars.get(counter,"0"))
     
-def set_xp(value: int|float, log_message: str=None, ch=character()) -> (float, [(int, str)]):
+def set_xp(value: int|float, log_message: str=None, ch=character(), return_added=False) -> (float, [(int, str)]):
     """
     Sets the cvar to a new value.
     :arg int|float value: the new value
-    :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: None
+    :var str log_message: the message to be added to the log, `[value]` and `[total]` will be replaced with the input value default: "Set value to [value]"
     :var ch: the character default: character()
+    :var bool return_added: whether to return the added message default: False
     :return: the value set and a list of the log messages removed, if any.
     :rtype: (float, [(int, str)])
     """
+    using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
     counter="xp"
     _update_old(ch)
-    value_str = _round_nicely(value)
+    value_str = logtools.round_nicely(value)
     log_message = f"Set value to {value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", value_str)
-    removed = log(log_message, ch)
+    added, removed = logtools.log(log_message, "xplog", sep="", ch=ch)
     ch.set_cvar(counter, value_str)
+    if return_added:
+        float(value_str), removed, added
     return float(value_str), removed
     
-def modify_xp(value: int|float, log_message: str=None, ch=character()) -> (float, [(int, str)]):
+def modify_xp(value: int|float, log_message: str=None, ch=character(), return_added=False) -> (float, [(int, str)]):
     """
     Modifies the cvar by the given value.
     :arg int|float value: value to modify by
-    :var str log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp. default: None
+    :var str log_message: the message to be added to the log, `[value]` will be replaced with the input value. `[total]` will be replaced with the total xp. default: "[value]"
     :var ch: the character default: character()
+    :var bool return_added: whether to return the added message default: False
     :return: the new total and a list of the log messages removed, if any.
     :rtype: (float, [(int, str)])
     """
+    using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
     counter="xp"
     c_val = get_xp(ch)
     new_val = c_val + value
-    value_str = _round_nicely(value)
-    new_str = _round_nicely(new_val)
+    value_str = logtools.round_nicely(value)
+    new_str = logtools.round_nicely(new_val)
     log_message = f"{value_str}" if log_message is None else str(log_message).replace("[value]", value_str).replace("[total]", new_str)
-    removed = log(log_message, ch)
+    added, removed = logtools.log(log_message, "xplog", sep="", ch=ch)
     ch.set_cvar(counter, new_str)
-    return new_val, removed
+    if return_added:
+        return float(new_str), removed, added
+    return float(new_str), removed
     
 def next_lvl(xp: float=None, ch=character()) -> (int, float, float):
     """
@@ -101,124 +109,6 @@ def level(lvl: int=None, xp: float=None, ch=character()) -> (int, float, float):
         xp_diff = totals[index]-xp
     return lvl, float(xp), float(xp_diff)
 
-def get_log(ch=character()) -> {int: str}:
-    """
-    Grabs the log cvars and returns as a single dict.
-    :var ch: the character default: character()
-    :return: a dict representing the character's full log
-    :rtype: {int: str}
-    """
-    #Calculate Current Time
-    t_since = 18262*24*60*60
-    timestamp=round(time() - t_since)//60
-
-    #Load xp log
-    log = load_yaml(ch.get_cvar('xplog','{}'))
-    if log == {} and 'xplog0' in ch.cvars:
-        i = 0
-        templog = ''
-        while f'xplog{i}' in ch.cvars:
-            templog += ch.get_cvar(f'xplog{i}','')
-            i += 1
-        log = load_yaml(templog)
-
-    #Convert old log
-    if log and any([typeof(x) == "str" for x in list(log)]):
-        #Setup Calendar
-        calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
-        monthLengths=[x.length for x in calendar.months]
-        timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
-        
-        newlog = {}
-        for x in log:
-            if typeof(x) == 'str':
-                log_time = x.split(" ")
-                clock = None
-                if len(log_time) == 2:
-                    date, clock = log_time
-                else:
-                    date = log_time[0]
-                day, month, year = date.split(".")
-                if clock:
-                    hour, minute, second = clock.strip("()").split(":")
-                else:
-                    hour, minute, second = (0, 0, 0)
-                t = int(second) + (int(minute) - int(timezoneOffset%1 * 60)) * 60 + (int(hour) - int(timezoneOffset)) * 3600 + int(day) * 24 * 3600
-                t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
-                t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
-                t = int(round(float(t) / 60.0))
-            else:
-                t = x
-            newlog.update({t: f"{newlog[t]}; {log[x]}"}) if t in newlog else newlog.update({t: log[x]})
-        log = newlog
-        ch.set_cvar('xplog',dump_yaml(log))
-    
-    return log
-    
-def log(log_message: str, ch=character()) -> [(int, str)]:
-    """
-    Adds a log entry with a given message.
-    :arg str log_message: the message to be added to the log
-    :var ch: the character default: character()
-    :return: a list of log entries that got removed
-    :rtype: [(int, str)]
-    """
-    t_since = 18262*24*60*60
-    log = get_log(ch)
-    timestamp = round(time() - t_since)//60
-    removed = []
-    
-    if timestamp in log:
-        log_message = log[timestamp] + "; " + log_message
-    while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_message}))) > 200000:
-        removed.append((list(log)[0],log[list(log)[0]]))
-        log.pop(list(log)[0])
-    log.update({timestamp:log_message})
-    removed += set_log(log, ch)
-    return removed
-
-def set_log(log, ch=character()) -> [(int, str)]:
-    """
-    Dumps the log to one or more cvars depending on its length, removing those that are too long.
-    :arg str log: the dict representing the log to dump
-    :var ch: the character default: character()
-    :return: a list of removed log entries
-    :rtype: [(int, str)]
-    """
-    removed = []
-    if len(dump_yaml(log)) > 9999:
-        valid_met = ['discard', 'keep']
-        server_met = get_svar("log_method", "discard")
-        user_met = ch.cvars.get("log_method", "")
-        override = server_met.split(":")[0] == "O"
-        server_met = (server_met.split(":")[1] if len(server_met.split(":")) > 1 else server_met)
-        server_met = server_met if server_met in valid_met else 'discard'
-        user_met = user_met if user_met in valid_met else ''
-        log_method = override and server_met or user_met or server_met
-        if log_method == 'keep':
-            ch.delete_cvar('xplog')
-            for i in range((len(dump_yaml(log))-1)//9999 + 1):
-                ch.set_cvar(f'xplog{i}',dump_yaml(log)[9999*i:9999*(i+1)])
-        else:
-            while len(dump_yaml(log)) > 9999:
-                removed.append((list(log)[0],log[list(log)[0]]))
-                log.pop(list(log)[0])
-            ch.set_cvar('xplog',dump_yaml(log))
-    else:
-        ch.set_cvar('xplog',dump_yaml(log))
-    return removed
-
-def log_to_epoch(log_time: int) -> int:
-    """
-    Converts log time into epoch time.
-    Useful for displaying the log time in timestamps.
-    :arg int log_time: the time stored in the log.
-    :return: the time since epoch (00:00 UTC+0, January 1st, 1970), which is used in timestamps
-    :rtype: int
-    """
-    t_since = 18262*24*60*60
-    return log_time*60+t_since
-
 def totals(ch=character()) -> [int]:
     """
     Gets the xp totals needed for each level.
@@ -252,15 +142,3 @@ def _cc_name(ch=character()) -> str:
     """
     cc_name = get_svar("xp_ccname") or ch.get_cvar("xp_ccname","Experience")
     return cc_name
-
-def _round_nicely(number, include_sign: bool=True) -> str:
-    """
-    Makes the number look nice, regardless of whether it's an int or a float
-    :arg number: an integer or float
-    :var bool include_sign: whether to include the + sign on positive numbers
-    :return: the rounded number
-    :rtype: str
-    """
-    if include_sign:
-        return f'{number:+.2f}'.rstrip('0').rstrip('.')
-    return f'{number:.2f}'.rstrip('0').rstrip('.')
