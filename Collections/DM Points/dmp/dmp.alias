@@ -16,7 +16,8 @@ dmp_type = inp_dmp_type or dmplib.get_dmp_type(guild)
 if not dmp_type:
     out.append("-title ＂Invalid settings＂ -desc ＂Please check with your server admins to fix this.＂")
     return ' '.join(out)
-dmp_settings = dmplib.get_guild_settings(guild)['dmp_types']
+settings = dmplib.get_guild_settings(guild)
+dmp_settings = settings['dmp_types']
 if num:
     plural_dmp = logtools.make_plural(dmp_type)
     end_i = min((args.index(x) for x in ("-s", "-t") if x in args), default=len(args))
@@ -27,13 +28,13 @@ if num:
         out.append(f"""-title ＂Out of bounds!＂ -desc ＂Your server says you can't have that much {plural_dmp}.
 At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_type_sets['min']}＂""")
         return ' '.join(out)
-    out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
+    out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f' for {settings['name']}' if guild!=ctx.guild.id else ''}＂")
     out += logtools.display_log_changes(plural_dmp, added, removed)
     dmp_types = [dmp_type]
 else:
     dmp_types = [dmp_type] if inp_dmp_type else dmp_settings
     plural_dmp = logtools.make_plural(dmp_type) if len(dmp_types)==1 else "Points"
-    out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
+    out.append(f"-title ＂{ctx.author.display_name} checks their {plural_dmp}{f' for {settings['name']}' if guild!=ctx.guild.id else ''}＂")
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
 for dmp_type in dmp_settings:
     c_stor = storage[dmp_type]
