@@ -21,9 +21,7 @@ settings = dmplib.get_guild_settings(guild)
 end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
 new_nick = ' '.join(args[:end_i])
 if new_nick:
-    settings['nick'] = new_nick
-    dmplib.get_guild_settings(guild)
-    dmplib.save_settings()
+    dmplib.update_nickname(guild, new_nick)
     
 out.append(f"""-title ＂{ctx.author.display_name} {"updates" if new_nick else "checks"} their nickname for {settings['name']}＂ -desc ＂The nickname they use is `{settings['nick']}`＂""")
 

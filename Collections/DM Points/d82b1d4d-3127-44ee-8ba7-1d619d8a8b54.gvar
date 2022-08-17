@@ -57,11 +57,21 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
     
     return settings
 
-def save_settings():
+def update_nickname(guild: int, nickname: str):
     """
-    Saves the cached settings
+    Updates the nickname in the cache and in the uvar.
+    These operations must be done separately as to not save raw settings.
+    :arg int guild: the id of the guild to update
+    :arg str nickname: the nickname to assign
     """
-    set_uvar('dmp_server_settings', dump_yaml(_cache['serv_settings']))
+    if guild in _cache['serv_settings']:
+        _cache['serv_settings'][guild]['nick'] = nickname
+        
+    settings = load_yaml(get_uvar('dmp_server_settings',"{}"))
+    if guild not in settings:
+        settings[ctx.guild.id] = {}
+    settings |= {'nick': nickname}
+    set_uvar('dmp_server_settings', dump_yaml(settings))
 
 def _valid_pair(inp_str: str, splitter: str=":", filler: int|float=1) -> [float, float]:
     """
