@@ -66,7 +66,7 @@ def _valid_pair(inp_str: str, splitter: str=":", filler: float=1.0) -> [float, f
     :return: the ratio
     :rtype: [float, float]
     """
-    if all(all(x.isdecimal() for x in y.split(".",1)) for y in (inp_split:=inp_str.split(splitter))) #try:
+    if all(all(x.isdecimal() for x in y.split(".",1)) for y in (inp_split:=inp_str.split(splitter))): #try:
         ratio = [float(x) for i, x in enumerate(inp_split) if i < 2]
         while len(ratio)<2:
             ratio.append(filler)
