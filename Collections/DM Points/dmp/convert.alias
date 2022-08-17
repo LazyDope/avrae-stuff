@@ -44,11 +44,12 @@ if 'rate' not in dmp_settings[dmp_type] or dmp_settings[dmp_type]['rate'] is Non
 # try to convert the requested amount, reducting from DM Point type
 plural_dmp = logtools.make_plural(dmp_type)
 end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
-msg = plural_dmp + ": [value] " + ' '.join(args[:end_i]) + (" (added externally)" if guild!=ctx.guild.id else "")
+msg = [plural_dmp, f": [value] to {ch.name}", ' '.join(args[:end_i]), (" (added externally)" if guild!=ctx.guild.id else "")]
 dmp_type_sets = dmp_settings[dmp_type]
 rate = dmp_type_sets['rate']
 num = num//rate[0] if all(typeof(x) == 'int' for x in rate) else num/rate[0]
-success, added, removed = dmplib.modify_dmp(-num*rate[0], msg, dmp_type, guild)
+success, added, removed = dmplib.modify_dmp(-num*rate[0], ''.join(msg), dmp_type, guild)
+msg[1] = f": [value] from {plural_dmp}"
 
 if success is None:
     # input was outside limits
@@ -70,6 +71,8 @@ storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
 
 # update converted
 c_stor = storage[dmp_type]
+if 'converted' not in c_stor:
+    c_stor['converted'] = 0.0
 c_stor['converted'] += num*rate[0]
 dmplib.update_storage(storage)
 
