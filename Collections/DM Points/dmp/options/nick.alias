@@ -25,7 +25,7 @@ if new_nick:
     dmplib.get_guild_settings(guild)
     dmplib.save_settings()
     
-out.append(f"""-title ＂{ctx.author.display_name} {"updates" if new_nick else "checks"} their nickname{f" for {settings['name']}" if guild!=ctx.guild.id else ""}＂ -desc ＂The nickname they use is `{settings['nick']}`＂""")
+out.append(f"""-title ＂{ctx.author.display_name} {"updates" if new_nick else "checks"} their nickname for {settings['name']}＂ -desc ＂The nickname they use is `{settings['nick']}`＂""")
 
 return ' '.join(out)
 </drac2>
