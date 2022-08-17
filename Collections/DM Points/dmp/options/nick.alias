@@ -1,1 +1,31 @@
- 
+<drac2>
+# load modules
+using(dmplib="d82b1d4d-3127-44ee-8ba7-1d619d8a8b54")
+
+# set default variables
+arg_list = ("-s")
+guild = None
+out = ["embed", f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble＂"]
+ch = character()
+
+# load and parse args
+args = &ARGS&
+pargs = argparse(args)
+guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
+if not guild:
+    # trying to use in DMs without specifying a server to load from
+    out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
+    return ' '.join(out)
+settings = dmplib.get_guild_settings(guild)
+
+end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
+new_nick = ' '.join(args[:end_i])
+if new_nick:
+    settings['nick'] = new_nick
+    dmplib.get_guild_settings(guild)
+    dmplib.save_settings()
+    
+out.append(f"""-title ＂{ctx.author.display_name} {"updates" if new_nick else "checks"} their nickname{f" for {settings['name']}" if guild!=ctx.guild.id else ""}＂ -desc ＂The nickname they use is `{settings['nick']}`＂""")
+
+return ' '.join(out)
+</drac2>
