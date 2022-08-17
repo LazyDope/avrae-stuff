@@ -100,11 +100,11 @@ def log_page(
             pages[c_page] = left + '\n' + right
             c_entries += 1
     if not pages:
-        return 0, "No logs available"
+        return "No logs available", 0, 1
     
     pages_len = len(pages)
     page_i = max(min(pages_len-page if page<0 else page, pages_len-1), 0)
-    return pages[page], page_i, pages_len
+    return pages[page_i], page_i, pages_len
     
 def get_log(name: str, ch=None) -> {int: str}:
     """

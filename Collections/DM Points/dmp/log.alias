@@ -21,7 +21,7 @@ out.append(f"-title ＂{ctx.author.display_name} checks their logs for {settings
 log = logtools.get_log(f"dmp_log_{guild}")
 page_str, page_i, pages_len = logtools.log_page(log, page)
 out.append(page_str)
-out.append(f"""-f ＂Page {page_i}/{pages_len}
+out.append(f"""-f ＂Page {page_i+1}/{pages_len}
 Use `{ctx.prefix}{ctx.alias} log #` to view another page.＂""")
 
 return ' '.join(out)
