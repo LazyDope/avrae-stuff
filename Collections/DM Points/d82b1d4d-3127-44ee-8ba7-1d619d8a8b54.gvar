@@ -173,7 +173,7 @@ def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: 
     
     # update saved values
     update_storage(storage)
-    return float(value_str), added, removed
+    return c_val['current'], added, removed
 
 def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: int=ctx.guild.id) -> (float, list, list):
     """
@@ -209,4 +209,4 @@ def modify_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guil
     
     # update saved values
     update_storage(storage)
-    return new_val, added, removed
+    return c_val['current'], added, removed
