@@ -45,7 +45,8 @@ if 'rate' not in dmp_settings[dmp_type] or dmp_settings[dmp_type]['rate'] is Non
 plural_dmp = logtools.make_plural(dmp_type)
 end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
 msg = [f"{plural_dmp}: [value] to {ch.name}", ' '.join(args[:end_i])]
-msg.append("(added externally)") if guild!=ctx.guild.id else pass
+if guild!=ctx.guild.id:
+    msg.append("(added externally)")
 dmp_type_sets = dmp_settings[dmp_type]
 rate = dmp_type_sets['rate']
 num = num//rate[0] if all(typeof(x) == 'int' for x in rate) else num/rate[0]
