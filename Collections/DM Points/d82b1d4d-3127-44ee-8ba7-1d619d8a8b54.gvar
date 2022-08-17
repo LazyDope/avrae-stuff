@@ -21,7 +21,7 @@ def get_guild_settings(guild: int=ctx.guild.id) -> dict:
     settings[guild] = {'dmp_types': {"DM Point": {"rate": "1:1", "min": 0, "max": float('inf')}}} | settings.get(guild, {})
     #TODO: Move back to _get_all_serv_settings once #1849 is merged >>>
     for value in settings[guild]['dmp_types'].values():
-        value.update({'min': 0, 'max': float('inf')} | values)
+        value.update({'min': 0, 'max': float('inf')} | value)
         if 'rate' in value:
             rate = _valid_pair(value['rate'])
             if rate:
