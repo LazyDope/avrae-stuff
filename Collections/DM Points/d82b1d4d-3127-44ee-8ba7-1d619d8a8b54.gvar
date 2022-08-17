@@ -71,6 +71,7 @@ def _valid_pair(inp_str: str, splitter: str=":", filler: int|float=1) -> [float,
         ratio = [int(x) for i, x in enumerate(inp_split) if i < 2]
         while len(ratio)<2:
             ratio.append(int(filler))
+        return ratio
     elif all(all(x.isdecimal() for x in (inp_split:=y.split(".",1))) for y in inp_split): #try:
         ratio = [float(x) for i, x in enumerate(inp_split) if i < 2]
         while len(ratio)<2:
