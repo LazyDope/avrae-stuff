@@ -18,7 +18,15 @@ def get_guild_settings(guild: int=ctx.guild.id) -> dict:
     # load settings uvar
     settings = _get_all_serv_settings(cache_results=False)
     
-    settings[guild] = {'dmp_types': {"DM Point": {"rate": [1,1], "min": 0, "max": float('inf')}}} | settings.get(guild, {})
+    settings[guild] = {'dmp_types': {"DM Point": {"rate": "1:1", "min": 0, "max": float('inf')}}} | settings.get(guild, {})
+    #TODO: Move back to _get_all_serv_settings once #1849 is merged >>>
+    for type in settings['dmp_types'].values():
+        type.update({'min':0, 'max': float('inf')} | type)
+        if 'rate' in type:
+            rate = _valid_pair(type['rate'])
+            if rate:
+                type['rate'] = rate
+    #<<<
     _cache['serv_settings'] = settings
     return _cache['serv_settings'][guild]
 
@@ -41,12 +49,6 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
             settings[ctx.guild.id] = {}
         settings[ctx.guild.id] |= {'name':ctx.guild.name}
         dmp_types = dict(load_yaml(svar)) if (svar:=get_svar('dmp_types')) else {}
-        for type in dmp_types.values():
-            type.update({'min':0, 'max': float('inf')} | type)
-            if 'rate' in type:
-                rate = _valid_pair(type['rate'])
-                if rate:
-                    type['rate'] = rate
         settings[ctx.guild.id] |= {'dmp_types':dmp_types} if dmp_types else {}
         set_uvar('dmp_server_settings', dump_yaml(settings))
     
