@@ -65,7 +65,7 @@ def log_page(
         entries: int=None,
         max_len: int=4096,
         ch: AliasCharacter=None
-    ) -> (int, str):
+    ) -> (int, int, str):
     """
     Creates the display for a page of a log
     :arg dict log: the log to parse
@@ -73,8 +73,8 @@ def log_page(
     :var int entries: the max number of entries per page. Will try to load from c/u/svar in that order or default to 15 if set to None. default: None
     :var int max_len: the maximum length that each page is allowed to be. Set to None to ignore. default: 4096
     :var AliasCharacter ch: the character to load display settings from, if any default: None
-    :return: the formatted page desired
-    :rtype: (int, str)
+    :return: the formatted page desired, the final page index, and the total number of pages 
+    :rtype: (int, int, str)
     """
     entries = entries or entries_per_page(ch)
     max_len = float('inf') if max_len is None else max_len
@@ -101,9 +101,10 @@ def log_page(
             c_entries += 1
     if not pages:
         return 0, "No logs available"
-            
-    page = max(page, -len(pages)) if page<0 else min(page, len(pages)-1)
-    return len(pages), pages[page]
+    
+    pages_len = len(pages)
+    page_i = max(min(pages_len-page if page<0 else page, pages_len-1), 0)
+    return pages[page], page_i, pages_len
     
 def get_log(name: str, ch=None) -> {int: str}:
     """
