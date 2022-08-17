@@ -28,7 +28,7 @@ if num:
 At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_type_sets['min']}＂""")
         return ' '.join(out)
     out.append(f"-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f' for {guild}' if guild!=ctx.guild.id else ''}＂")
-    out += logtools.display_log_changes(dmp_type, added, removed)
+    out += logtools.display_log_changes(plural_dmp, added, removed)
     dmp_types = [dmp_type]
 else:
     dmp_types = [dmp_type] if inp_dmp_type else dmp_settings

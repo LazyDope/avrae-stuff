@@ -36,7 +36,7 @@ def entries_per_page(ch: AliasCharacter=None, default: int=15) -> int:
         return serv_set or user_set
     return default
 
-def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int, str)]=None) -> [str]:
+def display_log_changes(name: str, added: [(int, str)]=None, removed: [(int, str)]=None) -> [str]:
     """
     Display the changes made to the log
     :var str name: The name to be displayed with the log entry default: None
@@ -49,12 +49,12 @@ def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int
     name = name + " " if name else ""
     if removed:
         rmd_f = f"-f ＂{name} Log Entr{'ies' if len(removed)>1 else 'y'} Removed|"
-        rmd_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in removed)
+        rmd_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>:** {entry[1]}' for entry in removed)
         rmd_f += "＂"
         out.append(rmd_f)
     if added:
         add_f = f"-f ＂{name} Log Entr{'ies' if len(added)>1 else 'y'} Added|"
-        add_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>: {entry[1]}**' for entry in added)
+        add_f += '\n'.join(f'**<t:{log_to_epoch(entry[0])}:D>:** {entry[1]}' for entry in added)
         add_f += "＂"
         out.append(add_f)
     return out
