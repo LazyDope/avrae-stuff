@@ -34,10 +34,10 @@ if not dmp_type:
     return ' '.join(out)
 custom_rate = pargs.last("rate")
 if custom_rate:
-    custom_rate = dmplib._valid_pair(custom_rate)
+    custom_rate = dmplib.valid_pair(custom_rate)
     if not custom_rate:
         # custom rate was invalid
-        out.append("-title ＂Invalid custom rate＂ -desc ＂The custom rate you entered was invalid, it must be in the format #:# where # are integer or decimal numbers.＂")
+        out.append("-title ＂Invalid custom rate＂ -desc ＂The custom rate you entered was invalid, it must be in the format `#:#` where # are integer or decimal numbers.＂")
         return ' '.join(out)
 
 # load settings for DM Point types
@@ -55,7 +55,7 @@ msg = [f"{plural_dmp}: [value] to {ch.name}", ' '.join(args[:end_i])]
 if guild!=ctx.guild.id:
     msg.append("(added externally)")
 if custom_rate:
-    mst.append(f"(rate used: f{custom_rate[0]}:{custom_rate[1]}")
+    msg.append(f"(rate used: f{custom_rate[0]}:{custom_rate[1]}")
 dmp_type_sets = dmp_settings[dmp_type]
 rate = custom_rate or dmp_type_sets['rate']
 num = num//rate[0] if all(typeof(x) == 'int' for x in rate) else num/rate[0]
