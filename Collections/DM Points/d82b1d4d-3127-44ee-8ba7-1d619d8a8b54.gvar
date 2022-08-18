@@ -69,8 +69,8 @@ def update_nickname(guild: int, nickname: str):
         
     settings = load_yaml(get_uvar('dmp_server_settings',"{}"))
     if guild not in settings:
-        settings[ctx.guild.id] = {}
-    settings |= {'nick': nickname}
+        settings[guild] = {}
+    settings[guild] |= {'nick': nickname}
     set_uvar('dmp_server_settings', dump_yaml(settings))
 
 def _valid_pair(inp_str: str, splitter: str=":", filler: int|float=1) -> [float, float]:
@@ -104,6 +104,8 @@ def get_dmp_type(guild: int, dmp_type: str=None) -> str:
     :return: known DM Points type for the guild
     :rtype: str
     """
+    using(logtools="11743454-0aca-46a6-ad73-9b902a65fbeb")
+    
     settings = get_guild_settings(guild)
     if dmp_type:
         if dmp_type in settings['dmp_types']:
