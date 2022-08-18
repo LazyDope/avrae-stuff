@@ -162,7 +162,7 @@ def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> (
     Adds a log entry with a given message.
     :arg str log_message: the message to be added to the log
     :arg str name: the base name for the log
-    :var str sep: the seperator between the name and the number default: "_"
+    :var str sep: the seperator between the name and the index of extended logs default: "_"
     :var AliasCharacter ch: the character to search for the log in. Setting to None will search uvars. default: None
     :return: a list of log entries that got added as well as removed
     :rtype: [(int, str)]
