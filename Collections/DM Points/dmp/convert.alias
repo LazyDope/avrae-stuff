@@ -51,7 +51,9 @@ if 'rate' not in dmp_settings[dmp_type] or dmp_settings[dmp_type]['rate'] is Non
 # try to convert the requested amount, reducting from DM Point type
 plural_dmp = logtools.make_plural(dmp_type)
 end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
-msg = [f"{plural_dmp}: [value] to {ch.name}", ' '.join(args[:end_i])]
+msg = [f"{plural_dmp}: [value] to {ch.name}"]
+if args[:end_i]:
+    msg.append(' '.join(args[:end_i]))
 if guild!=ctx.guild.id:
     msg.append("(added externally)")
 if custom_rate:
