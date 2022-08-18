@@ -43,7 +43,7 @@ if custom_rate:
 # load settings for DM Point types
 settings = dmplib.get_guild_settings(guild)
 dmp_settings = settings['dmp_types']
-if 'rate' not in dmp_settings[dmp_type] or dmp_settings[dmp_type]['rate'] is None:
+if not custom_rate or 'rate' not in dmp_settings[dmp_type] or dmp_settings[dmp_type]['rate'] is None:
     # type doesn't have a rate, should not convert
     out.append("-title ＂Cannot convert＂ -desc ＂No rate found for the chosen type, cannot convert.＂")
     return ' '.join(out)

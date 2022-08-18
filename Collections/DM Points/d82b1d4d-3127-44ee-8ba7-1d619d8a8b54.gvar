@@ -125,7 +125,7 @@ def to_id(inp: str) -> int:
     """
     if not inp:
         return None
-    known_settings = _get_all_serv_settings()
+    known_settings = _get_all_serv_settings(cache_results=False) #TODO: Can't cache until type fixing can be put back in 
     if inp.isdecimal() and int(inp) in known_settings:
         return int(inp)
     itemized = known_settings.items()
