@@ -167,7 +167,7 @@ def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> (
     :return: a list of log entries that got added as well as removed
     :rtype: [(int, str)]
     """
-    log = get_log(name)
+    log = get_log(name, ch)
     timestamp = epoch_to_log(time())
     removed = []
     
