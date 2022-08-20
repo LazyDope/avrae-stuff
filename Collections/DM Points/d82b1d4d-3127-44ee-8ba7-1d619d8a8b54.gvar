@@ -110,7 +110,7 @@ def get_dmp_type(guild: int, dmp_type: str=None) -> str:
     if dmp_type:
         if dmp_type in settings['dmp_types']:
             return dmp_type
-        types = [type for type in settings['dmp_types'] if logtools.make_plural(dmp_type).lower() in type.lower()]
+        types = [type for type in settings['dmp_types'] if dmp_type.lower() in logtools.make_plural(type).lower()]
         return types[0] if types else list(settings['dmp_types'])[0]
     else:
         return list(settings['dmp_types'])[0]
