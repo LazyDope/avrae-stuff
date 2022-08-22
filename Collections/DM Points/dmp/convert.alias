@@ -21,7 +21,7 @@ if not num:
     # positive number needed
     return f"help {ctx.alias} set -here"
 pargs = argparse(args)
-guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
+guild = pargs.last("s", type_=dmplib.to_id) or (ctx.guild and ctx.guild.id)
 if not guild:
     # trying to use in DMs without specifying a server to load from
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
@@ -54,7 +54,7 @@ end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
 msg = [f"{plural_dmp}: [value] to {ch.name}"]
 if args[:end_i]:
     msg.append(' '.join(args[:end_i]))
-if guild!=ctx.guild.id:
+if not ctx.guild or guild!=ctx.guild.id:
     msg.append("(added externally)")
 if custom_rate:
     msg.append(f"(rate used: f{custom_rate[0]}:{custom_rate[1]}")
@@ -71,7 +71,7 @@ At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_typ
     return ' '.join(out)
 
 # append log changes to display
-out.append(f"""-title ＂{ctx.author.display_name} converts some {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
+out.append(f"""-title ＂{ctx.author.display_name} converts some {plural_dmp}{f" for {settings['name']}" if not ctx.guild or guild!=ctx.guild.id else ''}＂""")
 out += logtools.display_log_changes(plural_dmp, added, removed)
 
 # add to XP

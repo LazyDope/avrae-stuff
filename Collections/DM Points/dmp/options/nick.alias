@@ -11,7 +11,7 @@ ch = character()
 # load and parse args
 args = &ARGS&
 pargs = argparse(args)
-guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
+guild = pargs.last("s", type_=dmplib.to_id) or (ctx.guild and ctx.guild.id)
 if not guild:
     # trying to use in DMs without specifying a server to load from
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")

@@ -12,7 +12,7 @@ out = [f"-footer ＂Try |{ctx.prefix}help {ctx.alias}| if you are having trouble
 args = &ARGS&
 num = logtools.as_valid_number(args[0]) if args else 0
 pargs = argparse(args)
-guild = pargs.last("s", type_=dmplib.to_id) or ctx.guild.id
+guild = pargs.last("s", type_=dmplib.to_id) or (ctx.guild and ctx.guild.id)
 if not guild:
     # trying to use in DMs without specifying a server to load from
     out.append("-title ＂No Server Available＂ -desc ＂If in DMs, please specify a server with `-s`＂")
@@ -32,7 +32,7 @@ dmp_settings = settings['dmp_types']
 if num:
     plural_dmp = logtools.make_plural(dmp_type)
     end_i = min((args.index(x) for x in arg_list if x in args), default=len(args))
-    msg = plural_dmp + ": " + ' '.join(args[:end_i]) + (" (added externally)" if guild!=ctx.guild.id else "")
+    msg = plural_dmp + ": " + ' '.join(args[:end_i]) + (" (added externally)" if not ctx.guild or guild!=ctx.guild.id else "")
     success, added, removed = dmplib.modify_dmp(num, msg, dmp_type, guild)
     dmp_type_sets = dmp_settings[dmp_type]
     
@@ -43,7 +43,7 @@ At most you can have {dmp_type_sets['max']} and at minimum you can have {dmp_typ
         return ' '.join(out)
     
     # append log changes to display
-    out.append(f"""-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
+    out.append(f"""-title ＂{ctx.author.display_name} {'adds' if num>0 else 'removes'} some {plural_dmp}{f" for {settings['name']}" if not ctx.guild or guild!=ctx.guild.id else ''}＂""")
     out += logtools.display_log_changes(plural_dmp, added, removed)
     
     # only show input type
@@ -52,7 +52,7 @@ else:
     # show input type if given, or all of them
     dmp_types = [dmp_type] if inp_dmp_type else dmp_settings
     plural_dmp = logtools.make_plural(dmp_type) if len(dmp_types)==1 else "Points"
-    out.append(f"""-title ＂{ctx.author.display_name} checks their {plural_dmp}{f" for {settings['name']}" if guild!=ctx.guild.id else ''}＂""")
+    out.append(f"""-title ＂{ctx.author.display_name} checks their {plural_dmp}{f" for {settings['name']}" if not ctx.guild or guild!=ctx.guild.id else ''}＂""")
     
 # load storage
 storage = dmplib.get_guild_storage(dmplib.get_dmp_storage(), guild)
