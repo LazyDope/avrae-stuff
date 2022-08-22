@@ -44,7 +44,7 @@ def _get_all_serv_settings(*args, cache_results: bool=True) -> dict:
     # load yaml from uvar
     settings = load_yaml(get_uvar('dmp_server_settings',"{}"))
     
-    if ctx.guild.id:
+    if ctx.guild:
         if ctx.guild.id not in settings:
             settings[ctx.guild.id] = {}
         settings[ctx.guild.id] |= {'name':ctx.guild.name}
