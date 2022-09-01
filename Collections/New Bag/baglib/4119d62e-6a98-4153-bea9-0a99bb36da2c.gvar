@@ -671,7 +671,7 @@ def display_bag(
             
             # add the correct message based on the weight
             if itemWeight and typeof(itemWeight) in ['int','float']:
-                item_message +=  f''' [{_round_nicely(itemWeight)} lbs.]{asterisk if unknownItem else ""}'''
+                item_message +=  f''' [{round_nicely(itemWeight)} lbs.]{asterisk if unknownItem else ""}'''
             else:
                 item_message += f" {itemWeight}" if itemWeight else ""
                 
@@ -688,8 +688,8 @@ def display_bag(
     
     # add weight counter for coins and total for each bag
     if coin_weight:
-        item_messages.append(f"""**Coin Weight:** {_round_nicely(coin_weight)} lbs.""")
-    bag_title = f"""{bag[0]}{"†" if anyUnknownItem else f''' ({_round_nicely(total_weight)} lbs.)''' if total_weight else ""}"""
+        item_messages.append(f"""**Coin Weight:** {round_nicely(coin_weight)} lbs.""")
+    bag_title = f"""{bag[0]}{"†" if anyUnknownItem else f''' ({round_nicely(total_weight)} lbs.)''' if total_weight else ""}"""
     
     # split up fields if they are too long
     fields = []
@@ -750,7 +750,7 @@ def display_coins(
         item_name = item.lower()
         quantity = bag[1][item]
         if compact and item_name == 'cointotal':
-            item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {_round_nicely(quantity)} {DEFAULT_COIN}""".strip()
+            item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {round_nicely(quantity)} {DEFAULT_COIN}""".strip()
         elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
             item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
         else:
@@ -760,7 +760,7 @@ def display_coins(
         if old_coins is not None:
             diff = quantity - old_coins.get(item, 0)
             if diff:
-                item_message += f''' ({"+" if diff>0 else ""}{_round_nicely(diff)})'''
+                item_message += f''' ({"+" if diff>0 else ""}{round_nicely(diff)})'''
                         
         item_messages.append(item_message)
     
@@ -848,7 +848,7 @@ def create_display(
             unknownTotal += fuzzyItemCount
         # add footnotes based on weight results
         if weightTracking and openMode == 'all':
-            display_footer = f'''-f ＂Total Weight Carried: {_round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
+            display_footer = f'''-f ＂Total Weight Carried: {round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
             if anyUnknownItem:
                 display_footer += "\n*Items marked with a dagger (†) are entirely unrecognized.*"
             if unknownTotal:
@@ -936,7 +936,7 @@ def _as_list(listordict) -> list:
         case _:
             err(f"{typeof(listordict)} cannot be converted to a list.\n{listordict} caused this error.",True)
 
-def _round_nicely(number: int|float) -> str:
+def round_nicely(number: int|float) -> str:
     """
     Makes the number look nice, regardless of whether it's an int or a float
     :arg int|float number: an integer or float
