@@ -628,7 +628,7 @@ def display_bag(
     :var dict weightDict: the dict to get weights from default: self.weightDict
     :var bool weightTracking: whether to use weight tracking default: self.settings.weightTracking
     :var list ignoreBags: a list of what bags are ignored default: self.settings.weightlessBags
-    :var dict old_bag: the bag's contents previous state, for building a delta from default: {}
+    :var dict old_bag: the bag's contents previous state, for building a delta from default: None
     :var str length_limiter: how to limit the length of a long line. default: self.settings.handleLongNames
     :return: a list of fields to display a bag, the total weight of the bag, the weight of the coins, the total number of fuzzy matches, as well as a bool of whether any items had no matches
     :rtype: (list, float, float, int, bool)
@@ -677,9 +677,10 @@ def display_bag(
                 
         item_messages.append(item_message)
     
-    for item in old_bag:
-        if item not in bag[1]:
-            item_messages.append(f"0x {item} (-{old_bag[item]})")
+    if old_bag is not None:
+        for item in old_bag:
+            if item not in bag[1]:
+                item_messages.append(f"0x {item} (-{old_bag[item]})")
     
     # show empty message
     if not item_messages:
