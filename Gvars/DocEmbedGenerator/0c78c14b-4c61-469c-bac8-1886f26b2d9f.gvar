@@ -20,8 +20,8 @@ def _get_docs(func: _Function|dict) -> str:
                 case 'arg'|'param':
                     args.append(f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else args.append(docsplit[1]))
                 case 'var'|'kwarg':
-                    index = docsplit.lower().rfind("default:")
-                    default = docsplit[index+8:].strip() if index is not -1 and len(doc)>=index else ""
+                    index = docsplit[2].lower().rfind("default:")
+                    default = docsplit[2][index+8:].strip() if index is not -1 and len(doc)>=index else ""
                     kwargs.append((f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else docsplit[1]) + (f" = {default}" if default else ""))
                 case 'rtype':
                     rtype = doc.split(':')[2].strip()
