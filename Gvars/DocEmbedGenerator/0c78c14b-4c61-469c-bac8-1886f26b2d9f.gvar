@@ -16,7 +16,7 @@ def _get_docs(func: _Function|dict) -> str:
     rtype = None
     for doc in docs:
         if doc.startswith(':') and len(doc.split(':',2)) >= 3:
-            match (docsplit:=doc.split(':', 2)[1].split())[0]:
+            match (docsplit:=doc.split(':', 2))[1].split()[0]:
                 case 'arg'|'param':
                     args.append(f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else args.append(docsplit[1]))
                 case 'var'|'kwarg':
