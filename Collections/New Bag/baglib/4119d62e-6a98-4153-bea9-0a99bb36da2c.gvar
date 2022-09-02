@@ -424,7 +424,7 @@ def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN)
 
 def parse_items(args: str|list, types, default=None) -> (dict, bool):
     """
-    Parses args to get the valid items from a list of valid items.
+    Parses args to get the deltas of items given a list of valid items.
     :arg str|list args: the string or list of arguments to parse
     :arg dict types: the types of items which are valid. Spaces in the names will parse multiple words to the same item, eg "gp gold" will match `gp` or `gold` or `gp gold`
     :var str default: the item to use if none is given (won't match if an invalid item in given) default: None
