@@ -15,13 +15,13 @@ def _get_docs(func: _Function|dict) -> str:
     kwargs = []
     rtype = None
     for doc in docs:
-        if doc.startswith(':') and len(doc.split(':')) >= 3:
-            match (docsplit:=doc.split(':')[1].split())[0]:
+        if doc.startswith(':') and len(doc.split(':',2)) >= 3:
+            match (docsplit:=doc.split(':',2)[1].split())[0]:
                 case 'arg'|'param':
                     args.append(f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else args.append(docsplit[1]))
                 case 'var'|'kwarg':
-                    index = doc.lower().rfind("default:")
-                    default = doc[index+8:].strip() if index is not -1 and len(doc)>=index else ""
+                    index = docsplit.lower().rfind("default:")
+                    default = docsplit[index+8:].strip() if index is not -1 and len(doc)>=index else ""
                     kwargs.append((f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else docsplit[1]) + (f" = {default}" if default else ""))
                 case 'rtype':
                     rtype = doc.split(':')[2].strip()
@@ -37,7 +37,7 @@ def _get_docs(func: _Function|dict) -> str:
     else:
         header = [f"""```py
 {f_name}```"""]
-    docs = [f"""`{x.lstrip(':').replace(':','`:',1)[:x.index("default:") if "default:" in x else None]}""" if x.startswith(":") else x for x in docs]
+    docs = [f"""`{(search:=(x.lstrip(':').replace(':','`:',1)))[:find if (find:=search.rfind("default:")) else None]}""" if x.startswith(":") else x for x in docs]
     return '\n'.join(header+docs)
 
 def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') -> str:
