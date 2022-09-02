@@ -411,13 +411,24 @@ def use_coin_purse(bagsLoaded: list) -> bool:
     bagsLoaded = _as_list(bagsLoaded)
     return not get_bag(bagsLoaded, coinPouchName, exact_match = True) and COIN_RATES == DEFAULT_COIN_RATES
 
-def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN) -> dict:
+def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN) -> (dict, bool):
     """
     Parses args to get the valid coins.
     :arg str|list args: the string or list of arguments to parse
-    :var dict coin_types: the types of coins (or items) which are valid. Spaces in the names will parse multiple works to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold` default: self.COIN_TYPES
+    :var dict coin_types: the types of coins which are valid. Spaces in the names will parse multiple words to the same coin, eg "gp gold" will match `gp` or `gold` or `gp gold` default: self.COIN_TYPES
     :var str default_coin: the coin to use if none is given (won't match if an invalid coin in given) default: self.DEFAULT_COIN
-    :return: tuple of a dict of coin totals and an error bool
+    :return: tuple of a dict of coin deltas and an error bool
+    :rtype: (dict, bool)
+    """
+    return parse_items(args, coin_types, default_coin)
+
+def parse_items(args: str|list, types, default=None) -> (dict, bool):
+    """
+    Parses args to get the valid items from a list of valid items.
+    :arg str|list args: the string or list of arguments to parse
+    :arg dict types: the types of items which are valid. Spaces in the names will parse multiple words to the same item, eg "gp gold" will match `gp` or `gold` or `gp gold`
+    :arg str default: the item to use if none is given (won't match if an invalid item in given)
+    :return: tuple of a dict of item deltas and an error bool
     :rtype: (dict, bool)
     """
     if typeof(args) == 'SafeList':
@@ -427,26 +438,26 @@ def parsecoins(args: str|list, coin_types=COIN_TYPES, default_coin=DEFAULT_COIN)
     for arg in args:
         new_args += [f"{'-' if idx else ''}{part}" for idx, part in enumerate(arg.split("-")) if part]
     args = new_args
-    coins = {}
+    items = {}
     for arg in args:
         error = False
-        if default_coin in coin_types and arg.replace("-","").strip().isdecimal():
-            coin = default_coin
+        if default in types and arg.replace("-","").strip().isdecimal():
+            item = default
             arg = arg.strip()
-        elif len(possible_types:=[coin for coin in coin_types if arg.lower() in coin.lower() or coin.lower() in arg.lower()]) == 1:
-            coin = possible_types[0]
-            for part in coin.lower().split():
+        elif len(possible_types:=([item for item in types if arg.lower() == item.lower()] or [item for item in types if arg.lower() in item.lower() or item.lower() in arg.lower()])) == 1:
+            item = possible_types[0]
+            for part in item.lower().split():
                 arg = arg.lower().replace(part,"").strip()
         else:
             return {}, True
         if all([number.strip().isdecimal() for number in (numbers:=arg.strip("-").replace(",","").split("."))]) and len(numbers) in [1,2]:
             quantity = float(arg.replace(",",""))
             if quantity:
-                coins.update({coin:coins.get(coin,0)+quantity})
+                items.update({item:items.get(item,0)+quantity})
         else:
             return {}, True
     
-    return coins, False
+    return items, False
         
 def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
     """
