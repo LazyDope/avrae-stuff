@@ -37,7 +37,7 @@ def _get_docs(func: _Function|dict) -> str:
     else:
         header = [f"""```py
 {f_name}```"""]
-    docs = [f"""`{(search:=(x.lstrip(':').replace(':','`:',1)))[:find if (find:=search.rfind("default:")) else None]}""" if x.startswith(":") else x for x in docs]
+    docs = [f"""`{(search:=(x.lstrip(':').replace(':','`:',1)))[:None if (find:=search.rfind("default:")) is -1 else find]}""" if x.startswith(":") else x for x in docs]
     return '\n'.join(header+docs)
 
 def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') -> str:
