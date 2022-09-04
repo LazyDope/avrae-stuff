@@ -42,7 +42,7 @@ def set_xp(value: int|float, log_message: str=None, ch=character(), return_added
     added, removed = logtools.log(log_message, "xplog", sep="", ch=ch)
     ch.set_cvar(counter, value_str)
     if return_added:
-        float(value_str), removed, added
+        return float(value_str), removed, added
     return float(value_str), removed
     
 def modify_xp(value: int|float, log_message: str=None, ch=character(), return_added=False) -> (float, [(int, str)]):
