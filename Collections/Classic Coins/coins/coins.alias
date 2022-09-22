@@ -12,6 +12,7 @@ focus = None
 error = coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"
+positive = False
 if delta:
     focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins, delta = delta)
     if not error:
@@ -20,9 +21,6 @@ if delta:
         if delta[0][1]>0:
             title = f"{name} adds"
             positive = True
-        else:
-            title = f"{name} removes"
-            positive = False
 
 if not error:
     for idx, cointup in enumerate(delta):
