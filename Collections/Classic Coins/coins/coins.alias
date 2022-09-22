@@ -21,6 +21,8 @@ if delta:
         if delta[0][1]>0:
             title = f"{name} adds"
             positive = True
+        else:
+            title = f"{name} removes"
 
 if not error:
     for idx, cointup in enumerate(delta):

@@ -352,12 +352,23 @@ def modify_coins(
         
         # after modifying the coins, do autoconversions, and check if you actually have enough
         if negative:
-            for coin_type in COIN_TYPES[:0:-1]:
-                if pouch[1][coin_type] < 0:
+            for coin_type in COIN_TYPES[::-1]:
+                if coin_type == COIN_TYPES[0] and pouch[1][coin_type]>=0:
+                    negative = False
+                elif coin_type != COIN_TYPES[0] and pouch[1][coin_type] < 0:
                     larger = COIN_TYPES[COIN_TYPES.index(coin_type)-1]
                     ratio = _get_ratio(COIN_RATES[larger], COIN_RATES[coin_type])
                     p = pouch[1][coin_type]//ratio[1]
                     pouch[1].update({larger:int(pouch[1][larger]+p*ratio[0]), coin_type:int(pouch[1][coin_type]-p*ratio[1])})
+        
+        # if largest coin still negative, convert as necessary
+        if negative and not autoCoins:
+            for coin_type in COIN_TYPES[:-1]:
+                if pouch[1][coin_type] < 0:
+                    smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
+                    ratio = _get_ratio(COIN_RATES[smaller], COIN_RATES[coin_type])
+                    p = pouch[1][coin_type]//ratio[1]
+                    pouch[1].update({smaller:int(pouch[1][smaller]+p*ratio[0]),coin_type:int(pouch[1][coin_type]-p*ratio[1])})
         
         # convert into higher denominations if the settings is enabled
         if autoCoins:
