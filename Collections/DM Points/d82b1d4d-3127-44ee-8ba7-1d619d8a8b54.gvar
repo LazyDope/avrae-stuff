@@ -197,7 +197,10 @@ def set_dmp(value: int|float, log_message: str=None, dmp_type: str=None, guild: 
     
     # update storage
     storage = get_dmp_storage()
-    storage[guild][dmp_type] |= {'current': float(value_str)}
+    if guild in storage:
+        storage[guild][dmp_type] |= {'current': float(value_str)}
+    else:
+        storage[guild][dmp_type] = {'current': float(value_str)}
     
     # update saved values
     update_storage(storage)
