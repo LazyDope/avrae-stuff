@@ -7,6 +7,7 @@ def _update_old(ch=character()):
     Converts CC into cvar.
     :var ch: the character default: character()
     """
+    counter="xp"
     cc_name = _cc_name(ch)
     if ch.cc_exists(cc_name):
         if ch.get_cc(cc_name) > 0:
