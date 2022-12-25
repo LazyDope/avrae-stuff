@@ -983,26 +983,26 @@ def _get_ratio(a: int|float|str, b: int|float|str) -> (int, int):
     """
     match (typeof(a),typeof(b)):
         case ('str','str'):
-            a = [int(x) for x in a.split('/') if x.isdecimal()][:2]
-            while len(a)<2:
+            a_pair = [int(x) for x in a.split('/') if x.isdecimal()][:2]
+            while len(a_pair)<2:
                 a.append(1)
-            b = [int(x) for x in b.split('/') if x.isdecimal()][:2]
-            while len(b)<2:
+            b_pair = [int(x) for x in b.split('/') if x.isdecimal()][:2]
+            while len(b_pair)<2:
                 b.append(1)
-            a = a[0]*b[1]
-            b = a[1]*b[0]
+            a = a_pair[0]*b_pair[1]
+            b = a_pair[1]*b_pair[0]
         case ('str',_):
-            a = [int(x) for x in a.split('/') if x.isdecimal()][:2]
-            while len(a)<2:
+            a_pair = [int(x) for x in a.split('/') if x.isdecimal()][:2]
+            while len(a_pair)<2:
                 a.append(1)
-            a = a[0]*b
-            b *= a[1]
+            a = a_pair[0]*b
+            b *= a_pair[1]
         case (_,'str'):
-            b = [int(x) for x in b.split('/') if x.isdecimal()][:2]
-            while len(b)<2:
+            b_pair = [int(x) for x in b.split('/') if x.isdecimal()][:2]
+            while len(b_pair)<2:
                 b.append(1)
-            b = b[0]*a
-            a *= b[1]
+            b = b_pair[0]*a
+            a *= b_pair[1]
     decimal = 1
     a1 = a
     b1 = b
