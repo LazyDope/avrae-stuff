@@ -985,22 +985,22 @@ def _get_ratio(a: int|float|str, b: int|float|str) -> (int, int):
         case ('str','str'):
             a_pair = [int(x) for x in a.split('/') if x.isdecimal()][:2]
             while len(a_pair)<2:
-                a.append(1)
+                a_pair.append(1)
             b_pair = [int(x) for x in b.split('/') if x.isdecimal()][:2]
             while len(b_pair)<2:
-                b.append(1)
+                b_pair.append(1)
             a = a_pair[0]*b_pair[1]
             b = a_pair[1]*b_pair[0]
         case ('str',_):
             a_pair = [int(x) for x in a.split('/') if x.isdecimal()][:2]
             while len(a_pair)<2:
-                a.append(1)
+                a_pair.append(1)
             a = a_pair[0]*b
             b *= a_pair[1]
         case (_,'str'):
             b_pair = [int(x) for x in b.split('/') if x.isdecimal()][:2]
             while len(b_pair)<2:
-                b.append(1)
+                b_pair.append(1)
             b = b_pair[0]*a
             a *= b_pair[1]
     decimal = 1
