@@ -23,4 +23,4 @@ else:
     display = ""
 return f"-title ＂{name} changes their `openMode` to `{baglib.settings['openMode']}`＂ {display}"
 </drac2>
--footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂
+-footer ＂{{get('coinFooter') or get_svar('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂
