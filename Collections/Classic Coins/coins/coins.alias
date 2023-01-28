@@ -56,4 +56,4 @@ title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f
 
 return f"""-title ＂{title}＂ {display}"""
 </drac2>
--footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂ -thumb ＂{{get("coinImage", "https://i.imgur.com/auM9MBe.png"}}＂
+-footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂ -thumb ＂{{get("coinImage", "https://i.imgur.com/auM9MBe.png")}}＂
