@@ -54,5 +54,6 @@ else:
 
 title = [f"{name} tries to add to their {bag_name} but can't find it.", title, f"{name} can't afford that much."][success]
 
-return f"-title ＂{title}＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
-</drac2> -thumb https://i.imgur.com/auM9MBe.png
+return f"""-title ＂{title}＂ {display}"""
+</drac2>
+-footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂ -thumb ＂{{get("coinImage", "https://i.imgur.com/auM9MBe.png"}}＂

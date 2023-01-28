@@ -21,5 +21,6 @@ if baglib.settings['openMode'] != 'none':
     display = ' '.join(baglib.display_coins(bagsLoaded, compact))
 else:
     display = ""
-return f"-title ＂{name} changes their `openMode` to `{baglib.settings['openMode']}`＂ -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂ {display}"
+return f"-title ＂{name} changes their `openMode` to `{baglib.settings['openMode']}`＂ {display}"
 </drac2>
+-footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂

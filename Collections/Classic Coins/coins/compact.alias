@@ -22,5 +22,6 @@ if openMode != 'none':
 else:
     display = ""
 
-return f"-title ＂{title}＂ -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂ {display}"
+return f"-title ＂{title}＂ {display}"
 </drac2>
+-footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂

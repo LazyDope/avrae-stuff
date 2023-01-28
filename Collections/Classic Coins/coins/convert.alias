@@ -9,5 +9,6 @@ openMode = baglib.settings.get('openMode','all').lower()
 focus = baglib.get_coins(bagsLoaded, autoCoins=True)
 success = baglib.save_bags(bagsLoaded)
 display = ' '.join(baglib.display_coins(bagsLoaded, compact, old_coins)) if openMode != 'none' else ''
-return f"-title ＂{name} converts their coins to save space!＂ {display} -footer ＂View '{ctx.prefix}help {ctx.alias}' for more help＂"
+return f"-title ＂{name} converts their coins to save space!＂ {display}"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
+-footer ＂{{get('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂
