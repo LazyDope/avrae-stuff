@@ -1,5 +1,5 @@
 embed <drac2>
-#Define constants
+# Define constants
 asterisk = '\\*'
 cmd = f"{ctx.prefix}{ctx.alias}"
 
@@ -13,6 +13,7 @@ coinWeighs = baglib.coinWeighs
 
 # alias specific functions
 
+
 def make_plural(word: str, quantity: int = 0) -> str:
     """
     Does what is says on the tin
@@ -21,7 +22,7 @@ def make_plural(word: str, quantity: int = 0) -> str:
     """
     if quantity != 1:
         match word[-1]:
-            case ("s"|"x"):
+            case ("s" | "x"):
                 return f"{word}es"
             case "y":
                 return f"{word[:-1]}ies"
@@ -30,7 +31,8 @@ def make_plural(word: str, quantity: int = 0) -> str:
     else:
         return word
 
-def limit_length(input_values, limit: int=100) -> str:
+
+def limit_length(input_values, limit: int = 100) -> str:
     string = ""
     tlimit = limit-3
     match typeof(input_values):
@@ -43,10 +45,10 @@ def limit_length(input_values, limit: int=100) -> str:
                     value_string = f"""{value if typeof(value) == 'int' else f'"{value}"'}"""
                 else:
                     value_string = f""", {value if typeof(value) == 'int' else f'"{value}"'}"""
-                if (len(string)+len(value_string))>tlimit:
+                if (len(string)+len(value_string)) > tlimit:
                     return string+"..."
                 else:
-                    string+=value_string
+                    string += value_string
             string += "]"
         case 'SafeDict':
             string += "{"
@@ -59,20 +61,20 @@ def limit_length(input_values, limit: int=100) -> str:
                 else:
                     x_string = f''', "{x}":'''
                     y_string = f"""{y if typeof(y) == 'int' else f'"{y}"'}"""
-                if (len(string)+len(x_string))>tlimit:
+                if (len(string)+len(x_string)) > tlimit:
                     return string + "...}"
-                elif (len(string)+len(f'''{x_string} {y_string}'''))>tlimit:
+                elif (len(string)+len(f'''{x_string} {y_string}''')) > tlimit:
                     return string + x_string + "...}"
                 else:
                     string += f"{x_string} {y_string}"
             string += "}"
-        case 'str'|'int'|'float':
-            if len(str(input_values))>limit:
+        case 'str' | 'int' | 'float':
+            if len(str(input_values)) > limit:
                 return str(input_values)[:tlimit]+"..."
             else:
                 return input_values
     return string
-        
+
 
 def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
     """
@@ -86,19 +88,20 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
     index = -1
     while index < indexlimit:
         index += 1
-        if len(args)>index and args[index][0] in cmdlist and len(args[index])>1:
-            new_args += [args[index][0],args[index][1:]]
+        if len(args) > index and args[index][0] in cmdlist and len(args[index]) > 1:
+            new_args += [args[index][0], args[index][1:]]
             break
-        elif len(args)>index:
+        elif len(args) > index:
             new_args += [args[index]]
-    if len(args)>(index+1):
+    if len(args) > (index+1):
         new_args += args[index+1:]
     return new_args
 
-#Begin
+
+# Begin
 
 # define variables
-modes = ["!","?","/","@","#","$",">","-","+",".","<","%","*","^","~","&","=",";"]
+modes = ["!", "?", "/", "@", "#", "$", ">", "-", "+", ".", "<", "%", "*", "^", "~", "&", "=", ";"]
 args_list = fix_args(&ARGS&, modes, 1)
 focus = None
 text = []
@@ -110,13 +113,13 @@ openMode = 'all'
 
 # match the input to a subcommand
 match args_list:
-    case [("help"|"h"|"?"), *_]:
+    case [("help" | "h" | "?"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags＂""")
-        text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em!＂ -f ＂Bag Management|**help**|**h**|**?**\nThis message.\n\n**vars**|**;**\nDisplays a list of the svars and cvars you can use, what their current values are, and what the defaults are.\n\n**create**|**c**|**$** \n Creates a bag.\n• `{cmd} $ "[bag name]"`\n\n**name**|**n**|**@** \n Names an existing bag.\n• `{cmd} "<Bag>" @ "<New Name>"`\n\n**delete**|**d**|**/** \n Deletes a bag and its contents. There is no additional confirmation, so make sure you have what you want out of a bag before you delete it.\n• `{cmd} "<Bag>" /`\n\n**swap**|**s**|**#** \n Swaps a bag to a different slot.\n• `{cmd} "<Bag>" # <position#>`\n\n**view**|**v**|**!** \n Views individual bags.\n• `{cmd} "<Bag Name>" !`\n• `{cmd} "<Bag Name>"`\n\n**open**|**o**|**&** \n Sets which bags will be opened when adding/removing items.\n• `{cmd} open none|one|all`\n\n**limiter**|**l**|**:** \n Sets how to handle long item names. Whether to shorten the name with a `...`, put the whole bag on a new row, or just let the item name overflow onto a newline.\n• `{cmd} limiter truncate|newrow|newline`＂ -f ＂Item Management|**buy**|**b**|**.** \n Purchases items in exchange for currency. Everything in the PHB is included. Can override prices or buy non-PHB items by including your own price at the end with no spaces. Buying ammunition is done in bundles, as per how it's listed in the PHB. Defaults to adding to a Shopping Bag. To put your purchases in an existing bag, specify the destionation bag first.\n• `{cmd} buy [quantity] "<Item>" [price]`\n• `{cmd} "[bag name]" buy [quantity] "<Item>" [price]`\n\n**add**|**a**|**+** \n Adds items to a bag. Default quantity is 1, default bag is slot 1.\n• `{cmd} "[Bag]" + [#] "<Item>"`\n• `{cmd} + "<Item>"`\n\n**remove**|**r**|**-** \n Removes items from a bag. Ditto on defaults.\n• `{cmd} "<Bag>" - [#] "<Item>"`\n• `{cmd} - "<Item>"`＂ -f ＂_ _|**move**|**m**|**>** \n Moves items from one bag to another. Ditto on quantity and origin bag. DefaultcoinWeighss to a new bag if no destination provided.\n• `{cmd} "<Origin>" > [#] "<Item>" "[Destination]"• `\n\n**pack**|**p**|**<** \n Adds a Pack from the Player's Handbook to your bags.\n• `{cmd} pack "<pack type>"`＂ -f ＂Weight Tracking|**track**|**t**|**~** \n Toggles weight tracking `on` or `off`.\n• `{cmd} track on|off`\n\n**weight**|**w**|**%** \n Sets the weight, cost, and bundle size of a custom item. Can also set `-weight`, `-cost` and `-bundle` (for ammo) individually.\n• `{cmd} % "<item>" <weight #>`\n• e.g `{cmd} weight pellet 0.05 -cost 1gp -bundle 50`\n\n**ignore**|**i**|**\\*** \n Tells the alias to ignore the weight of a bag's contents.\n• `{cmd} "<bag name>" {asterisk}`\n\n**unignore**|**u**|**^** \n Tells the alias to stop ignoring the weight of a bag's contents.\n• `{cmd} "<bag name>" ^`\n\n**encumbrance**|**e**|**=** \n Toggles the Variant: Encumbrance rules `on` or `off`.\n• `{cmd} encumbrance on|off`\n\nIf you are a homebrew race that has powerful build as a feature, or a similar effect that doubles your carry weight, put your race name in a cvar as such: `!cvar powerfulBuildRaces ["race name"]`＂ -f ＂Inexact Matches|Some items may be marked with an asterisk. These items have been given the weight of the closest match found, but if you have too many like this, the alias will stop trying because too many loops are bad mmkay. Make sure everything is spelled correctly according to the Player's Handbook or enter custom item weights using `{cmd} weight <item> <weight>`. Use the **full** names of items for best results.＂''')
+        text.append(get_gvar("a1b10275-d8f7-468c-a091-564ac245bedd").replace('{cmd}', cmd))
         text.append("-footer ＂!bag v4 by @Byronius#0001＂")
         focus = "help"
-    
-    case [("vars"|";"), *_]:
+
+    case [("vars" | ";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
         text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
         This variable defines what the conversion rates between coin types is. The types of coins are also derived from this.
@@ -125,14 +128,14 @@ match args_list:
         `{limit_length(COIN_RATES)}`
         __Default__
         `{limit_length(DEFAULT_COIN_RATES)}`
-        
+
         `{ctx.prefix}s/c/uvar coinPouchName`
         This variable defines what bag to look for when trying to modify coins.
         __Current Value__
         `{limit_length(coinPouchName)}`
         __Default__
         `Coin Pouch`
-        
+
         `{ctx.prefix}s/c/uvar coinWeighs`
         This variable defines how much each coin will weigh.
         __Current Value__
@@ -145,32 +148,32 @@ match args_list:
         `{limit_length([x[0] for x in baglib.hb_packs] or ["None"])}`
         __Default Packs__
         `{limit_length([x[0] for x in baglib.default_packs])}`
-        
+
         `{ctx.prefix}s/c/uvar powerfulBuildRaces`
         This variable lets you define additional races which get the benefit of doubled carry capacity.
         __Loaded Races__
         `{limit_length(baglib.hb_pbRaces)}`
         __Default__
         `{dump_json(["bugbear","firbolg","goliath","orc"])}`＂
-        
+
         -f ＂Storing Item Information|`{ctx.prefix}svar bag_custom_weights`
         This variable lets you define custom item weights, costs, and bundle sizes like is stored in your bagSettings cvar.
         __Loaded Items__
         `{limit_length(baglib.server_weights or ["None"])}`
         __Default__
         [GVar Here](https://avrae.io/dashboard/gvars?lookup=9eac80b1-1e1a-41ea-9a99-81a5f0f3be8e)
-        
+
         `{ctx.prefix}cvar bagSettings`
         This variable stores changes you've made to your settings in the alias, best not to edit manually.
         __Current Value__
         `{limit_length(baglib.settings, 300)}`
         __Default__
-        `{dump_json({"weightlessBags":["bag of holding","handy haversack","heward's handy haversack"],"customWeights":{},"weightTracking":"Off","openMode":"All","encumbrance":"Off","autoCoins":False})}`＂
+        `{dump_json({"weightlessBags":["bag of holding", "handy haversack", "heward's handy haversack"], "customWeights":{}, "weightTracking":"Off", "openMode":"All", "encumbrance":"Off", "autoCoins":False})}`＂
         ''')
         text.append("-footer ＂!bag v4 by @Byronius#0001＂")
         focus = "help"
-    
-    case [("delete"|"d"|"/"), *args] | [input_name, ("delete"|"d"|"/"), *args]:
+
+    case [("delete" | "d" | "/"), *args] | [input_name, ("delete" | "d" | "/"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         if input_name:
@@ -178,8 +181,8 @@ match args_list:
             success = baglib.save_bags(bagsLoaded, error)
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" has no bags after they get rid of "," gets rid of ", " fails to get rid of "][success]}{title_bag}＂""")
-    
-    case [("name"|"n"|"@"), *args] | [input_name, ("name"|"n"|"@"), *args]:
+
+    case [("name" | "n" | "@"), *args] | [input_name, ("name" | "n" | "@"), *args]:
         if not input_name:
             input_name = args.pop(0)
         new_name = ' '.join(args)
@@ -189,8 +192,8 @@ match args_list:
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" fails to name their empty space",f" names {title_bag} to {new_name}",f" fails to name {title_bag}"][success]}＂""")
         focus = baglib.get_bag(bagsLoaded, new_name) if new_name and success == 1 else baglib.get_bag(bagsLoaded, input_name)
-    
-    case [("swap"|"s"|"#"), *args] | [input_name, ("swap"|"s"|"#"), *args]:
+
+    case [("swap" | "s" | "#"), *args] | [input_name, ("swap" | "s" | "#"), *args]:
         if not input_name:
             input_name = args.pop(0)
         position = int(args[0]) if args and args[0].isdecimal() else 0
@@ -201,29 +204,29 @@ match args_list:
             focus = baglib.get_bag(bagsLoaded, input_name) if input_name else None
         title_bag = f"""their {input_name}""" if input_name else "a bag"
         text.append(f"""-title ＂{name}{[" has nothing to swap",f" swaps {title_bag} to position {position}",f" fails to swap {title_bag}"][success]}＂""")
-    
-    case [("create"|"c"|"$"), *args] | [input_name, ("create"|"c"|"$"), *args]:
+
+    case [("create" | "c" | "$"), *args] | [input_name, ("create" | "c" | "$"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         bag = baglib.new_bag(bagsLoaded, input_name) if input_name else baglib.new_bag(bagsLoaded)
         success = baglib.save_bags(bagsLoaded)
         focus = bag if success else focus
-        title_bag = f"""their {bag[0]}""" if bag else f"their {input_name}"    
+        title_bag = f"""their {bag[0]}""" if bag else f"their {input_name}"
         text.append(f"""-title ＂{name}{[" fails to create, so still has no bags",f" creates {title_bag}!",f" fails to create {title_bag}"][success]}＂""")
-    
-    case [("move"|"m"|">"), input_name, *args] | [input_name, ("move"|"m"|">"), *args]:
+
+    case [("move" | "m" | ">"), input_name, *args] | [input_name, ("move" | "m" | ">"), *args]:
         bag, dest_bag = (None, None)
         error = False
         match args:
             case [quantity, item, *destination] if quantity.strip("+").isdecimal():
-                quantity = max(int(quantity.strip("+")),0)
+                quantity = max(int(quantity.strip("+")), 0)
             case [item, *destination]:
                 quantity = 1
             case _:
                 error = True
         if not error:
             destination = ' '.join(destination) or None
-            
+
             if input_name == destination:
                 error = True
             if not error:
@@ -233,20 +236,48 @@ match args_list:
                     bag, items, error = baglib.modify_item(bagsLoaded, item, -quantity, input_name)
                     item = items[0]
                 if not error:
-                    if destination and destination.lower() in "coin purse" and item.lower() in COIN_TYPES and COIN_RATES == DEFAULT_COIN_RATES:
+                    if (
+                        destination
+                        and destination.lower() in "coin purse"
+                        and item.lower() in COIN_TYPES
+                        and COIN_RATES == DEFAULT_COIN_RATES
+                    ):
                         dest_bag, error = baglib.modify_coins(bagsLoaded, item.lower(), quantity)
                     else:
-                        dest_bag, items, error = baglib.modify_item(bagsLoaded, item, quantity, destination, create_on_fail=True)
+                        dest_bag, items, error = (
+                            baglib.modify_item(
+                                bagsLoaded,
+                                item,
+                                quantity,
+                                destination,
+                                create_on_fail=True
+                            )
+                        )
                         item = items[0]
                     error = bag == dest_bag or error
         success = baglib.save_bags(bagsLoaded, error)
         focus = bag if error else dest_bag
         title_bag = f"""their {bag[0]}""" if bag else "a bag"
         dest_title = dest_bag[0] if dest_bag else ""
-        item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
+        item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity', 0)))
         text.append(f"""-title ＂{name}{[" fails to move anything, as they have no bags!",f" moves {quantity} {item_name} from {title_bag} to their {dest_title}",f" fails to move some {item_name} from {title_bag}"][success]}＂""")
-        
-    case [("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args] | [input_name, ("remove"|"r"|"-"|"add"|"a"|"+"|"buy"|"b"|".") as sign, *args]:
+
+    case [
+        (
+            "remove" | "r" | "-" |
+            "add"    | "a" | "+" |
+            "buy"    | "b" | "."
+        ) as sign,
+        *args
+    ] | [
+        input_name,
+        (
+            "remove" | "r" | "-" |
+            "add"    | "a" | "+" |
+            "buy"    | "b" | "."
+        ) as sign,
+        *args
+    ]:
         buy, add, remove = sign in "buy.", sign in "add+", sign in "remove-"
         price = None
         error = False
@@ -261,34 +292,49 @@ match args_list:
                 error = True
         if not error:
             if buy:
-                fullcost = ''.join(price) or typeof(baglib.weightDict.get(item.lower())) == 'SafeDict' and baglib.weightDict.get(item.lower(),{}).get("cost") or f"0{COIN_TYPES[1 if len(COIN_TYPES)>1 else 0]}"
-                num = int(''.join([x for x in fullcost if x.isdecimal()]))
-                coin = ''.join([x for x in fullcost]).lstrip(str(num))
-                bundle = typeof(baglib.weightDict.get(item.lower())) == 'SafeDict' and baglib.weightDict.get(item.lower(),{}).get("bundle") or 1
+                cost = (
+                    ''.join(price)
+                    or typeof(baglib.weightDict.get(item.lower())) == 'SafeDict'
+                    and baglib.weightDict.get(item.lower(), {}).get("cost")
+                    or f"0"
+                )
+                delta, parse_error = baglib.parsecoins(cost)
+                error = error or parse_error
+                bundle = (
+                    typeof(baglib.weightDict.get(item.lower())) == 'SafeDict'
+                    and baglib.weightDict.get(item.lower(), {}).get("bundle")
+                    or 1
+                )
                 quantity = ceil(float(quantity) / bundle) * bundle
-                cost = -num * quantity
-                coins, error = baglib.modify_coins(bagsLoaded, coin, cost)
+                delta = {coin: -quantity * cost for coin, cost in delta.items()}
+                coins, error = baglib.modify_coins(bagsLoaded, delta=delta)
                 input_name = input_name or "Shopping Bag"
-                bag = None                          
+                bag = None
             if not error:
                 quantity = -quantity if remove else quantity
-                if (not input_name or input_name.lower() in ("coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower())) and item.lower() in COIN_TYPES:
+                if (
+                    not input_name
+                    or input_name.lower() in (
+                        "coin purse" if baglib.use_coin_purse(bagsLoaded) else coinPouchName.lower()
+                    )
+                ) and item.lower() in COIN_TYPES:
                     bag, error = baglib.modify_coins(bagsLoaded, item, quantity)
                 else:
                     bag, items, error = baglib.modify_item(bagsLoaded, item, quantity, input_name, create_on_fail=True)
                     item = items[0]
             success = baglib.save_bags(bagsLoaded, error)
-            item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity',0)))
+            item_name = item if item.lower() in COIN_TYPES else make_plural(item, abs(get('quantity', 0)))
         if buy:
             focus = coins if success == -1 else bag
-            title_bag = f"""their {bag[0]}""" if bag else "a bag"    
-            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f" buys {abs(quantity)} {item_name} for {abs(cost)}{coin} and puts it in {title_bag}",f" can't afford the {abs(cost)}{coin} to buy {item_name}"][success]}＂""")
+            title_bag = f"""their {bag[0]}""" if bag else "a bag"
+            cost_str = ''.join(f"{' + ' if i > 0 else ''}{abs(cost if cost % 1 else int(cost))}{coin}" for i, (coin, cost) in enumerate(delta.items()))
+            text.append(f"""-title ＂{name}{[f" tries to buy {item_name} but has no bags!",f''' buys {abs(quantity)} {item_name} for {cost_str} and puts it in {title_bag}''',f" can't afford the {cost_str} to buy {item_name}"][success]}＂""")
         else:
             focus = bag if bag else focus
-            title_bag = f"""their {bag[0]}""" if bag else "a bag"    
+            title_bag = f"""their {bag[0]}""" if bag else "a bag"
             text.append(f"""-title ＂{name}{[f" tries to {'add' if add else 'remove'} {item_name} but has no bags!",f" {'adds' if add else 'removes'} {abs(quantity)} {item_name} {'to' if add else 'from'} {title_bag}",f" can't {'add' if add else 'remove'} {item_name}"][success]}＂""")
-        
-    case [("pack"|"p"|"<"), *args] | [input_name, ("pack"|"p"|"<"), *args]:
+
+    case [("pack" | "p" | "<"), *args] | [input_name, ("pack" | "p" | "<"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         error = False
@@ -303,85 +349,99 @@ match args_list:
             pack = pack[0]
             pack_name = baglib.find_valid_name(bagsLoaded, pack[0])
             bagsLoaded.append([pack_name, pack[1]])
-            focus = baglib.get_bag(bagsLoaded, pack_name, exact_match = True)
+            focus = baglib.get_bag(bagsLoaded, pack_name, exact_match=True)
         success = baglib.save_bags(bagsLoaded, error)
         title_bag = f"""{pack_name}""" if focus else input_name
         text.append(f"""-title ＂{name}{[f" tries to add a {title_bag} but still has no bags!",f" adds a {title_bag}.",f" there is no pack called {title_bag}."][success]}＂""")
-            
-    case [("weight"|"w"|"%"), *args] | [input_name, ("weight"|"w"|"%"), *args]:
+
+    case [("weight" | "w" | "%"), *args] | [input_name, ("weight" | "w" | "%"), *args]:
         if not input_name:
             input_name = args.pop(0)
         pargs = argparse(args)
-        weight = pargs.last('weight') or len(args)>0 and args[0] or ''
+        weight = pargs.last('weight') or len(args) > 0 and args[0] or ''
         weight = float('.'.join([x for x in weight.split('.') if x.isdecimal][:2]) or "0") or None
-        cost = pargs.last('cost') or len(args)>1 and args[1]
+        cost = pargs.last('cost') or len(args) > 1 and args[1]
         cost = cost if cost and any([coin in cost for coin in COIN_TYPES]) else None
-        bundle = pargs.last('bundle') or len(args)>2 and args[2]
+        bundle = pargs.last('bundle') or len(args) > 2 and args[2]
         bundle = int(bundle) if bundle and bundle.isdecimal() else None
         success = baglib.set_custom_weight(input_name, weight, cost, bundle)
         text.append(f"""-title ＂{name}{[f''' fails to update {input_name.title().replace("'S ", "'s ")}!''',f''' updates the values for {input_name.title().replace("'S ", "'s ")}!'''][success]}＂""")
-    
-    case [("ignore"|"i"|"*"), *args] | [input_name, ("ignore"|"i"|"*"), *args]:
+
+    case [("ignore" | "i" | "*"), *args] | [input_name, ("ignore" | "i" | "*"), *args]:
         if not input_name:
             input_name = ' '.join(args)
-        if input_name and input_name.lower() not in baglib.settings.get('weightlessBags',baglib.default_settings.weightlessBags):
-            baglib.settings.get('weightlessBags',baglib.default_settings.weightlessBags).append(input_name.lower())
+        if input_name and input_name.lower() not in baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags):
+            baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags).append(input_name.lower())
             success = 1
         text.append(f"""-title ＂{name}{["",f''' deems a {input_name.title().replace("'S ", "'s ")} to have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
-    
-    case [("unignore"|"u"|"^"), *args] | [input_name, ("unignore"|"u"|"^"), *args]:
+
+    case [("unignore" | "u" | "^"), *args] | [input_name, ("unignore" | "u" | "^"), *args]:
         if not input_name:
             input_name = ' '.join(args)
-        if input_name and input_name.lower() in baglib.settings.get('weightlessBags',baglib.default_settings.weightlessBags):
-            baglib.settings.get('weightlessBags',baglib.default_settings.weightlessBags).remove(input_name.lower())
+        if input_name and input_name.lower() in baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags):
+            baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags).remove(input_name.lower())
             success = 1
         text.append(f"""-title ＂{name}{["",f''' deems a {input_name.title().replace("'S ", "'s ")} to no longer have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
-    
-    case [("track"|"t"|"~"), *args] | [input_name, ("track"|"t"|"~"), *args]:
+
+    case [("track" | "t" | "~"), *args] | [input_name, ("track" | "t" | "~"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         match input_name.lower():
-            case ('on'|'true'):
+            case ('on' | 'true'):
                 baglib.settings['weightTracking'] = "On"
-            case ('off'|'false'):
+            case ('off' | 'false'):
                 baglib.settings['weightTracking'] = "Off"
             case _:
-                baglib.settings['weightTracking'] = "Off" if baglib.settings.get('weightTracking',baglib.default_settings.weightTracking) == "On" else "On"
+                baglib.settings['weightTracking'] = "Off" if (
+                    baglib.settings.get('weightTracking', baglib.default_settings.weightTracking) == "On"
+                ) else "On"
         success = 1
-        text_dict = {'on':" is watching their weight!", 'off': " thinks weight is just a number!"}
-        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('weightTracking','Off').lower()]}＂""")
-        
-    case [("open"|"o"|"&"), *args] | [input_name, ("open"|"o"|"&"), *args]:
+        text_dict = {'on': " is watching their weight!", 'off': " thinks weight is just a number!"}
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('weightTracking', 'Off').lower()]}＂""")
+
+    case [("open" | "o" | "&"), *args] | [input_name, ("open" | "o" | "&"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        baglib.settings['openMode'] = input_name.title() if input_name.lower() in baglib.openModes else baglib.settings.get('openMode','All')
-        text_dict = {'None':" doesn't want to see their full bags when they add or remove an item!",'One':" would like to see the bag they removed something from when they add or remove an item!",'All':" would like to know what's left in all of their bags when they add or remove an item!"}
-        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('openMode','All').title()]}＂""")
+        baglib.settings['openMode'] = input_name.title() if (
+            input_name.lower() in baglib.openModes
+        ) else baglib.settings.get('openMode', 'All')
+        text_dict = {
+            'None': " doesn't want to see their full bags when they add or remove an item!",
+            'One': " would like to see the bag they removed something from when they add or remove an item!",
+            'All': " would like to know what's left in all of their bags when they add or remove an item!"
+        }
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('openMode', 'All').title()]}＂""")
 
-    case [("encumbrance"|"e"|"="), *args] | [input_name, ("encumbrance"|"e"|"="), *args]:
+    case [("encumbrance" | "e" | "="), *args] | [input_name, ("encumbrance" | "e" | "="), *args]:
         if not input_name:
             input_name = ' '.join(args)
         match input_name.lower():
-            case ('on'|'true'):
+            case ('on' | 'true'):
                 baglib.settings['encumbrance'] = "On"
-            case ('off'|'false'):
+            case ('off' | 'false'):
                 baglib.settings['encumbrance'] = "Off"
             case _:
-                baglib.settings['encumbrance'] = "Off" if baglib.settings.get('encumbrance',baglib.default_settings.encumbrance) == "On" else "On"
+                baglib.settings['encumbrance'] = "Off" if baglib.settings.get('encumbrance', baglib.default_settings.encumbrance) == "On" else "On"
         success = 1
-        text_dict = {'on':" is feeling weighed down!", 'off': " wants to get this weight off their shoulders!"}
-        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('encumbrance','Off').lower()]}＂""")
-        
-    case [("limiter"|"l"|":"), *args] | [input_name, ("limiter"|"l"|":"), *args]:
+        text_dict = {'on': " is feeling weighed down!", 'off': " wants to get this weight off their shoulders!"}
+        text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('encumbrance', 'Off').lower()]}＂""")
+
+    case [("limiter" | "l" | ":"), *args] | [input_name, ("limiter" | "l" | ":"), *args]:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
-        baglib.settings['handleLongNames'] = input_name.lower() if input_name.lower() in baglib.longModes else baglib.settings.get('handleLongNames','newrow')
-        text_dict = {'truncate':" doesn't want to see the full item name if its too long!",'newrow':" would like each item to always have its own line!",'newline':" doesn't mind if their items take up multiple lines!"}
+        baglib.settings['handleLongNames'] = input_name.lower() if (
+            input_name.lower() in baglib.longModes
+        ) else baglib.settings.get('handleLongNames', 'newrow')
+        text_dict = {
+            'truncate': " doesn't want to see the full item name if its too long!",
+            'newrow': " would like each item to always have its own line!",
+            'newline': " doesn't mind if their items take up multiple lines!"
+        }
         text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('handleLongNames','newrow').lower()]}＂""")
-        
-    case [("view"|"v"|"!"), *args] | [input_name, ("view"|"v"|"!"), *args] | [*args]:
+
+    case [("view" | "v" | "!"), *args] | [input_name, ("view" | "v" | "!"), *args] | [*args]:
         if not input_name:
             input_name = ' '.join(args)
         success = 1
@@ -392,11 +452,11 @@ match args_list:
 
 # don't display bags if viewing help
 if focus != "help":
-    
+
     # reload bags if anything errored
     if success == -1:
         bagsLoaded = baglib.load_bags()
-    
+
     text += baglib.create_display(bagsLoaded, focus, openMode, old_bags)
     text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
