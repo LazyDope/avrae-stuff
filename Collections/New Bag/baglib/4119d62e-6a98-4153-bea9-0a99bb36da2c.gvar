@@ -622,7 +622,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
     """
     item_name = item.lower()
     unknownItem = False
-    if item_name in weightDict and (typeof(dict_entry := weightDict[item_name]) != "SafeDict" or 'weight' in dict_entry):
+    if item_name in weightDict and ((typeof(dict_entry := weightDict[item_name]) != "SafeDict") or 'weight' in dict_entry):
         itemWeight = (dict_entry if typeof(dict_entry) != "SafeDict" else dict_entry['weight'])
     elif item_name in COIN_TYPES:
         itemWeight = coinWeighs
@@ -632,7 +632,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
         itemWeight = 0.5
     elif fuzzyItemCount < 5:
         fuzzyItemCount += 1
-        itemWeight = ([(weightDict[y].get("weight") if typeof(weightDict[y]) == "SafeDict" else weightDict[y]) for y in weightDict if y in item_name]+["†"])[0]
+        itemWeight = ([(v.get("weight") if typeof(v) == "SafeDict" else v) for k, v in weightDict.items() if k in item_name and (typeof(v) != "SafeDict" or 'weight' in v)]+["†"])[0]
     else:
         itemWeight = "†"
         unknownItem = True
