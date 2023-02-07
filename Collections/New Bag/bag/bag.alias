@@ -358,11 +358,21 @@ match args_list:
         if not input_name:
             input_name = args.pop(0)
         pargs = argparse(args)
-        weight = pargs.last('weight') or len(args) > 0 and args[0] or ''
-        weight = float('.'.join([x for x in weight.split('.') if x.isdecimal][:2]) or "0") or None
-        cost = pargs.last('cost') or len(args) > 1 and args[1]
-        cost = cost if cost and any([coin in cost for coin in COIN_TYPES]) else None
-        bundle = pargs.last('bundle') or len(args) > 2 and args[2]
+        try:
+            if 'weight' in pargs or 'cost' in pargs or 'bundle' in pargs:
+                weight = pargs.last('weight', type_=float)
+                cost = pargs.last('cost')
+                bundle = pargs.last('bundle', type_=int)
+            else:
+                weight = len(args) > 0 and args[0]
+                cost = len(args) > 1 and args[1]
+                bundle = len(args) > 2 and args[2]
+        except:
+            weight = None
+            cost = None
+            bundle = None
+        weight = float('.'.join([x for x in weight.split('.', 1) if x.isdecimal][:2]) or "0") or None if weight else None
+        cost = cost if cost and any(coin in cost for coin in COIN_TYPES) else None
         bundle = int(bundle) if bundle and bundle.isdecimal() else None
         success = baglib.set_custom_weight(input_name, weight, cost, bundle)
         text.append(f"""-title ＂{name}{[f''' fails to update {input_name.title().replace("'S ", "'s ")}!''',f''' updates the values for {input_name.title().replace("'S ", "'s ")}!'''][success]}＂""")
