@@ -58,7 +58,7 @@ if not "autoCoins" in settings:
 
 weightDict = load_yaml(get_gvar("9eac80b1-1e1a-41ea-9a99-81a5f0f3be8e"))
 custWeights = settings.get('customWeights', {})
-if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "list":
+if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
     for addr in server_weights:
         custWeights.update(load_yaml(get_gvar(addr)))
 else:
