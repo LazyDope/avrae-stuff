@@ -370,18 +370,20 @@ match args_list:
     case [("ignore" | "i" | "*"), *args] | [input_name, ("ignore" | "i" | "*"), *args]:
         if not input_name:
             input_name = ' '.join(args)
+            success = 0
         if input_name and input_name.lower() not in baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags):
             baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags).append(input_name.lower())
             success = 1
-        text.append(f"""-title ＂{name}{["",f''' deems a {input_name.title().replace("'S ", "'s ")} to have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
+        text.append(f"""-title ＂{name}{[" tries to ignore the weight of a weightless bag!",f''' deems a {input_name.title().replace("'S ", "'s ")} to have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
 
     case [("unignore" | "u" | "^"), *args] | [input_name, ("unignore" | "u" | "^"), *args]:
         if not input_name:
             input_name = ' '.join(args)
+            success = 0
         if input_name and input_name.lower() in baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags):
             baglib.settings.get('weightlessBags', baglib.default_settings.weightlessBags).remove(input_name.lower())
             success = 1
-        text.append(f"""-title ＂{name}{["",f''' deems a {input_name.title().replace("'S ", "'s ")} to no longer have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
+        text.append(f"""-title ＂{name}{[" tries to track the weight of an already tracked bag!",f''' deems a {input_name.title().replace("'S ", "'s ")} to no longer have weightless contents!'''," fails to update their weightless settings!"][success]}＂""")
 
     case [("track" | "t" | "~"), *args] | [input_name, ("track" | "t" | "~"), *args]:
         if not input_name:
