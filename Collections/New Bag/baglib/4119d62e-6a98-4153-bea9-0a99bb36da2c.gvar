@@ -880,7 +880,11 @@ def create_display(
 
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
-    custWeights.update(load_yaml(get_svar("bag_custom_weights", "{}")))
+    if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
+        for addr in server_weights:
+            custWeights.update(load_yaml(get_gvar(addr)))
+    else:
+        custWeights.update(server_weights)
     weightDict.update(custWeights)
 
     # define loop based on what mode we're in
