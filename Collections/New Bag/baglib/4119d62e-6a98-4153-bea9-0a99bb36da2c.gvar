@@ -58,12 +58,15 @@ if not "autoCoins" in settings:
 
 weightDict = load_yaml(get_gvar("9eac80b1-1e1a-41ea-9a99-81a5f0f3be8e"))
 custWeights = settings.get('customWeights', {})
-if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
-    for addr in server_weights:
-        custWeights.update(load_yaml(get_gvar(addr)))
-else:
-    custWeights.update(server_weights)
 weightDict.update(custWeights)
+if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
+    for item in server_weights:
+        if typeof(item) == "str":
+            weightDict.update(load_yaml(get_gvar(addr)))
+        else:
+            weightDict.update(item)
+else:
+    weightDict.update(server_weights)
 
 carryMod = ch.stats.strength*(
     2 if ch.cvars.get('race', ch.race).lower() in pbRaces else 1
@@ -880,12 +883,15 @@ def create_display(
 
     # reload settings, just in case
     custWeights = settings.get('customWeights', default_settings.customWeights)
-    if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
-        for addr in server_weights:
-            custWeights.update(load_yaml(get_gvar(addr)))
-    else:
-        custWeights.update(server_weights)
     weightDict.update(custWeights)
+    if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
+        for item in server_weights:
+            if typeof(item) == "str":
+                weightDict.update(load_yaml(get_gvar(addr)))
+            else:
+                weightDict.update(item)
+    else:
+        weightDict.update(server_weights)
 
     # define loop based on what mode we're in
     match openMode:
