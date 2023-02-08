@@ -62,7 +62,7 @@ weightDict.update(custWeights)
 if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
     for item in server_weights:
         if typeof(item) == "str":
-            weightDict.update(load_yaml(get_gvar(addr)))
+            weightDict.update(load_yaml(get_gvar(item)))
         else:
             weightDict.update(item)
 else:
@@ -887,7 +887,7 @@ def create_display(
     if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
         for item in server_weights:
             if typeof(item) == "str":
-                weightDict.update(load_yaml(get_gvar(addr)))
+                weightDict.update(load_yaml(get_gvar(item)))
             else:
                 weightDict.update(item)
     else:
