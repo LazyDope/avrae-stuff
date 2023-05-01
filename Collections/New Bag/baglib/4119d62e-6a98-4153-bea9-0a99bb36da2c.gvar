@@ -77,7 +77,7 @@ carryMod = ch.stats.strength*(
 
 
 # Define functions
-def load_bags(ch = character()) -> [a_bag]:
+def load_bags(ch=character()) -> [a_bag]:
     """
     Loads the current character's bags as a list.
     :var ch: The current character, will be loaded if none is provided. default: character()
@@ -112,7 +112,7 @@ def load_bags(ch = character()) -> [a_bag]:
     # remove entries with 0 items
     for bag in bagsLoaded:
         if bag[0] == coinPouchName:
-            bag[1] = {item: count for item, count in bag[1].items() if count > 0 and item not in COIN_TYPES}
+            bag[1] = {item: count for item, count in bag[1].items() if count > 0 or item in COIN_TYPES}
         else:
             bag[1] = {item: count for item, count in bag[1].items() if count > 0}
 
