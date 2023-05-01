@@ -112,17 +112,9 @@ def load_bags(ch = character()) -> [a_bag]:
     # remove entries with 0 items
     for bag in bagsLoaded:
         if bag[0] == coinPouchName:
-            for item_name in (
-                item for item, count in bag[1].items()
-                if count <= 0 and item not in COIN_TYPES
-            ):
-                bag[1].pop(item_name)
+            bag[1] = {item: count for item, count in bag[1].items() if count <= 0 and item not in COIN_TYPES}
         else:
-            for item_name in (
-                item for item, count in bag[1].items()
-                if count <= 0
-            ):
-                bag[1].pop(item_name)
+            bag[1] = {item: count for item, count in bag[1].items() if count <= 0}
 
     # makes sure if bags are used, variables follow character
     for var in ['coinRates', 'coinPouchName', 'coinWeighs']:
