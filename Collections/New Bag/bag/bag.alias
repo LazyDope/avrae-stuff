@@ -470,7 +470,7 @@ if focus != "help":
         bagsLoaded = baglib.load_bags()
 
     text += baglib.create_display(bagsLoaded, focus, openMode, old_bags)
-    text.append(f"-footer ＂For help with your bags, see {cmd} help＂")
+    text.append(f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see {cmd} help.＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
 return ' '.join(text)
 </drac2> -color <color>
