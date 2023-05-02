@@ -1,0 +1,50 @@
+echo ```json
+!cvar bags <drac2>
+using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+bagsLoaded = baglib.load_bags()
+bag_dict = dict(bagsLoaded)
+input = """&*&"""
+bag_list = []
+cbag = ["", {}]
+things = ""
+for line in input.split("\n"):
+    line = load_yaml(dump_json([line]))[0]
+    if f"{name}'s bags" in line or "Coin Weight: " in line:
+        continue
+    if "Total Weight Carried: " in line or "For help with your bags, see " in line:
+        break
+    if some_bags := [bag_name for bag_name in bag_dict if bag_name in line]:
+        some_bags.sort(reverse=True, key=lambda x: len(x))
+        bag_name = some_bags[0]
+        if cbag[0]:
+            cbag = ["", {}]
+        cbag[0] = bag_name
+        bag_list.append(cbag)
+        continue
+    if "Coin Purse" in line and baglib.use_coin_purse(bagsLoaded):
+        if cbag[0]:
+            cbag = ["", {}]
+        continue
+    line = line.replace("†", "")
+    line = line.strip()
+    try:
+        if line[0] == "<" and ">" in line:
+            line = line.split(">", 1)[1].strip()
+        if not line[0].isdecimal():
+            index = min((line.find(x) for x in "0123456789"), key=lambda x: 100000000 if x == -1 else x)
+            line = line[index:]
+        if line[0].isdecimal():
+            if " lbs.]" in line:
+                line = line.rsplit("[", 1)[0]
+            if line.lstrip("0123456789")[0] == "x":
+                split = line.split("x", 1)
+            else:
+                split = line.split(" ", 1)
+            q = int(split[0])
+            item = split[1].strip()
+            cbag[1][item] = cbag[1].get(item, 0) + q
+    except:
+        err(line)
+
+return dump_json(bag_list)
+</drac2>```
