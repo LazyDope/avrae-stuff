@@ -956,9 +956,16 @@ def carried_weight(bagsLoaded: list) -> float:
     carriedWeight = 0
 
     # reload settings, just in case
-    custWeights = (settings.get('customWeights', default_settings.customWeights))
-    custWeights.update(load_yaml(get_svar("bag_custom_weights", "{}")))
+    custWeights = settings.get('customWeights', default_settings.customWeights)
     weightDict.update(custWeights)
+    if typeof(server_weights := load_yaml(get_svar("bag_custom_weights", "{}"))) == "SafeList":
+        for item in server_weights:
+            if typeof(item) == "str":
+                weightDict.update(load_yaml(get_gvar(item)))
+            else:
+                weightDict.update(item)
+    else:
+        weightDict.update(server_weights)
 
     for bag in loop:
         bag_weight, _, _ = weigh_bag(bag, weightDict, 'on')
