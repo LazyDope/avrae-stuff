@@ -726,7 +726,7 @@ def display_bag(
 
         # start weight calculation
         if weightTracking and bag[0].lower() not in ignoreBags:  # only weigh the bag if it's enabled
-            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount)
+            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount, localWeightDict)
             anyUnknownItem = anyUnknownItem or unknownItem
 
             itemWeight = itemWeight*(quantity if typeof(itemWeight) != 'str' else 1)
