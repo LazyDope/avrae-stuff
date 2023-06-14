@@ -615,19 +615,19 @@ def set_custom_weight(item_name: str, weight: float = None, cost: str = None, bu
         ch.set_cvar('bagSettings', dump_json(settings))
     return success
 
-def get_item_weight(item: str, fuzzyItemCount: int = 0, localWeightDict: dict = weightDict) -> (float | str, int, bool):
+def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weightDict) -> (float | str, int, bool):
     """
     Grabs the weight of the given item.
     Also allows keeping track of how many items have used a fuzzy search, which is more intensive.
     :arg str item: the name of the item
     :var int fuzzyItemCount: the current count of how many fuzzy matches have been made default: 0
-    :var dict localWeightDict: the dict to pull weights from default: self.weightDict
+    :var dict weightDict: the dict to pull weights from default: self.weightDict
     :return: the weigh, the total number of fuzzy items, and whether no matching weight was found.
     :rtype: (float|str, int, bool)
     """
     item_name = item.lower()
     unknownItem = False
-    if item_name in localWeightDict and ((typeof(dict_entry := localWeightDict[item_name]) != "SafeDict") or 'weight' in dict_entry):
+    if item_name in weightDict and ((typeof(dict_entry := weightDict[item_name]) != "SafeDict") or 'weight' in dict_entry):
         itemWeight = (dict_entry if typeof(dict_entry) != "SafeDict" else dict_entry['weight'])
     elif item_name in COIN_TYPES:
         itemWeight = coinWeighs
@@ -637,7 +637,7 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, localWeightDict: dict = 
         itemWeight = 0.5
     elif fuzzyItemCount < 5:
         fuzzyItemCount += 1
-        itemWeight = ([(v.get("weight") if typeof(v) == "SafeDict" else v) for k, v in localWeightDict.items() if k in item_name and (typeof(v) != "SafeDict" or 'weight' in v)]+["†"])[0]
+        itemWeight = ([(v.get("weight") if typeof(v) == "SafeDict" else v) for k, v in weightDict.items() if k in item_name and (typeof(v) != "SafeDict" or 'weight' in v)]+["†"])[0]
     else:
         itemWeight = "†"
         unknownItem = True
@@ -647,14 +647,14 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, localWeightDict: dict = 
 
 def weigh_bag(
     bag: a_bag,
-    localWeightDict: dict = weightDict,
+    weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking', 'Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags', ["bag of holding", "handy haversack", "heward's handy haversack"])
 ) -> (float, float, int):
     """
     Returns a tuple of values relevant to the weighing of a bag.
     :arg a_bag bag: the bag to get the weight of
-    :var dict localWeightDict: the dict to pull weights from default: self.weightDict
+    :var dict weightDict: the dict to pull weights from default: self.weightDict
     :var bool weightTracking: whether to track weight default: self.settings.weightTracking
     :var list ignoreBags: the list of lowercase bag name to skip weight tracking for default: self.settings.weightlessBags
     :return: the total and coin weight in lbs, and the total number of fuzzy matches
@@ -669,7 +669,7 @@ def weigh_bag(
     for item in bag[1]:
         if weightTracking and bag[0].lower() not in ignoreBags:
             item_name = item.lower()
-            itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount, localWeightDict)
+            itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount, weightDict)
 
             itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
 
@@ -683,7 +683,7 @@ def weigh_bag(
 
 def display_bag(
     bag: a_bag,
-    localWeightDict: dict = weightDict,
+    weightDict: dict = weightDict,
     weightTracking: bool = (settings.get('weightTracking', 'Off').lower() == 'on'),
     ignoreBags: list = settings.get('weightlessBags', ["bag of holding", "handy haversack", "heward's handy haversack"]),
     old_bag: dict = None,
@@ -692,7 +692,7 @@ def display_bag(
     """
     Creates the field(s) to display a bag in an embed.
     :arg a_bag bag: the bag to get the weight of
-    :var dict localWeightDict: the dict to get weights from default: self.weightDict
+    :var dict weightDict: the dict to get weights from default: self.weightDict
     :var bool weightTracking: whether to use weight tracking default: self.settings.weightTracking
     :var list ignoreBags: a list of what bags are ignored default: self.settings.weightlessBags
     :var dict old_bag: the bag's contents previous state, for building a delta from default: None
@@ -726,7 +726,7 @@ def display_bag(
 
         # start weight calculation
         if weightTracking and bag[0].lower() not in ignoreBags:  # only weigh the bag if it's enabled
-            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount, localWeightDict)
+            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount, weightDict)
             anyUnknownItem = anyUnknownItem or unknownItem
 
             itemWeight = itemWeight*(quantity if typeof(itemWeight) != 'str' else 1)
@@ -867,7 +867,7 @@ def create_display(
     focus: a_bag = None,
     openMode: str = settings.get('openMode', 'All'),
     old_bags: dict = {},
-    localWeightDict: dict = weightDict,
+    weightDict: dict = weightDict,
 ) -> list:
     """
     Creates the full display for a list of bags.
@@ -908,7 +908,7 @@ def create_display(
             if not bag:
                 continue
             old_bag = None if old_bags is None else old_bags.get(bag[0], {})
-            fields, bag_weight, _, fuzzyItemCount, UnknownItems = display_bag(bag, localWeightDict, weightTracking, ignoreBags, old_bag)
+            fields, bag_weight, _, fuzzyItemCount, UnknownItems = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
             text += fields
             anyUnknownItem = anyUnknownItem or UnknownItems
             carriedWeight += bag_weight
@@ -946,7 +946,7 @@ def carried_weight(bagsLoaded: list) -> float:
     carriedWeight = 0
 
     for bag in loop:
-        bag_weight, _, _ = weigh_bag(bag, localWeightDict, 'on')
+        bag_weight, _, _ = weigh_bag(bag, weightDict, 'on')
         carriedWeight += bag_weight
     return float(carriedWeight)
 
