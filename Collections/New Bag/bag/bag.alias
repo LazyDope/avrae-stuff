@@ -360,9 +360,9 @@ match args_list:
         pargs = argparse(args)
         try:
             if 'weight' in pargs or 'cost' in pargs or 'bundle' in pargs:
-                weight = pargs.last('weight', type_=float)
+                weight = pargs.last('weight')
                 cost = pargs.last('cost')
-                bundle = pargs.last('bundle', type_=int)
+                bundle = pargs.last('bundle')
             else:
                 weight = len(args) > 0 and args[0]
                 cost = len(args) > 1 and args[1]
