@@ -85,18 +85,18 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
     :var indexlimit: the highest index that will be checked
     """
     new_args = []
-    index = -1
-    while index < indexlimit:
+    index = 0
+    while index <= indexlimit and len(args) > index:
+        arg = args[index]
         index += 1
-        if len(args) > index and args[index][0] in cmdlist and len(args[index]) > 1:
-            new_args += [args[index][0], args[index][1:]]
+        if arg[0] in cmdlist:
+            new_args.append(arg[0])
+            if len(arg) > 1:
+                new_args.append(arg[2:] if arg[1] == " " else arg[1:])
             break
-        elif len(args) > index:
-            new_args += [args[index]]
-    if len(args) > (index+1):
-        new_args += args[index+1:]
-    return new_args
-
+        else:
+            new_args.append(arg)
+    return new_args + args[index:]
 
 # Begin
 
