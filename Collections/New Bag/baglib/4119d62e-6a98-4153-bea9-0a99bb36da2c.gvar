@@ -1011,7 +1011,7 @@ def round_nicely(number: int | float) -> str:
     :return: the rounded number as a string
     :rtype: str
     """
-    return f'{number:,.2f}'.rstrip('0').rstrip('.')
+    return f'{number:,.2f}'.rstrip('0').rstrip('.').replace(",", " ")
 
 
 def _get_ratio(a: int | float | str, b: int | float | str) -> (int, int):
