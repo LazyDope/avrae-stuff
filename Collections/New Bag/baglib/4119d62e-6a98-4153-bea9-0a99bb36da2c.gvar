@@ -341,7 +341,7 @@ def modify_coins(
     Returns the coin bag or a bag representing the coin purse, as well as a bool for error handling
     :arg list bagsLoaded: list of all the bags
     :var str coin: the coin that is being modified default: self.DEFAULT_COIN
-    :var int quantity: how much to change the coins by default: 0
+    :var float|int quantity: how much to change the coins by default: 0
     :var dict delta: instead of coin or quantity you can provide delta, a dict of coins and quantities default: {}
     :var bool autoCoins: whether to convert into larger denominations default: self.settings.autoCoins
     :var ch: the character, can be passed through if already loaded default: character()
@@ -351,75 +351,89 @@ def modify_coins(
     # define variables
     bagsLoaded = _as_list(bagsLoaded)
     pouch = get_coins(bagsLoaded, autoCoins=False, ch=ch)
+    max_i = len(COIN_TYPES) - 1
 
     # check if coins are valid
-    error = bool(any([coin.lower() not in COIN_TYPES for coin in delta]) or (coin and coin.lower() not in COIN_TYPES))
+    if bool(any([coin.lower() not in COIN_TYPES for coin in delta]) or (coin and coin.lower() not in COIN_TYPES)):
+        return pouch, True
     coin = coin.lower()
     delta = delta.copy()
 
     # prepare the coin diff
-    if not error:
-        delta.update({coin: delta.get(coin, 0)+quantity} if quantity else {})
+    if quantity:
+        delta[coin] = delta.get(coin, 0)+quantity
 
-        # smooth out any floating point entries
-        for coin in COIN_TYPES[:-1:-1]:
-            if (decimal := delta.get(coin, 0) % 1):
-                index = COIN_TYPES.index(coin)
-                smaller = COIN_TYPES[index+1]
-                rate = COIN_RATES[smaller]/COIN_RATES[coin]
-                p = decimal*rate
-                if index == len(COIN_TYPES)-2 and p % 1:
-                    return (pouch, True)
-                delta.update({smaller: delta.get(smaller, 0)+p, coin: int(delta.get(coin, 0)-decimal)})
+    # smooth out any floating point entries
+    if delta.get(COIN_TYPES[-1], 0) % 1:
+        return (pouch, True)
+    for i, coin in enumerate(COIN_TYPES[:-1]):
+        if (decimal := abs(delta.get(coin, 0)) % 1):
+            smaller = COIN_TYPES[i+1]
+            rate = COIN_RATES[smaller]/COIN_RATES[coin]
+            sign = delta[coin]/abs(delta[coin])
+            p = decimal*rate
+            if i == max_i-1 and p % 1:
+                return (pouch, True)
+            delta.update({
+                smaller: delta.get(smaller, 0)+sign*p,
+                coin: delta.get(coin, 0)-sign*decimal
+            })
 
-        # finally ensure all are int
-        for coin_type in delta:
-            delta[coin_type] = int(delta[coin_type])
-    else:
-        delta = None
+    # finally ensure all are int
+    for coin_type in delta:
+        delta[coin_type] = round(delta[coin_type])
 
     # prepare coins regardless of if it's coin pouch or coin purse
-    if not error:
-        negative = False
-        for coin_type in delta:
-            pouch[1][coin_type] += delta[coin_type]
-            negative = negative or delta[coin_type] < 0
+    negative = False
+    for coin_type in delta:
+        pouch[1][coin_type] += delta[coin_type]
+        negative = negative or delta[coin_type] < 0
 
-        # after modifying the coins, do autoconversions, and check if you actually have enough
-        if negative:
-            for coin_type in COIN_TYPES[::-1]:
-                if coin_type == COIN_TYPES[0] and pouch[1][coin_type] >= 0:
-                    negative = False
-                elif coin_type != COIN_TYPES[0] and pouch[1][coin_type] < 0:
-                    larger = COIN_TYPES[COIN_TYPES.index(coin_type)-1]
-                    ratio = _get_ratio(COIN_RATES[larger], COIN_RATES[coin_type])
-                    p = pouch[1][coin_type]//ratio[1]
-                    pouch[1].update({larger: int(pouch[1][larger]+p*ratio[0]), coin_type: int(pouch[1][coin_type]-p*ratio[1])})
+    # after modifying the coins, do autoconversions, and check if you actually have enough
+    if negative:
+        for i, coin_type in enumerate(COIN_TYPES[::-1]):
+            if i == max_i and pouch[1][coin_type] >= 0:
+                negative = False
+            elif i != max_i and pouch[1][coin_type] < 0:
+                larger = COIN_TYPES[max_i-i-1]
+                ratio = _get_ratio(COIN_RATES[larger], COIN_RATES[coin_type])
+                p = pouch[1][coin_type]//ratio[1]
+                pouch[1].update({
+                    larger: int(pouch[1][larger]+p*ratio[0]),
+                    coin_type: int(pouch[1][coin_type]-p*ratio[1])
+                })
 
-        # if largest coin still negative, convert as necessary
-        if negative and not autoCoins:
-            for coin_type in COIN_TYPES[:-1]:
-                if pouch[1][coin_type] < 0:
-                    smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
-                    ratio = _get_ratio(COIN_RATES[smaller], COIN_RATES[coin_type])
-                    p = pouch[1][coin_type]//ratio[1]
-                    pouch[1].update({smaller: int(pouch[1][smaller]+p*ratio[0]), coin_type: int(pouch[1][coin_type]-p*ratio[1])})
-
-        # convert into higher denominations if the settings is enabled
-        if autoCoins:
-            for coin_type in COIN_TYPES[-2::-1]:
-                smaller = COIN_TYPES[COIN_TYPES.index(coin_type)+1]
+    # if largest coin still negative, convert as necessary
+    if negative and not autoCoins:
+        for i, coin_type in enumerate(COIN_TYPES[:-1]):
+            if pouch[1][coin_type] < 0:
+                smaller = COIN_TYPES[i+1]
                 ratio = _get_ratio(COIN_RATES[smaller], COIN_RATES[coin_type])
-                p = pouch[1][smaller]//ratio[0]
-                if p:
-                    pouch[1].update({smaller: int(pouch[1][smaller]-p*ratio[0]), coin_type: int(pouch[1][coin_type]+p*ratio[1])})
+                p = pouch[1][coin_type]//ratio[1]
+                pouch[1].update({
+                    smaller: int(pouch[1][smaller]+p*ratio[0]),
+                    coin_type: int(pouch[1][coin_type]-p*ratio[1])
+                })
 
-        error = any([pouch[1][coin_type] < 0 for coin_type in pouch[1]]) or error
+    # convert into higher denominations if the setting is enabled
+    if autoCoins:
+        for i, coin_type in enumerate(COIN_TYPES[-2::-1]):
+            smaller = COIN_TYPES[max_i-i]
+            ratio = _get_ratio(COIN_RATES[smaller], COIN_RATES[coin_type])
+            p = pouch[1][smaller]//ratio[0]
+            if p:
+                pouch[1].update({
+                    smaller: int(pouch[1][smaller]-p*ratio[0]),
+                    coin_type: int(pouch[1][coin_type]+p*ratio[1])
+                })
 
-        # if the modifications were successful, dump to actual coin purse
-        if not error and use_coin_purse(bagsLoaded):
-            ch.coinpurse.set_coins(pouch[1].pp, pouch[1].gp, pouch[1].ep, pouch[1].sp, pouch[1].cp)
-    return (pouch, error)
+    if any([pouch[1][coin_type] < 0 for coin_type in pouch[1]]):
+        return (pouch, True)
+
+    # if the modifications were successful, dump to actual coin purse
+    if use_coin_purse(bagsLoaded):
+        ch.coinpurse.set_coins(pouch[1].pp, pouch[1].gp, pouch[1].ep, pouch[1].sp, pouch[1].cp)
+    return (pouch, False)
 
 
 def get_coins(bagsLoaded: list, autoCoins=settings.get('autoCoins', get("autocoins", "0") == "1"), ch=character()) -> a_bag:
