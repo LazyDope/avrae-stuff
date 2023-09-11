@@ -370,8 +370,8 @@ def modify_coins(
             smaller = COIN_TYPES[i+1]
             rate = COIN_RATES[smaller]/COIN_RATES[coin]
             sign = delta[coin]/abs(delta[coin])
-            p = decimal*rate
-            if i == max_i and p % 1:
+            p = round(decimal*rate, max_i - i)
+            if i == max_i - 1 and p % 1:
                 return (pouch, True)
             delta.update({
                 smaller: delta.get(smaller, 0)+sign*p,
