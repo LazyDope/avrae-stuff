@@ -84,33 +84,36 @@ def log_page(
     """
     entries = entries or entries_per_page(ch)
     max_len = float('inf') if max_len is None else max_len
-    log_entries = log.items()
     pages = []
-    dir = -1 if page < 0 else 1
-    c_page = -1 if page < 0 else 0
+    reverse = True if page < 0 else False
+    c_page = []
     c_entries = 0
-    for ts, entry in list(log_entries)[::dir]:
+    c_len = 0
+    for ts, entry in list(log.items())[::-1 if reverse else None]:
         msg = f'**<t:{log_to_epoch(ts)}:D>:** {entry}'
         if len(msg) > max_len:
             msg = f'**<t:{log_to_epoch(ts)}:D>:** entry too long'
-        if c_entries == 0:
-            pages.insert(0, msg)
+        if c_entries == 0 or ((c_len + len(msg) + 1) > max_len or c_entries >= entries):
+            c_page = [msg]
+            if reverse:
+                pages.insert(0, c_page)
+            else:
+                pages.append(c_page)
             c_entries = 1
-            continue
-        left, right = [pages[c_page], msg][::dir]
-        if (len(left) + len(right) + 1) > max_len or c_entries >= entries:
-            c_page += dir
-            pages.insert(min(-dir, 0), msg)
-            c_entries = 1
+            c_len = len(msg)
         else:
-            pages[c_page] = left + '\n' + right
+            if reverse:
+                c_page.insert(0, msg)
+            else:
+                c_page.append(msg)
             c_entries += 1
+            c_len += len(msg) + 1
     if not pages:
         return "No logs available", 0, 1
 
     pages_len = len(pages)
     page_i = max(min(page, pages_len-1), -pages_len)
-    return pages[page_i], pages_len+page_i if page_i < 0 else page_i, pages_len
+    return '\n'.join(pages[page_i]), pages_len+page_i if page_i < 0 else page_i, pages_len
 
 
 def get_log(name: str, ch=None) -> {int: str}:
