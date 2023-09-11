@@ -1,7 +1,9 @@
 # Thanks for using LogTools
 # The purpose of this module is to provide tools for displaying logs
 # created by:
-# Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
+# Discord: byronius; GitHub: LazyDope; Ko-Fi: alazydope
+
+VAR_MAX_LEN = 9999
 
 def as_valid_number(inp_str: str) -> float:
     """
@@ -15,6 +17,7 @@ def as_valid_number(inp_str: str) -> float:
     if all(parts := [x.isdecimal() for x in inp_str.strip("+-").split(".")]) and len(parts) == 2:
         return float(inp_str)
     return None
+
 
 def entries_per_page(ch: AliasCharacter=None, default: int=15) -> int:
     """
@@ -36,7 +39,8 @@ def entries_per_page(ch: AliasCharacter=None, default: int=15) -> int:
         return serv_set or user_set
     return default
 
-def display_log_changes(name: str, added: [(int, str)]=None, removed: [(int, str)]=None) -> [str]:
+
+def display_log_changes(name: str=None, added: [(int, str)]=None, removed: [(int, str)]=None) -> [str]:
     """
     Display the changes made to the log
     :var str name: The name to be displayed with the log entry default: None
@@ -59,13 +63,14 @@ def display_log_changes(name: str, added: [(int, str)]=None, removed: [(int, str
         out.append(add_f)
     return out
 
+
 def log_page(
         log: dict,
         page: int=-1,
         entries: int=None,
         max_len: int=4096,
         ch: AliasCharacter=None
-    ) -> (int, int, str):
+    ) -> (str, int, int):
     """
     Creates the display for a page of a log
     :arg dict log: the log to parse
@@ -73,15 +78,15 @@ def log_page(
     :var int entries: the max number of entries per page. Will try to load from c/u/svar in that order or default to 15 if set to None. default: None
     :var int max_len: the maximum length that each page is allowed to be. Set to None to ignore. default: 4096
     :var AliasCharacter ch: the character to load display settings from, if any default: None
-    :return: the formatted page desired, the final page index, and the total number of pages 
-    :rtype: (int, int, str)
+    :return: the formatted page desired, the final page index, and the total number of pages
+    :rtype: (str, int, int)
     """
     entries = entries or entries_per_page(ch)
     max_len = float('inf') if max_len is None else max_len
     log_entries = log.items()
     pages = []
-    dir = -1 if page<0 else 1
-    c_page = -1 if page<0 else 0
+    dir = -1 if page < 0 else 1
+    c_page = -1 if page < 0 else 0
     c_entries = 0
     for ts, entry in list(log_entries)[::dir]:
         msg = f'**<t:{log_to_epoch(ts)}:D>:** {entry}'
@@ -92,20 +97,21 @@ def log_page(
             c_entries = 1
             continue
         left, right = [pages[c_page], msg][::dir]
-        if (len(left) + len(right) + 1)>max_len or c_entries >= entries:
+        if (len(left) + len(right) + 1) > max_len or c_entries >= entries:
             c_page += dir
-            pages.insert(min(-dir,0), msg)
+            pages.insert(min(-dir, 0), msg)
             c_entries = 1
         else:
             pages[c_page] = left + '\n' + right
             c_entries += 1
     if not pages:
         return "No logs available", 0, 1
-    
+
     pages_len = len(pages)
-    page_i = max(min(pages_len-page if page<0 else page, pages_len-1), 0)
+    page_i = max(min(pages_len-page if page < 0 else page, pages_len-1), 0)
     return pages[page_i], page_i, pages_len
-    
+
+
 def get_log(name: str, ch=None) -> {int: str}:
     """
     Grabs the log uvars for the server and returns as a single dict.
@@ -114,7 +120,7 @@ def get_log(name: str, ch=None) -> {int: str}:
     :return: the log for the given server
     :rtype: {int: str}
     """
-    
+
     # prepare dmp_log uvars
     if ch:
         get_vars = ch.cvars
@@ -122,16 +128,16 @@ def get_log(name: str, ch=None) -> {int: str}:
     else:
         get_vars = get_uvars()
         set_var = set_uvar
-        
-    log = load_yaml(''.join([y for x,y in get_vars.items() if x.startswith(name)])) or {}
-        
-    #Convert legacy log
-    if log and any([typeof(x) == "str" for x in list(log)]):
-        #Setup Calendar
-        calendar=load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
-        monthLengths=[x.length for x in calendar.months]
-        timezoneOffset=float(calendar.get('hourOffset',0))+float(get('timezone',0))
-        
+
+    log = load_yaml('\n'.join(y for x, y in get_vars.items() if x.startswith(name))) or {}
+
+    # convert legacy log
+    if log and any(typeof(x) == "str" for x in list(log)):
+        # setup Calendar
+        calendar = load_yaml(get_gvar("1aec09a0-9e25-4700-9c2d-42d79cb0163b"))
+        monthLengths = [x.length for x in calendar.months]
+        timezoneOffset = float(calendar.get('hourOffset', 0))+float(get('timezone', 0))
+
         newlog = {}
         for x in log:
             if typeof(x) == 'str':
@@ -146,7 +152,7 @@ def get_log(name: str, ch=None) -> {int: str}:
                     hour, minute, second = clock.strip("()").split(":")
                 else:
                     hour, minute, second = (0, 0, 0)
-                t = int(second) + (int(minute) - int(timezoneOffset%1 * 60)) * 60 + (int(hour) - int(timezoneOffset)) * 3600 + int(day) * 24 * 3600
+                t = int(second) + (int(minute) - int(timezoneOffset % 1 * 60)) * 60 + (int(hour) - int(timezoneOffset)) * 3600 + int(day) * 24 * 3600
                 t += (sum([monthLengths[x] for x in range(int(month)-1)]) + (int(month) > 2 and int(year) == 20)) * 24 * 3600
                 t += ((int(year) - 20) * 365 + (int(year) > 20)) * 24 * 3600
                 t = int(round(float(t) / 60.0))
@@ -156,6 +162,7 @@ def get_log(name: str, ch=None) -> {int: str}:
         log = newlog
         set_var(name, dump_yaml(log))
     return log
+
 
 def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> ([(int, str)], [(int, str)]):
     """
@@ -170,15 +177,16 @@ def log(log_message: str, name: str, sep: str="_", ch: AliasCharacter=None) -> (
     log = get_log(name, ch)
     timestamp = epoch_to_log(time())
     removed = []
-    
+
     if timestamp in log:
         log_message = log[timestamp] + "; " + log_message
-    while (len(dump_yaml(log)) + len(dump_yaml({timestamp:log_message}))) > 200000:
-        removed.append((list(log)[0],log[list(log)[0]]))
+    while (len(dump_yaml(log)) + len(dump_yaml({timestamp: log_message}))) > 200000:
+        removed.append((list(log)[0], log[list(log)[0]]))
         log.pop(list(log)[0])
-    log.update({timestamp:log_message})
+    log.update({timestamp: log_message})
     removed += set_log(log, name, sep, ch)
     return [(timestamp, log_message)], removed
+
 
 def set_log(log: dict, name: str, sep: str="_", ch=None) -> [(int, str)]:
     """
@@ -199,28 +207,29 @@ def set_log(log: dict, name: str, sep: str="_", ch=None) -> [(int, str)]:
         get_var = get_uvar
         set_var = set_uvar
         del_var = delete_uvar
-    
+
     max_i = 0
     removed = []
-    if len(dump_yaml(log)) > 9999:
-        log_method = var if (var:=get_var("log_method", "discard")) in ['discard', 'keep'] else 'discard'
+    if len(dump_yaml(log)) > VAR_MAX_LEN:
+        log_method = var if (var := get_var("log_method", "discard")) in ['discard', 'keep'] else 'discard'
         if log_method == 'keep':
             del_var(name)
-            max_i = (len(dump_yaml(log))-1)//9999 + 1
+            max_i = (len(dump_yaml(log))-1)//VAR_MAX_LEN+1
             for i in range(max_i):
-                set_var(f'{name}{sep}{i}',dump_yaml(log)[9999*i:9999*(i+1)])
+                set_var(f'{name}{sep}{i}', dump_yaml(log)[VAR_MAX_LEN*i:VAR_MAX_LEN*(i+1)])
         else:
-            while len(dump_yaml(log)) > 9999:
-                removed.append((list(log)[0],log[list(log)[0]]))
+            while len(dump_yaml(log)) > VAR_MAX_LEN:
+                removed.append((list(log)[0], log[list(log)[0]]))
                 log.pop(list(log)[0])
-            set_var(name,dump_yaml(log))
+            set_var(name, dump_yaml(log))
     else:
-        set_var(name,dump_yaml(log))
+        set_var(name, dump_yaml(log))
     while get_var(f'{name}{sep}{max_i}'):
         del_var(f'{name}{sep}{max_i}')
         max_i += 1
     return removed
-    
+
+
 def log_to_epoch(log_time: int) -> int:
     """
     Converts log time into epoch time.
@@ -232,6 +241,7 @@ def log_to_epoch(log_time: int) -> int:
     t_since = 18262*24*60*60
     return log_time*60+t_since
 
+
 def epoch_to_log(epoch_time: int) -> int:
     """
     Converts epoch time into log time.
@@ -242,6 +252,7 @@ def epoch_to_log(epoch_time: int) -> int:
     """
     t_since = 18262*24*60*60
     return (int(epoch_time)-t_since)//60
+
 
 def round_nicely(number, include_sign: bool=True) -> str:
     """
@@ -255,6 +266,7 @@ def round_nicely(number, include_sign: bool=True) -> str:
         return f'{number:+.2f}'.rstrip('0').rstrip('.')
     return f'{number:.2f}'.rstrip('0').rstrip('.')
 
+
 def make_plural(word: str, quantity: int = 0) -> str:
     """
     Does what is says on the tin
@@ -263,7 +275,7 @@ def make_plural(word: str, quantity: int = 0) -> str:
     """
     if quantity != 1:
         match word[-1]:
-            case ("s"|"x"):
+            case ("s" | "x"):
                 return f"{word}es"
             case "y":
                 return f"{word[:-1]}ies"
