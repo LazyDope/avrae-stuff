@@ -12,6 +12,7 @@ using(
 cmd = ctx.prefix+ctx.alias
 
 
+# some handy dandy functions
 def print_nice(num: float) -> str:
     return f"{round(num, 2):,}".rstrip("0").rstrip(".")
 
@@ -58,6 +59,7 @@ This is done so that it works with the new alias as some of the formats have cha
 
 Ignore this warning if you are not using other older aliases to handle experience.'"""
 
+# load xp and arguments for commands
 xp = xplib.get_xp()
 ch.delete_cvar('xp_firstrun')
 ch.delete_cvar('xp_revert_firstrun')
@@ -73,10 +75,10 @@ else:
 
 # set value to 0 when loading log
 page_num = int(value) if value is not None else -1
-page_num = page_num if page_num < 1 else page_num-1
+page_num = page_num if page_num < 1 else page_num-1  # convert to index
 value = 0 if subcs['log'] else value
 
-added = []
+# modifying and logging
 if value:
     if subcs['set']:
         total, removed, added = xplib.set_xp(value, ' '.join([f"Total set to"]+ptargs.split(" ")[1:]), return_added=True)
@@ -86,6 +88,7 @@ if value:
 else:
     total = xp
 
+# checking for level ups
 next, next_total, next_needed = xplib.next_lvl()
 ding = next_needed <= 0 if level < len(totals) else False
 
