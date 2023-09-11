@@ -110,7 +110,7 @@ def log_page(
 
     pages_len = len(pages)
     page_i = max(min(page, pages_len-1), -pages_len)
-    return pages[page_i], pages_len-page_i if page_i < 0 else page_i, pages_len
+    return pages[page_i], pages_len+page_i if page_i < 0 else page_i, pages_len
 
 
 def get_log(name: str, ch=None) -> {int: str}:
