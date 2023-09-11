@@ -93,7 +93,7 @@ def next_lvl(xp: float = None, ch=character()) -> (int, float, float):
     c_level = ch.levels.total_level
     xp = get_xp(ch) if xp is None else xp
     index = min(c_level, len(total)-1)
-    return index+1, float(totals[index]), float(totals[index]-xp)
+    return index+1, float(total[index]), float(total[index]-xp)
 
 
 def level(lvl: int = None, xp: float = None, ch=character()) -> (int, float, float):
