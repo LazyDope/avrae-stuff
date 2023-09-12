@@ -14,7 +14,13 @@ cmd = ctx.prefix+ctx.alias
 
 # some handy dandy functions
 def print_nice(num: float) -> str:
-    return f"{round(num, 2):,}".rstrip("0").rstrip(".")
+    match typeof(num):
+        case "float":
+            return f"{round(num, 2):,}".rstrip("0").rstrip(".")
+        case "int":
+            return f"{num:,}"
+        case _:
+            return num
 
 
 def ordinal(num: int) -> str:
@@ -67,7 +73,7 @@ out = []
 check_args = int(subcs['set']) or ((len(args) > 1) and int(subcs['log']))
 if args and not any(subcs[subc] for subc in ['chart', 'help?', 'options']):
     try:
-        value = round(float('.'.join(args[check_args].replace(",", "").split('.')[:2])))
+        value = round(float('.'.join(args[check_args].replace(",", "").split('.')[:2])), 2)
     except "ValueError":
         value = None
 else:
