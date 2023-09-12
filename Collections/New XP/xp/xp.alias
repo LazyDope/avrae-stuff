@@ -133,6 +133,7 @@ elif subcs['help?']:
 `{cmd} log` - Displays a log of all your {xp_name} gains, losses, and sets.
 `{cmd} options` - displays the new options available to customize your xp display.＂"""
 elif subcs['options']:
+    title = f"{name} wants more than what's in the footer!"
     desc = """-desc ＂Use a cvar or svar called `xptotals` to change XP totals required for level up. Increase or decrease the number of entries on this list to increase or decrease the level cap respectively. Use a comma separated list like so `1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20`. Prefers server choice. 
     (Default: `0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000`)
 Use a cvar or svar called `xpname` to change the name of your XP system. Prefers server choice.
