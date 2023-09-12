@@ -119,8 +119,8 @@ def level(lvl: int = None, xp: float = None, ch=character()) -> (int, float, flo
     else:
         lvl = ch.levels.total_level
         index = min(int(lvl)-1, len(total)-1)
-        xp = get_xp(ch)
-        xp_diff = total[index]-xp
+        xp = total[lvl]
+        xp_diff = total[index]-get_xp(ch)
     return lvl, float(xp), float(xp_diff)
 
 
