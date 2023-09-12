@@ -89,6 +89,7 @@ else:
     total = xp
 
 # checking for level ups
+_, required, _ = xplib.level()
 next, next_total, next_needed = xplib.next_lvl()
 ding = next_needed <= 0 if level < len(totals) else False
 
@@ -103,7 +104,7 @@ if value:
     else:
         title += "."
     desc = (
-        f"""-desc ＂Your {xp_name} total needs to be at least {required:,} to match your current level!＂"""
+        f"""-desc ＂Your {xp_name} total needs to be at least {print_nice(required)} to match your current level!＂"""
         if total < totals[min(len(totals), level)-1] else
         f'''-desc ＂{"Don't forget" if ding else "You need"} to update your sheet with your proper level and run `!update`＂'''
         if level < len(totals) and total >= (totals[min(len(totals)-1, level)]) else ""
