@@ -1,0 +1,3 @@
+[[language]]
+name = "python"
+file-types = ['alias', 'snippet', 'gvar']
