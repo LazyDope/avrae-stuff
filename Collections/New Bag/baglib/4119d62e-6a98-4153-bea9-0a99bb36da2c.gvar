@@ -809,13 +809,13 @@ def display_bag(
 def display_coins(
     bagsLoaded: list,
     compact: settings.get('compactCoins', get("compactcoins", "0") == "1"),
-    old_coins: dict = {}
+    old_coins: dict = None
 ) -> list:
     """
     Creates the field(s) to display coins in an embed.
     :arg list bagsLoaded: the loaded list of bags
     :var bool compact: whether to use compact view default: self.settings.compactCoins
-    :var dict old_coins: the old coins for comparing to default: {}
+    :var dict old_coins: the old coins for comparing to default: None
     :return: a list of fields to display coins
     :rtype: list
     """
