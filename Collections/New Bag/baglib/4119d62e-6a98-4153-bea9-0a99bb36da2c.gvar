@@ -542,12 +542,14 @@ def find_bag_with_item(bagsLoaded: list, item: str) -> a_bag:
 def find_valid_name(a_dict: dict, input_str: str) -> str:
     """
     Finds a unique permutation for a key given a dict and a name.
+    Also limits a bag's name to 200 characters to not overrun field name limits.
     :arg dict a_dict: the dict to search in
     :arg str input_str: the base name to check with
     :return: a similar string which is not used as a key
     :rtype: str
     """
     a_dict = _as_dict(a_dict)
+    input_str = input_str[:200]
     i = int(input_str.split(' ')[-1]) if input_str.split(' ')[-1].isdecimal() else 1
     while input_str in a_dict:
         i += 1
