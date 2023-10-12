@@ -19,22 +19,24 @@ DEFAULT_COIN_EMOJIS = {
     "gp": "<:DDBGold:953399505062080594>",
     "pp": "<:DDBPlatinum:953399504739106847>"
 }
-COIN_RATES = list((load_yaml((get_svar("coinRates") or ch.cvars.get("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
+COIN_RATES = list((load_yaml((get_svar("coinRates") or ch.get_cvar("coinRates", "[]")).lower()) or DEFAULT_COIN_RATES).items())
 COIN_RATES.sort(key=lambda x: x[1])
 COIN_RATES = dict(COIN_RATES)
 COIN_TYPES = list(COIN_RATES)
 DEFAULT_COIN = [coin for coin, rate in COIN_RATES.items() if rate == 1]
 DEFAULT_COIN = DEFAULT_COIN[0] if DEFAULT_COIN else COIN_TYPES[0]
-coinPouchName = get_svar("coinPouchName") or ch.cvars.get("coinPouchName", "Coin Pouch")
-coinWeighs = float(get_svar("coinWeighs") or ch.cvars.get("coinWeighs", 0.02))
+coinPouchName = get_svar("coinPouchName") or ch.get_cvar("coinPouchName", "Coin Pouch")
+coinWeighs = float(get_svar("coinWeighs") or ch.get_cvar("coinWeighs", 0.02))
+
+ITEM_PREFIXES = load_yaml(var) if (var := get_svar("bagItemPrefixes") or ch.get_cvar("bagItemPrefixes")) is not None else DEFAULT_COIN_EMOJIS
 
 default_packs = load_yaml(get_gvar("c81ff7db-ae6e-439e-8b54-7170bbefd0fe"))
-hb_packs = load_yaml(get_svar("extraPacks", '[]'))+load_yaml(ch.cvars.get("extraPacks", '[]'))
+hb_packs = load_yaml(get_svar("extraPacks", '[]'))+load_yaml(ch.get_cvar("extraPacks", '[]'))
 
 packs = default_packs + hb_packs
 
 pbRaces = ["bugbear", "firbolg", "goliath", "orc"]
-pbRaces = pbRaces+(hb_pbRaces := load_yaml(ch.cvars.get("powerfulBuildRaces", "[]").lower())+load_yaml(get_svar("powerfulBuildRaces", "[]").lower()))
+pbRaces = pbRaces+(hb_pbRaces := load_yaml(ch.get_cvar("powerfulBuildRaces", "[]").lower())+load_yaml(get_svar("powerfulBuildRaces", "[]").lower()))
 
 default_settings = {
     "weightlessBags": [
@@ -48,7 +50,7 @@ default_settings = {
     "encumbrance": "Off",
     "autoCoins": False
 }
-settings = load_yaml(ch.cvars.get("bagSettings", dump_json(default_settings)))
+settings = load_yaml(ch.get_cvar("bagSettings", dump_json(default_settings)))
 if not "openMode" in settings or not settings.openMode.lower() in openModes:
     settings.update({"openMode": "All"})
 if not "encumbrance" in settings:
@@ -69,10 +71,10 @@ else:
 weightDict.update(custWeights)
 
 carryMod = ch.stats.strength*(
-    2 if ch.cvars.get('race', ch.race).lower() in pbRaces else 1
+    2 if ch.get_cvar('race', ch.race).lower() in pbRaces else 1
 )*(
-    2 if load_yaml(ch.cvars.get('subclass', '{}')).get("BarbarianLevel", "") == "Totem Warrior"
-    and ch.cvars.get("l6totem", "") == "Bear" else 1
+    2 if load_yaml(ch.get_cvar('subclass', '{}')).get("BarbarianLevel", "") == "Totem Warrior"
+    and ch.get_cvar("l6totem", "") == "Bear" else 1
 )
 
 
@@ -95,7 +97,7 @@ def load_bags(ch=character()) -> [a_bag]:
         ch.delete_cvar(f"bag{i}")
 
     # load bags
-    bagsLoaded = load_yaml(ch.cvars.get('bags', '[]'))
+    bagsLoaded = load_yaml(ch.get_cvar('bags', '[]'))
     bagsLoaded = bagsLoaded + old_bags_converted
 
     # remove duplicate names
@@ -728,10 +730,8 @@ def display_bag(
         item_name = item.lower()
         quantity = bag[1][item]
 
-        if item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
-        else:
-            item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
+        item_message = f"{ITEM_PREFIXES[item_name]} " if item_name in ITEM_PREFIXES else ""
+        item_message += f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
 
         # get item amount differences
         if old_bag is not None:
@@ -835,9 +835,10 @@ def display_coins(
         item_name = item.lower()
         quantity = bag[1][item]
         if compact and item_name == 'cointotal':
-            item_message = f"""{DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN,"")} Total Value: {round_nicely(quantity)} {DEFAULT_COIN}""".strip()
-        elif item_name in COIN_TYPES and COIN_TYPES == list(DEFAULT_COIN_RATES):
-            item_message = f"""{DEFAULT_COIN_EMOJIS[item_name]} {quantity:,} {item}""".strip()
+            prefix = DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN)
+            item_message = f"""{prefix + " " if prefix else ""}Total Value: {round_nicely(quantity)} {DEFAULT_COIN}""".strip()
+        elif item_name in ITEM_PREFIXES:
+            item_message = f"""{ITEM_PREFIXES[item_name]} {quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         else:
             item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
 
