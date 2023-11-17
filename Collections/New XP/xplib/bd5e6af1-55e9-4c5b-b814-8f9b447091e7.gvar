@@ -14,7 +14,7 @@ def update_old(ch=character()):
     cc = cc_name(ch)
     if ch.cc_exists(cc):
         if ch.get_cc(cc) > 0:
-            if get_svar("xp_cc_overwrite") or get("xp_cc_overwrite"):
+            if get_svar("xp_cc_overwrite") or get_uvar("xp_cc_overwrite") or ch.get_cvar("xp_cc_overwrite"):
                 ch.set_cvar(COUNTER, str(ch.get_cc(cc)))
             else:
                 ch.set_cvar_nx(COUNTER, str(ch.get_cc(cc)))
@@ -29,7 +29,7 @@ def get_xp(ch=character()) -> float:
     :rtype: float
     """
     update_old(ch)
-    return float(ch.cvars.get(COUNTER, "0"))
+    return float(ch.get_cvar(COUNTER, "0"))
 
 
 def set_xp(
