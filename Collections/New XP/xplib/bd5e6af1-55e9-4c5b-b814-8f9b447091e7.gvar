@@ -14,7 +14,10 @@ def update_old(ch=character()):
     cc = cc_name(ch)
     if ch.cc_exists(cc):
         if ch.get_cc(cc) > 0:
-            ch.set_cvar_nx(COUNTER, str(ch.get_cc(cc)))
+            if get_svar("xp_cc_overwrite") or get("xp_cc_overwrite"):
+                ch.set_cvar(COUNTER, str(ch.get_cc(cc)))
+            else:
+                ch.set_cvar_nx(COUNTER, str(ch.get_cc(cc)))
         ch.delete_cc(cc)
 
 
