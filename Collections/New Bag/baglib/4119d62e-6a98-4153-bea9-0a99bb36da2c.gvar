@@ -810,7 +810,7 @@ def display_bag(
 
 def display_coins(
     bagsLoaded: list,
-    compact: settings.get('compactCoins', get("compactcoins", "0") == "1"),
+    compact: bool = settings.get('compactCoins', get("compactcoins", "0") == "1"),
     old_coins: dict = None
 ) -> list:
     """
@@ -826,18 +826,21 @@ def display_coins(
     bagsLoaded = _as_list(bagsLoaded)
     bag = get_coins(bagsLoaded)
     item_messages = []
+    old_total = None
+    coin_total = None
     if compact:
-        old_coins and old_coins.update({'cointotal': sum([old_coins.pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins])})
-        bag[1] and bag[1].update({'cointotal': sum([bag[1].pop(coin)/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in bag[1]])})
+        old_total = sum(old_coins[coin]/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins) if old_coins else None
+        coin_total = sum(bag[1][coin]/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in bag[1]) if bag[1] else 0.0
 
     # loop over each item, getting the information needed for the display
     for item in bag[1]:
         item_name = item.lower()
+
+        if compact and item_name in COIN_TYPES:
+            continue
+
         quantity = bag[1][item]
-        if compact and item_name == 'cointotal':
-            prefix = DEFAULT_COIN_EMOJIS.get(DEFAULT_COIN)
-            item_message = f"""{prefix + " " if prefix else ""}Total Value: {round_nicely(quantity)} {DEFAULT_COIN}""".strip()
-        elif item_name in ITEM_PREFIXES:
+        if item_name in ITEM_PREFIXES:
             item_message = f"""{ITEM_PREFIXES[item_name]} {quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
         else:
             item_message = f"""{quantity:,}{"" if item_name in COIN_TYPES else "x"} {item}""".strip()
@@ -848,6 +851,16 @@ def display_coins(
             if diff:
                 item_message += f''' ({"+" if diff>0 else ""}{round_nicely(diff)})'''
 
+        item_messages.append(item_message)
+
+    # add total coin entry
+    if compact:
+        prefix = ITEM_PREFIXES.get(DEFAULT_COIN)
+        item_message = f"""{prefix + " " if prefix else ""}Total Value: {round_nicely(coin_total)} {DEFAULT_COIN}""".strip()
+        if old_total is not None:
+            diff = coin_total - old_total
+            if diff:
+                item_message += f''' ({"+" if diff>0 else ""}{round_nicely(diff)})'''
         item_messages.append(item_message)
 
     # show empty message
