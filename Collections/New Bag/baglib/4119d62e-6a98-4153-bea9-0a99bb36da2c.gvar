@@ -79,7 +79,7 @@ carryMod = ch.stats.strength*(
 
 
 # Define functions
-def load_bags(ch=character()) -> [a_bag]:
+def load_bags(ch=character(), cvar="bags") -> [a_bag]:
     """
     Loads the current character's bags as a list.
     :var ch: The current character, will be loaded if none is provided. default: character()
@@ -91,13 +91,14 @@ def load_bags(ch=character()) -> [a_bag]:
     cvars = ch.cvars
 
     # update legacy bags to new format
-    old_bags = [load_yaml(cvars[x]) for x in cvars if "bag" in x and x.strip("bag").isdecimal()]
-    old_bags_converted = [[bag[0],{bag[item_index].i:bag[item_index].q for item_index in range(1,len(bag))}] for bag in old_bags]
-    for i in range(len(old_bags)):
-        ch.delete_cvar(f"bag{i}")
+    if cvar == "bags":
+        old_bags = [load_yaml(cvars[x]) for x in cvars if "bag" in x and x.strip("bag").isdecimal()]
+        old_bags_converted = [[bag[0],{bag[item_index].i:bag[item_index].q for item_index in range(1,len(bag))}] for bag in old_bags]
+        for i in range(len(old_bags)):
+            ch.delete_cvar(f"bag{i}")
 
     # load bags
-    bagsLoaded = load_yaml(ch.get_cvar('bags', '[]'))
+    bagsLoaded = load_yaml(ch.get_cvar(cvar, '[]'))
     bagsLoaded = bagsLoaded + old_bags_converted
 
     # remove duplicate names
@@ -126,7 +127,7 @@ def load_bags(ch=character()) -> [a_bag]:
     return bagsLoaded
 
 
-def save_bags(bagsLoaded: list, error=False, ch=character()) -> int:
+def save_bags(bagsLoaded: list, error=False, ch=character(), cvar="bags") -> int:
     """
     Saves the current bag configuration.
     :arg list bagsLoaded: The dict or list of bags
@@ -141,14 +142,14 @@ def save_bags(bagsLoaded: list, error=False, ch=character()) -> int:
 
     # if there are no more bags, remove the bags cvar
     elif not bagsLoaded:
-        ch.delete_cvar('bags')
+        ch.delete_cvar(cvar)
         return 0
 
     # dumb the bags in the appropriate way
     elif typeof(bagsLoaded) == 'SafeDict':
-        ch.set_cvar('bags', dump_json(list(bagsLoaded.items())))
+        ch.set_cvar(cvar, dump_json(list(bagsLoaded.items())))
     else:
-        ch.set_cvar('bags', dump_json(bagsLoaded))
+        ch.set_cvar(cvar, dump_json(bagsLoaded))
     return 1
 
 
