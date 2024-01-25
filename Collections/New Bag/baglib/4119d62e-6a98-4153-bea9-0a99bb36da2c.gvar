@@ -633,12 +633,12 @@ def set_custom_weight(item_name: str, weight: float = None, cost: str = None, bu
         ch.set_cvar('bagSettings', dump_json(settings))
     return success
 
-def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weightDict) -> (float | str, int, bool):
+def get_item_weight(item: str, fuzzy_item_count: int = 0, weightDict: dict = weightDict) -> (float | str, int, bool):
     """
     Grabs the weight of the given item.
     Also allows keeping track of how many items have used a fuzzy search, which is more intensive.
     :arg str item: the name of the item
-    :var int fuzzyItemCount: the current count of how many fuzzy matches have been made default: 0
+    :var int fuzzy_item_count: the current count of how many fuzzy matches have been made default: 0
     :var dict weightDict: the dict to pull weights from default: self.weightDict
     :return: the weigh, the total number of fuzzy items, and whether no matching weight was found.
     :rtype: (float|str, int, bool)
@@ -653,14 +653,14 @@ def get_item_weight(item: str, fuzzyItemCount: int = 0, weightDict: dict = weigh
         itemWeight = 1
     elif "potion" in item_name:
         itemWeight = 0.5
-    elif fuzzyItemCount < 5:
-        fuzzyItemCount += 1
+    elif fuzzy_item_count < 5:
+        fuzzy_item_count += 1
         itemWeight = ([(v.get("weight") if typeof(v) == "SafeDict" else v) for k, v in weightDict.items() if k in item_name and (typeof(v) != "SafeDict" or 'weight' in v)]+["†"])[0]
     else:
         itemWeight = "†"
         unknownItem = True
 
-    return itemWeight, fuzzyItemCount, unknownItem
+    return itemWeight, fuzzy_item_count, unknownItem
 
 
 def weigh_bag(
@@ -681,13 +681,14 @@ def weigh_bag(
     # define variables
     total_weight = 0
     coin_weight = 0
-    fuzzyItemCount = 0
+    total_fuzzy_count = 0
 
     # loop over all the items in the bag, getting the necessary information for each
     for item in bag[1]:
         if weightTracking and bag[0].lower() not in ignoreBags:
             item_name = item.lower()
-            itemWeight, fuzzyItemCount, _ = get_item_weight(item, fuzzyItemCount, weightDict)
+            itemWeight, fuzzy_count, _ = get_item_weight(item, total_fuzzy_count, weightDict)
+            total_fuzzy_count += fuzzy_count
 
             itemWeight = itemWeight*(bag[1][item] if typeof(itemWeight) != 'str' else 1)
 
@@ -696,7 +697,7 @@ def weigh_bag(
                 if item_name in COIN_TYPES:
                     coin_weight += itemWeight
 
-    return float(total_weight), float(coin_weight), fuzzyItemCount
+    return float(total_weight), float(coin_weight), total_fuzzy_count
 
 
 def display_bag(
@@ -723,7 +724,7 @@ def display_bag(
     item_messages = []
     total_weight = 0
     coin_weight = 0
-    fuzzyItemCount = 0
+    fuzzy_item_count = 0
     anyUnknownItem = False
 
     # loop over each item, getting the information needed for the display
@@ -742,7 +743,7 @@ def display_bag(
 
         # start weight calculation
         if weightTracking and bag[0].lower() not in ignoreBags:  # only weigh the bag if it's enabled
-            itemWeight, fuzzyItemCount, unknownItem = get_item_weight(item, fuzzyItemCount, weightDict)
+            itemWeight, fuzzy_item_count, unknownItem = get_item_weight(item, fuzzy_item_count, weightDict)
             anyUnknownItem = anyUnknownItem or unknownItem
 
             itemWeight = itemWeight*(quantity if typeof(itemWeight) != 'str' else 1)
@@ -806,7 +807,7 @@ def display_bag(
         fields[i] += "|inline＂" if length_limiter in ['newline', 'truncate'] or lineLength <= max_length else "＂"
         i += 1
 
-    return fields, float(total_weight), float(coin_weight), fuzzyItemCount, anyUnknownItem
+    return fields, float(total_weight), float(coin_weight), fuzzy_item_count, anyUnknownItem
 
 
 def display_coins(
@@ -938,11 +939,11 @@ def create_display(
             if not bag:
                 continue
             old_bag = None if old_bags is None else old_bags.get(bag[0], {})
-            fields, bag_weight, _, fuzzyItemCount, UnknownItems = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
+            fields, bag_weight, _, fuzzy_item_count, UnknownItems = display_bag(bag, weightDict, weightTracking, ignoreBags, old_bag)
             text += fields
             anyUnknownItem = anyUnknownItem or UnknownItems
             carriedWeight += bag_weight
-            unknownTotal += fuzzyItemCount
+            unknownTotal += fuzzy_item_count
         # add footnotes based on weight results
         if weightTracking and openMode == 'all':
             display_footer = f'''-f ＂Total Weight Carried: {round_nicely(carriedWeight)}{asterisk*(unknownTotal>0)} lbs.|Carrying Capacity: {carryMod*15} lbs.'''
