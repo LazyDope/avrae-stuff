@@ -1,7 +1,7 @@
 # Thanks for using DMPLib
 # The purpose of this is to aid in handling DM Points, or other points that are tracked per user, per server.
 # created by:
-# Discord: byronius; GitHub: LazyDope; Ko-Fi:
+# Discord: byronius; GitHub: LazyDope; Ko-Fi: alazydope
 
 _cache = {}
 def get_guild_settings(guild: int=ctx.guild.id) -> dict:
