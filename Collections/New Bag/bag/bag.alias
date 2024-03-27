@@ -123,7 +123,9 @@ match args_list:
 
     case [("vars" | ";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
-        text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
+        text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!
+                    
+        Variables with s/c/uvar before them note that they can be used with multiple variables, svar, cvar, and uvar in this case＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
         This variable defines what the conversion rates between coin types is. The types of coins are also derived from this.
         The coin with coin rate equal to 1 will be the default coin (the coin aliases would give you), or the first coin if there isn't one.
         __Current Value__
@@ -172,7 +174,7 @@ match args_list:
         __Default__
         `{dump_json({"weightlessBags":["bag of holding", "handy haversack", "heward's handy haversack"], "customWeights":{}, "weightTracking":"Off", "openMode":"All", "encumbrance":"Off", "autoCoins":False})}`＂
 
-        -f ＂Changing Item Emojis|`{ctx.prefix}svar bagItemPrefixes`
+        -f ＂Changing Item Emojis|`{ctx.prefix}s/cvar bagItemPrefixes`
         This variable lets you assign prefixes that come before the quantities for items. This variable adds the emojis before coins.
         If you want an emoji, just enter it normally, it will be converted when it's saved.
         __Loaded Prefixes__
