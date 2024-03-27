@@ -163,6 +163,13 @@ match args_list:
         __Default__
         [GVar Here](https://avrae.io/dashboard/gvars?lookup=9eac80b1-1e1a-41ea-9a99-81a5f0f3be8e)
 
+        `{ctx.prefix}svar bagItemPrefixes`
+        This variable lets you assign prefixes that come before the quantities for items. This variable adds the emojis before coins.
+        __Loaded Prefixes__
+        `{limit_length(baglib.ITEM_PREFIXES)}`
+        __Default__
+        `{limit_length(baglib.DEFAULT_COIN_EMOJIS)}`
+
         `{ctx.prefix}cvar bagSettings`
         This variable stores changes you've made to your settings in the alias, best not to edit manually.
         __Current Value__
