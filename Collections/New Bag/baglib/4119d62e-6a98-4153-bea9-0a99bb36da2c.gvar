@@ -366,8 +366,6 @@ def modify_coins(
     delta = delta.copy()
 
     # smooth out any floating point entries
-    if delta.get(COIN_TYPES[-1], 0) % 1:
-        return (pouch, True)
     for i, coin in enumerate(COIN_TYPES[:-1]):
         if (decimal := abs(delta.get(coin, 0)) % 1):
             smaller = COIN_TYPES[i+1]
