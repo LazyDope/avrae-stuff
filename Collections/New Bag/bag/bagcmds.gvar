@@ -206,7 +206,7 @@ def create(text, bagsLoaded, success, args, input_name=None):
     text.append(f"""-title ＂{name}{[" fails to create, so still has no bags",f" creates {title_bag}!",f" fails to create {title_bag}"][success]}＂""")
     return success, focus
 
-def move(text, bagsLoaded, success, args, input_name):
+def move_items(text, bagsLoaded, success, args, input_name):
     bag, dest_bag = (none, None)
     error = False
     match args:
