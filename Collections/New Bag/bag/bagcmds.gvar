@@ -100,14 +100,14 @@ def default_text(color, ctx):
 def finalize(text, bagsLoaded, focus, openMode, old_bags):
     if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_bags))) > 24:
         if "Total Weight Carried" in fields[-1]:
-            text += fields[:22]
-            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count-1} bags... that's a lot of bags! {count-25} too many in fact!＂"]
-            text += fields[-1:]
+            text.extend(fields[:22])
+            text.append(f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count-1} bags... that's a lot of bags! {count-25} too many in fact!＂")
+            text.append(fields[-1])
         else:
-            text += fields[:23]
-            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂"]
+            text.extend(fields[:23])
+            text.append(f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂")
     else:
-        text += fields
+        text.extend(fields)
 
 def vars(text, ctx, name):
     text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
