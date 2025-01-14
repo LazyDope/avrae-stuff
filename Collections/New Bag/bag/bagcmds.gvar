@@ -207,7 +207,7 @@ def swap(text, bagsLoaded, success, args, name, focus=None, input_name=None):
     text.append(f"""-title ＂{name}{[" has nothing to swap",f" swaps {title_bag} to position {position}",f" fails to swap {title_bag}"][success]}＂""")
     return success, focus
 
-def create(text, bagsLoaded, success, args, name, input_name=None):
+def create(text, bagsLoaded, success, args, name, focus=None, input_name=None):
     if not input_name:
         input_name = ' '.join(args)
     bag = baglib.new_bag(bagsLoaded, input_name) if input_name else baglib.new_bag(bagsLoaded)
@@ -218,7 +218,7 @@ def create(text, bagsLoaded, success, args, name, input_name=None):
     return success, focus
 
 def move_items(text, bagsLoaded, success, args, name, input_name):
-    bag, dest_bag = (none, None)
+    bag, dest_bag = (None, None)
     error = False
     match args:
         case [quantity, item, *destination] if quantity.strip("+").isdecimal():
@@ -451,7 +451,7 @@ def limiter(text, success, args, name, input_name=None):
     text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('handleLongNames','newrow').lower()]}＂""")
     return success
 
-def view(text, bagsLoaded, success, args, name, input_name=None):
+def view(text, bagsLoaded, success, args, name, focus=None, input_name=None):
     if not input_name:
         input_name = ' '.join(args)
     success = 1
