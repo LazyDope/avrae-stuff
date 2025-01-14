@@ -98,7 +98,7 @@ def default_text(color, ctx):
     return ['embed', f'-color {color}', f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see !help {ctx.alias}.＂"]
 
 def vars(text, color, ctx):
-    return f"""embed -color {color} -title ＂{name} needs help with their bags' settings＂""")
+    text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
     text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!
 
     Variables with s/c/uvar before them note that they can be used with multiple variables, svar, cvar, and uvar in this case＂ -f ＂Coin Conversions|`{ctx.prefix}s/c/uvar coinRates`
@@ -159,7 +159,6 @@ def vars(text, color, ctx):
     `{limit_length(baglib.DEFAULT_COIN_EMOJIS)}`＂
     ''')
     text.append("-footer ＂!bag v4 by @Byronius#0001＂")
-    return ' '.join(text)
 
 def delete(text, bagsLoaded, success, args, input_name=None):
     if not input_name:
