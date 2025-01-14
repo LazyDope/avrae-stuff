@@ -110,7 +110,7 @@ success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
 old_bags = baglib.save_state(bagsLoaded)
-openMode = 'all'
+openMode = 'All'
 
 # match the input to a subcommand
 match args_list:
@@ -179,7 +179,7 @@ match args_list:
         `{limit_length(baglib.DEFAULT_COIN_EMOJIS)}`＂
         ''')
         text.append("-footer ＂!bag v4 by @Byronius#0001＂")
-        focus = "help"
+        return ' '.join(text)
 
     case [("delete" | "d" | "/"), *args] | [input_name, ("delete" | "d" | "/"), *args]:
         if not input_name:
