@@ -113,7 +113,7 @@ openMode = 'All'
 match args_list:
     case [("help" | "h" | "?") as help_cmd, *args]:
         args = "&*&".replace(help_cmd, "", 1)
-        return f"help {ctx.alias} {}"
+        return f"help {ctx.alias} {args}"
 
     case [("vars" | ";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
