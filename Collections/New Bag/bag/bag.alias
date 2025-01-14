@@ -111,8 +111,9 @@ openMode = 'All'
 
 # match the input to a subcommand
 match args_list:
-    case [("help" | "h" | "?"), *args]:
-        return f"help {ctx.alias} {' '.join(args)}"
+    case [("help" | "h" | "?") as help_cmd, *args]:
+        args = "&*&".replace(help_cmd, "", 1)
+        return f"help {ctx.alias} {}"
 
     case [("vars" | ";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
