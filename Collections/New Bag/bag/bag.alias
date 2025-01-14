@@ -1,7 +1,4 @@
 <drac2>
-# Define constants
-asterisk = '\\*'
-
 # Load bag module
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c", bagcmds="7a4e5193-0eeb-4dae-a3ac-16786000e27b")
 DEFAULT_COIN_RATES = baglib.DEFAULT_COIN_RATES
@@ -105,7 +102,7 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
 modes = ["!", "?", "/", "@", "#", "$", ">", "-", "+", ".", "<", "%", "*", "^", "~", "&", "=", ";"]
 args_list = fix_args(&ARGS&, modes, 1)
 focus = None
-text = ['embed', f'-color {color}']
+text = ['embed', f'-color {color}', f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see {ctx.prefix}help {ctx.alias}.＂"]
 success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
@@ -346,7 +343,7 @@ match args_list:
         if not input_name:
             input_name = ' '.join(args)
         error = False
-        pack = [pack for pack in baglib.packs if input_name == pack]
+        pack = [pack for pack in baglib.packs if input_name == pack[0]]
         if not pack:
             pack = [pack for pack in baglib.packs if input_name in pack[0]]
         if not pack:
@@ -484,7 +481,6 @@ if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_
         text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂"]
 else:
     text += fields
-text.append(f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see !help {ctx.alias}.＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
 return ' '.join(text)
 </drac2>
