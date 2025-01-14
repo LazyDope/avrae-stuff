@@ -97,6 +97,18 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
 def default_text(color, ctx):
     return ['embed', f'-color {color}', f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see !help {ctx.alias}.＂"]
 
+def finalize(text, bagsLoaded, focus, openMode, old_bags):
+    if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_bags))) > 24:
+        if "Total Weight Carried" in fields[-1]:
+            text += fields[:22]
+            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count-1} bags... that's a lot of bags! {count-25} too many in fact!＂"]
+            text += fields[-1:]
+        else:
+            text += fields[:23]
+            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂"]
+    else:
+        text += fields
+
 def vars(text, ctx, name):
     text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
     text.append(f'''-desc ＂Bags! Make 'em, view 'em, toss 'em, swap 'em, name 'em, move 'em stuff 'em, dump 'em, fill 'em, weigh 'em, ignore 'em, track 'em, even configure 'em too!
