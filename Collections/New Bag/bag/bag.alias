@@ -1,7 +1,6 @@
-embed <drac2>
+<drac2>
 # Define constants
 asterisk = '\\*'
-cmd = f"{ctx.prefix}{ctx.alias}"
 
 # Load bag module
 using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
@@ -106,7 +105,7 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
 modes = ["!", "?", "/", "@", "#", "$", ">", "-", "+", ".", "<", "%", "*", "^", "~", "&", "=", ";"]
 args_list = fix_args(&ARGS&, modes, 1)
 focus = None
-text = []
+text = ['embed', f'-color {color}']
 success = -1
 input_name = None
 bagsLoaded = baglib.load_bags()
@@ -116,10 +115,7 @@ openMode = 'all'
 # match the input to a subcommand
 match args_list:
     case [("help" | "h" | "?"), *_]:
-        text.append(f"""-title ＂{name} needs help with their bags＂""")
-        text.append(get_gvar("a1b10275-d8f7-468c-a091-564ac245bedd").replace('{cmd}', cmd))
-        text.append("-footer ＂!bag v4 by @Byronius#0001＂")
-        focus = "help"
+        return f"help {ctx.alias} &*&"
 
     case [("vars" | ";"), *_]:
         text.append(f"""-title ＂{name} needs help with their bags' settings＂""")
@@ -474,24 +470,21 @@ match args_list:
         title_bag = f"""their {focus[0]}""" if focus else "a bag"
         text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
 
-# don't display bags if viewing help
-if focus != "help":
+# reload bags if anything errored
+if success == -1:
+    bagsLoaded = baglib.load_bags()
 
-    # reload bags if anything errored
-    if success == -1:
-        bagsLoaded = baglib.load_bags()
-
-    if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_bags))) > 24:
-        if "Total Weight Carried" in fields[-1]:
-            text += fields[:22]
-            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count-1} bags... that's a lot of bags! {count-25} too many in fact!＂"]
-            text += fields[-1:]
-        else:
-            text += fields[:23]
-            text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂"]
+if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_bags))) > 24:
+    if "Total Weight Carried" in fields[-1]:
+        text += fields[:22]
+        text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count-1} bags... that's a lot of bags! {count-25} too many in fact!＂"]
+        text += fields[-1:]
     else:
-        text += fields
-    text.append(f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see {cmd} help.＂")
+        text += fields[:23]
+        text += [f"-f ＂Too Many Bags!|Lighten the load would you? You're carrying too many bags! {count} bags... that's a lot of bags! {count-24} too many in fact!＂"]
+else:
+    text += fields
+text.append(f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see !help {ctx.alias}.＂")
 character().set_cvar('bagSettings', dump_json(baglib.settings))
 return ' '.join(text)
-</drac2> -color <color>
+</drac2>
