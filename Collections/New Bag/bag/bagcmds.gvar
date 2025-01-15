@@ -97,7 +97,7 @@ def fix_args(args: SafeList, cmdlist, indexlimit=0) -> SafeList:
 def default_text(color, ctx):
     return ['embed', f'-color {color}', f"-footer ＂If your bags got deleted, check {ctx.prefix}help text2bag. For help with your bags, see !help {ctx.alias}.＂"]
 
-def finalize(text, bagsLoaded, focus, openMode, old_bags):
+def finalize(text, bagsLoaded, focus=None, openMode=None, old_bags={}):
     if (count:=len(fields := baglib.create_display(bagsLoaded, focus, openMode, old_bags))) > 24:
         if "Total Weight Carried" in fields[-1]:
             text.extend(fields[:22])
@@ -190,7 +190,7 @@ def name(text, bagsLoaded, success, args, name, input_name=None):
         input_name, new_name = baglib.rename_bag(bagsLoaded, input_name, new_name)
         success = baglib.save_bags(bagsLoaded) if new_name else success
     title_bag = f"""their {input_name}""" if input_name else "a bag"
-    text.append(f"""-title ＂{name}{[" fails to name their empty space",f" names {title_bag} to {new_name}",f" fails to name {title_bag}"][success]}＂""")
+    text.append(f"""-title ＂{name}{[" fails to name their empty space",f" renames {title_bag} to {new_name}",f" fails to name {title_bag}"][success]}＂""")
     focus = baglib.get_bag(bagsLoaded, new_name) if new_name and success == 1 else baglib.get_bag(bagsLoaded, input_name)
     return success, focus
 
@@ -217,7 +217,9 @@ def create(text, bagsLoaded, success, args, name, focus=None, input_name=None):
     text.append(f"""-title ＂{name}{[" fails to create, so still has no bags",f" creates {title_bag}!",f" fails to create {title_bag}"][success]}＂""")
     return success, focus
 
-def move_items(text, bagsLoaded, success, args, name, input_name):
+def move_items(text, bagsLoaded, success, args, name, input_name=None):
+    if not input_name:
+        input_name = args.pop(0)
     bag, dest_bag = (None, None)
     error = False
     match args:
@@ -267,11 +269,10 @@ def move_items(text, bagsLoaded, success, args, name, input_name):
     return success, focus
 
 def add_item(text, bagsLoaded, success, args, name, sign, input_name=None):
-    buy, add, remove = sign in "buy.", sign in "add+", sign in "remove-"
+    buy, add, remove = sign in [".", "b", "buy"], sign in ["+", "a", "add"], sign in ["-", "r", "remove"]
     price = None
     error = False
     coins = None
-    openMode = None
     match args:
         case [quantity, item, *price] if quantity.strip("+-").isdecimal():
             quantity = int(quantity.strip("+-"))
@@ -451,12 +452,12 @@ def limiter(text, success, args, name, input_name=None):
     text.append(f"""-title ＂{name}{text_dict[baglib.settings.get('handleLongNames','newrow').lower()]}＂""")
     return success
 
-def view(text, bagsLoaded, success, args, name, focus=None, input_name=None):
+def view(text, bagsLoaded, success, args, name, focus=None, openMode=None, input_name=None):
     if not input_name:
         input_name = ' '.join(args)
     success = 1
     focus = baglib.get_bag(bagsLoaded, input_name) if input_name else focus
-    openMode = "One" if focus else "All"
+    openMode = "One" if focus else 'All'
     title_bag = f"""their {focus[0]}""" if focus else "a bag"
     text.append(f"""-title ＂{name}{[f"'s bags",f" looks inside {title_bag}"][bool(focus)]}＂""")
-    return success, focus
+    return success, focus, openMode

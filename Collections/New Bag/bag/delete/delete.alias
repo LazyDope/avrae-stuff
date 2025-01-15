@@ -1,0 +1,17 @@
+<drac2>
+# usual setup
+args = &ARGS&
+text = bagcmds.default_text(color, ctx)
+success = -1
+bagsLoaded = baglib.load_bags()
+
+# subcommand specific function
+success = bagcmds.delete(text, bagsLoaded, success, args, name)
+
+# reload bags if anything errored
+if success == -1:
+    bagsLoaded = baglib.load_bags()
+
+bagcmds.finalize(text, bagsLoaded)
+return ' '.join(text)
+</drac2>

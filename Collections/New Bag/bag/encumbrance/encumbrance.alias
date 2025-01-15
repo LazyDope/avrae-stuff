@@ -1,0 +1,13 @@
+<drac2>
+# usual setup
+args = &ARGS&
+text = bagcmds.default_text(color, ctx)
+success = -1
+
+# subcommand specific function
+success = bagcmds.encumbrance(text, success, args, name)
+
+bagcmds.finalize(text, bagsLoaded)
+character().set_cvar('bagSettings', dump_json(baglib.settings))
+return ' '.join(text)
+</drac2>

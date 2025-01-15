@@ -1,0 +1,19 @@
+<drac2>
+# usual setup
+args = &ARGS&
+text = bagcmds.default_text(color, ctx)
+focus = None
+bagsLoaded = baglib.load_bags()
+success = -1
+
+# subcommand specific function
+success, focus, openMode = bagcmds.view(text, bagsLoaded, success, args, name, focus, openMode)
+
+# reload bags if anything errored
+if success == -1:
+    bagsLoaded = baglib.load_bags()
+
+bagcmds.finalize(text, bagsLoaded, focus, openMode, old_bags)
+character().set_cvar('bagSettings', dump_json(baglib.settings))
+return ' '.join(text)
+</drac2>
