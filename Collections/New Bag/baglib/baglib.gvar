@@ -921,7 +921,11 @@ def create_display(
             bagsLoaded = _as_list(bagsLoaded)
             loop = bagsLoaded + ([get_coins(bagsLoaded)] if use_coin_purse(bagsLoaded) else [])
         case _:
-            loop = [focus] if focus else []
+            if focus:
+                loop = [focus]
+            else:
+                bagsLoaded = _as_list(bagsLoaded)
+                loop = bagsLoaded + ([get_coins(bagsLoaded)] if use_coin_purse(bagsLoaded) else [])
 
     if not loop:
         return ["-desc ＂There are no bags to display.＂"]
