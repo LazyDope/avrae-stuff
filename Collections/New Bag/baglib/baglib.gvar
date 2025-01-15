@@ -586,8 +586,8 @@ def swap_pos(bagsLoaded: list, bag_name: str, position=1) -> (str, int):
     bag = get_bag(bagsLoaded, bag_name)
     if not bag:
         return None, -1
-    bagsLoaded.remove([bag[0], bag[1]])
     position = max(min(len(bagsLoaded), position), 1)
+    bagsLoaded.remove([bag[0], bag[1]])
     bagsLoaded.insert(position-1, bag)
     return bag[0], position
 
@@ -892,7 +892,7 @@ def display_coins(
 def create_display(
     bagsLoaded: list = [],
     focus: a_bag = None,
-    openMode: str = settings.get('openMode', 'All'),
+    openMode: str = None,
     old_bags: dict = {},
     weightDict: dict = weightDict,
 ) -> list:
