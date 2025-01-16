@@ -1,4 +1,4 @@
-Purchases items in exchange for currency. (Aliases: `a`, `+`)
+Purchases items in exchange for currency. (Aliases: `b`, `.`)
 Everything in the PHB is included. Can override prices or buy non-PHB items by including your own price at the end with no spaces.
 Buying ammunition is done in bundles, as per how it's listed in the PHB.
 Defaults to adding to a Shopping Bag. To put your purchases in an existing bag, specify the destionation bag first.

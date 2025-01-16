@@ -1,4 +1,4 @@
-Removes items from a bag. (Aliases: `a`, `+`)
+Removes items from a bag. (Aliases: `r`, `-`)
 Default quantity is 1, default bag is slot 1.
 
 Usage: `!bag [bag name] remove [item quantity] <item name>`
