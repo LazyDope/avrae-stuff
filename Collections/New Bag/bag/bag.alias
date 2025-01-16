@@ -25,35 +25,35 @@ match args_list:
     case [";", *_]:
         bagcmds.vars(text, ctx, name)
         return ' '.join(text)
-    case [("d" | "/"), *args] | [input_name, ("d" | "/"), *args]:
+    case [("d" | "/"), *args] | [input_name, ("d" | "/" | "delete"), *args]:
         success = bagcmds.delete(text, bagsLoaded, success, args, name, get("input_name"))
-    case [("n" | "@"), *args] | [input_name, ("n" | "@"), *args]:
+    case [("n" | "@"), *args] | [input_name, ("n" | "@" | "name"), *args]:
         success, focus = bagcmds.name(text, bagsLoaded, success, args, name, get("input_name"))
-    case [("s" | "#"), *args] | [input_name, ("s" | "#"), *args]:
+    case [("s" | "#"), *args] | [input_name, ("s" | "#" | "swap"), *args]:
         success, focus = bagcmds.swap(text, bagsLoaded, success, args, name, focus, get("input_name"))
-    case [("c" | "$"), *args] | [input_name, ("c" | "$"), *args]:
+    case [("c" | "$"), *args] | [input_name, ("c" | "$" | "create"), *args]:
         success, focus = bagcmds.create(text, bagsLoaded, success, args, name, focus, get("input_name"))
-    case [("m" | ">"), input_name, *args] | [input_name, ("m" | ">"), *args]:
+    case [("m" | ">"), input_name, *args] | [input_name, ("m" | ">" | "move"), *args]:
         success, focus = bagcmds.move_items(text, bagsLoaded, success, args, name, input_name)
-    case [("r" | "-" | "a" | "+" | "b" | ".") as sign, *args] | [input_name, ("r" | "-" | "a" | "+" | "b" | ".") as sign, *args]:
+    case [("r" | "-" | "a" | "+" | "b" | ".") as sign, *args] | [input_name, ("r" | "-" | "a" | "+" | "b" | "." | "remove" | "add" | "buy") as sign, *args]:
         success, focus = bagcmds.add_item(text, bagsLoaded, success, args, name, sign, get("input_name"))
-    case [("p" | "<"), *args] | [input_name, ("p" | "<"), *args]:
+    case [("p" | "<"), *args] | [input_name, ("p" | "<" | "pack"), *args]:
         success, focus = bagcmds.pack(text, bagsLoaded, success, args, name, focus, get("input_name"))
-    case [("w" | "%"), *args] | [input_name, ("w" | "%"), *args]:
+    case [("w" | "%"), *args] | [input_name, ("w" | "%" | "weight"), *args]:
         success = bagcmds.weight(text, success, args, name, get("input_name"))
-    case [("i" | "*"), *args] | [input_name, ("i" | "*"), *args]:
+    case [("i" | "*"), *args] | [input_name, ("i" | "*" | "ignore"), *args]:
         success = bagcmds.ignore(text, success, args, name, get("input_name"))
-    case [("u" | "^"), *args] | [input_name, ("u" | "^"), *args]:
+    case [("u" | "^"), *args] | [input_name, ("u" | "^" | "unignore"), *args]:
         success = bagcmds.unignore(text, success, args, name, get("input_name"))
-    case [("t" | "~"), *args] | [input_name, ("t" | "~"), *args]:
+    case [("t" | "~"), *args] | [input_name, ("t" | "~" | "track"), *args]:
         success = bagcmds.track(text, success, args, name, get("input_name"))
-    case [("o" | "&"), *args] | [input_name, ("o" | "&"), *args]:
+    case [("o" | "&"), *args] | [input_name, ("o" | "&" | "open"), *args]:
         success = bagcmds.open(text, success, args, name, get("input_name"))
-    case [("e" | "="), *args] | [input_name, ("e" | "="), *args]:
+    case [("e" | "="), *args] | [input_name, ("e" | "=" | "encumbrance"), *args]:
         success = bagcmds.encumbrance(text, success, args, name, get("input_name"))
-    case [("l" | ":"), *args] | [input_name, ("l" | ":"), *args]:
+    case [("l" | ":"), *args] | [input_name, ("l" | ":" | "limiter"), *args]:
         success = bagcmds.limiter(text, success, args, name, get("input_name"))
-    case [("v" | "!"), *args] | [input_name, ("v" | "!"), *args] | [*args]:
+    case [("v" | "!"), *args] | [input_name, ("v" | "!" | "view"), *args] | [*args]:
         success, focus, openMode = bagcmds.view(text, bagsLoaded, success, args, name, focus, openMode, get("input_name"))
 
 # reload bags if anything errored
