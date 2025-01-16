@@ -4,6 +4,7 @@ using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c", bagcmds="7a4e5193-0eeb-4dae
 args = &ARGS&
 text = bagcmds.default_text(color, ctx)
 success = -1
+bagsLoaded = baglib.load_bags()
 
 # subcommand specific function
 success = bagcmds.unignore(text, success, args, name)
