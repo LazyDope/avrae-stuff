@@ -3,12 +3,11 @@ using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c", bagcmds="7a4e5193-0eeb-4dae
 # usual setup
 args = &ARGS&
 text = bagcmds.default_text(color, ctx)
-focus = None
 bagsLoaded = baglib.load_bags()
 success = -1
 
 # subcommand specific function
-success, focus, openMode = bagcmds.view(text, bagsLoaded, success, args, name, focus, openMode)
+success, focus, openMode = bagcmds.view(text, bagsLoaded, success, args, name)
 
 # reload bags if anything errored
 if success == -1:
