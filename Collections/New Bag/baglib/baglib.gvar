@@ -341,7 +341,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         :rtype: Bag
         """
         # define variables
-        pouch = get_coins(autoCoins=False, ch=ch)
+        pouch = get_coins(autoCoins=False)
         max_i = len(COIN_TYPES) - 1
 
         # prepare the coin diff
