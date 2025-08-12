@@ -57,7 +57,7 @@ match args_list:
 
 # reload bags if anything errored
 if success == -1:
-    bagsLoaded = baglib.load_bags()
+    bagsLoaded.undo_changes()
 
 bagcmds.finalize(text, bagsLoaded, focus, openMode)
 character().set_cvar('bagSettings', dump_json(baglib.settings))

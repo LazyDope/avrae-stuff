@@ -1,7 +1,7 @@
 embed <drac2>
 ch = character()
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
-bagsLoaded = baglib.load_bags()
+using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
+bagsLoaded = baglib.LoadedBags()
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 
@@ -13,12 +13,12 @@ match "&*&".lower():
     case 'one':
         baglib.settings['openMode'] = 'One'
     case _:
-        baglib.settings['openMode'] = baglib.openModes[(baglib.openModes.index(baglib.settings.get('openMode','all'))+1)%3]
+        baglib.settings['openMode'] = baglib.open_modes[(baglib.open_modes.index(baglib.settings.get('openMode','all'))+1)%3]
 
 ch.set_cvar('bagSettings',dump_json(baglib.settings))
 
 if baglib.settings['openMode'] != 'none':
-    display = ' '.join(baglib.display_coins(bagsLoaded, compact))
+    display = ' '.join(bagsLoaded.display_coins(compact))
 else:
     display = ""
 return f"-title ＂{name} changes their `openMode` to `{baglib.settings['openMode']}`＂ {display}"

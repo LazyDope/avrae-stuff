@@ -199,7 +199,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         :rtype: Bag
         """
         bag_name = bag_name or "New Bag"
-        bag_name = find_valid_name(bag_name)  # check for a name that is unused
+        bag_name = find_valid_name(bag_data, bag_name)  # check for a name that is unused
         bag_data.append([bag_name, {coin: 0 for coin in COIN_TYPES} if bag_name == coinPouchName else {}])
         return bag_data[-1]
 
@@ -227,7 +227,6 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         """
         # setup variables
         bag = None
-        error = True
         quantity = int(quantity)
         delta.update({item: delta.get(item, 0)+quantity} if item and quantity else {})
 
@@ -249,7 +248,8 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         if not bag and create_on_fail:
             bag = new_bag()
         if not bag:
-            return (bag_name, error)
+            loaded_bags.error = True
+            return bag_name, []
 
         all_item_names = []
         for item in delta:
@@ -626,7 +626,8 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         :return: a copy of bag_data, plus the coin pouch if appropriate
         :rtype: list
         """
-        loaded_bags['original_bag_data'] = _deep_copy(bag_data) + ([get_coins()] if use_coin_purse() else [])
+        loaded_bags['original_bag_data'] = _deep_copy(bag_data)
+        loaded_bags['original_coin_data'] = [get_coins()] if use_coin_purse() else []
 
     def create_display(
         focus: Bag = None,
@@ -648,7 +649,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         text = []
         weightTracking = settings.get('weightTracking', 'Off').lower() == 'on'
         ignoreBags = settings.get('weightlessBags', ["bag of holding", "handy haversack", "heward's handy haversack"])
-        old_bags = _as_dict(loaded_bags.original_bag_data)
+        old_bags = _as_dict(loaded_bags.original_bag_data + loaded_bags.original_coin_data)
 
         # define loop based on what mode we're in
         match openMode:
@@ -696,6 +697,14 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
                 text.append(encumbrance_footer)
         return text
 
+    def undo_changes():
+        """
+        Undoes any changes made to bags since last state save.
+        """
+        bag_data.clear()
+        bag_data.extend(_deep_copy(loaded_bags.original_bag_data))
+        
+
     functions = {
         'save_bags': save_bags,
         'get_bag': get_bag,
@@ -711,6 +720,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         'carried_weight': carried_weight,
         'update_saved_state': update_saved_state,
         'create_display': create_display,
+        'undo_changes': undo_changes,
     }
 
     if user_mode:
