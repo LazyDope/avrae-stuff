@@ -9,7 +9,7 @@ compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
 delta, coin_error = baglib.parsecoins("&*&")
 focus = None
-bagsLoaded.error |= coin_error
+bagsLoaded['error'] |= coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"
 positive = False

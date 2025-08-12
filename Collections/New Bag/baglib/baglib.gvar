@@ -248,7 +248,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         if not bag and create_on_fail:
             bag = new_bag()
         if not bag:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
             return bag_name, []
 
         all_item_names = []
@@ -280,7 +280,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
                             bag[1].update({larger: int(bag[1].get(larger, 0)+p*ratio[0]), item_type: int(bag[1].get(item_type, 0)-p*ratio[1])})
                             bag[1].pop(larger) if bag[1][larger] == 0 else ()
                             bag[1].pop(item_type) if item_type != item_type and bag[1][item_type] == 0 else ()
-                    loaded_bags.error |= any([bag[1][item_type] < 0 for item_type in bag[1]])
+                    loaded_bags['error'] |= any([bag[1][item_type] < 0 for item_type in bag[1]])
                 elif remainder < 0 and recursive_search:
                     return _remove_item_recursive(item, remainder, bag[0])
                 if bag[1][item_name] <= 0:
@@ -317,7 +317,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         if len(names) > 1:
             names[-1] = "and " + names[-1]
         if remainder < 0:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
             return [", ".join(names), {item: total_items}]
         else:
             return [", ".join(names), {item: total_items}]
@@ -350,7 +350,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
 
         # check if coins are valid
         if any([coin.lower() not in COIN_TYPES for coin in delta]):
-            loaded_bags.error = True
+            loaded_bags['error'] = True
             return pouch
         delta = delta.copy()
 
@@ -415,7 +415,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
                     })
 
         if any([pouch[1][coin_type] < 0 for coin_type in pouch[1]]):
-            loaded_bags.error = True
+            loaded_bags['error'] = True
             return pouch
 
         # if the modifications were successful, dump to actual coin purse
@@ -517,7 +517,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         """
         old_bag = get_bag(bag_name, exact_match=True)
         if not old_bag:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
             return bag_name
         bag_data.remove(old_bag)
         return old_bag[0]

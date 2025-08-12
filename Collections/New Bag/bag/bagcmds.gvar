@@ -236,12 +236,12 @@ def move_items(text, loaded_bags, success, args, name, input_name=None):
         case [item, *destination]:
             quantity = 1
         case _:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
     if not loaded_bags.error:
         destination = ' '.join(destination) or None
 
         if input_name == destination:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
         if not loaded_bags.error:
             if input_name.lower() in ("coin purse" if loaded_bags.use_coin_purse() else coinPouchName.lower()):
                 bag = loaded_bags.modify_coins(item, -quantity)
@@ -266,7 +266,7 @@ def move_items(text, loaded_bags, success, args, name, input_name=None):
                         )
                     )
                     item = items[0]
-                loaded_bags.error |= bag == dest_bag
+                loaded_bags['error'] |= bag == dest_bag
     success = loaded_bags.save_bags()
     focus = bag if loaded_bags.error else dest_bag
     title_bag = f"""their {bag[0]}""" if bag else "a bag"
@@ -286,7 +286,7 @@ def add_item(text, loaded_bags, success, args, name, sign, input_name=None):
         case [item, *price]:
             quantity = 1
         case _:
-            loaded_bags.error = True
+            loaded_bags['error'] = True
     if not loaded_bags.error:
         if buy:
             cost = (
@@ -296,7 +296,7 @@ def add_item(text, loaded_bags, success, args, name, sign, input_name=None):
                 or "0"
             )
             delta, parse_error = baglib.parsecoins(cost)
-            loaded_bags.error |= parse_error
+            loaded_bags['error'] |= parse_error
             bundle = (
                 typeof(baglib.weightDict.get(item.lower())) == 'SafeDict'
                 and baglib.weightDict.get(item.lower(), {}).get("bundle")
@@ -342,7 +342,7 @@ def pack(text, loaded_bags, success, args, name, focus=None, input_name=None):
     if not pack:
         pack = [pack for pack in baglib.packs if input_name.lower() in pack[0].lower()]
     if not pack:
-        loaded_bags.error = True
+        loaded_bags['error'] = True
     if not loaded_bags.error:
         pack = pack[0]
         pack_name = baglib.find_valid_name(loaded_bags, pack[0])
