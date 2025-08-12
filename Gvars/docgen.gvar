@@ -3,7 +3,7 @@
 # created by:
 # Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
 
-def _get_docs(func: _Function|dict) -> str:
+def _get_docs(func: dict) -> str:
     docs = func.doc
     f_name = func.name
     docs = docs.split('\n')
@@ -23,7 +23,7 @@ def _get_docs(func: _Function|dict) -> str:
                     kwargs.append((f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else docsplit[1]) + (f" = {default}" if default else ""))
                 case 'rtype':
                     rtype = doc.split(':')[2].strip()
-    if typeof(func) == '_Function' or typeof(func.doc) == '_Function':
+    if func.is_func:
         header = [f"""```py
 {f_name}({', '.join(args+kwargs)}){f' -> {rtype}' if rtype else ''}```"""]
         if len(header[0].strip())>50:
@@ -62,8 +62,9 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
     cmd = ctx.prefix + ctx.alias
     functions = [
         {
-            'name': v.name if typeof(v) == '_Function' or 'name' in v else 'unknown',
-            'doc': (doc.doc if typeof(doc := v.doc) == '_Function' else doc) if typeof(v) == '_Function' or 'doc' in v else "Unknown"
+            'name': v.name if (is_func1 := typeof(v) == '_Function') or 'name' in v else 'unknown',
+            'doc': (doc.doc if (is_func2 := typeof(doc := v.doc) == '_Function') else doc) if is_func1 or 'doc' in v else "Unknown",
+            'is_func': is_func1 or bool(get("is_func2")),
         } for v in functions
     ]
     func_names = [x.name for x in functions]
