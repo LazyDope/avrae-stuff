@@ -713,6 +713,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         'modify_coins': modify_coins,
         'get_coins': get_coins,
         'use_coin_purse': use_coin_purse,
+        'find_bag_with_item': find_bag_with_item,
         'rename_bag': rename_bag,
         'swap_pos': swap_pos,
         'delete_bag': delete_bag,
