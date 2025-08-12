@@ -14,7 +14,7 @@ def _get_docs(func: dict) -> str:
         if doc.startswith(':') and len(defsplit := doc.split(':', 2)) >= 3:
             match (docsplit := defsplit[1].split())[0]:
                 case 'self':
-                    args.append(f"self: {docsplit[1]}" if len(docsplit)>2 else args.append('self'))
+                    args.append(f"self: {docsplit[1]}") if len(docsplit) > 1 else args.append('self')
                 case 'arg'|'param':
                     args.append(f"{docsplit[2]}: {docsplit[1]}" if len(docsplit)>2 else args.append(docsplit[1]))
                 case 'var'|'kwarg':
@@ -24,13 +24,14 @@ def _get_docs(func: dict) -> str:
                 case 'rtype':
                     rtype = doc.split(':')[2].strip()
     if func.is_func:
+        all_args = args + kwargs
         header = [f"""```py
-{f_name}({', '.join(args+kwargs)}){f' -> {rtype}' if rtype else ''}```"""]
+{f_name}({', '.join(all_args)}){f' -> {rtype}' if rtype else ''}```"""]
         if len(header[0].strip())>50:
             n='\n'
             header = [f"""```py
 {f_name}(
-    {f',{n}    '.join(args+kwargs)}
+    {f',{n}    '.join(all_args)}
 ){f' -> {rtype}' if rtype else ''}```"""]
     else:
         header = [f"""```py
