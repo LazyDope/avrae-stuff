@@ -1,8 +1,8 @@
 embed <drac2>
 ch = character()
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
-bagsLoaded = baglib.load_bags()
-old_coins = baglib.get_coins(bagsLoaded)[1].copy()
+using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
+bagsLoaded = baglib.LoadedBags()
+old_coins = bagsLoaded.get_coins()[1].copy()
 openMode = baglib.settings.get('openMode','all')
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 
@@ -15,12 +15,12 @@ ch.set_cvar('bagSettings',dump_json(baglib.settings))
 
 if baglib.settings['autoCoins']:
     title = f"{name} enables their `autoCoins`"
-    baglib.get_coins(bagsLoaded)
+    bagsLoaded.get_coins()
 else:
     title = f"{name} disables their `autoCoins`"
     
 if openMode != 'none':
-    display = ' '.join(baglib.display_coins(bagsLoaded, compact, old_coins))
+    display = ' '.join(bagsLoaded.display_coins(compact, old_coins))
 else:
     display = ""
     

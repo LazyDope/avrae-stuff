@@ -1,8 +1,7 @@
 echo ```json
 !cvar bags <drac2>
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
-bagsLoaded = baglib.load_bags()
-bag_dict = dict(bagsLoaded)
+using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
+bagsLoaded = baglib.LoadedBags()
 input = """&*&"""
 bag_list = []
 cbag = ["", {}]
@@ -13,7 +12,7 @@ for line in input.split("\n"):
         continue
     if "Total Weight Carried: " in line or "For help with your bags, see " in line:
         break
-    if some_bags := [bag_name for bag_name in bag_dict if bag_name in line]:
+    if some_bags := [bag_name for [bag_name, _] in bagsLoaded.internal_bag_data if bag_name in line]:
         some_bags.sort(reverse=True, key=lambda x: len(x))
         bag_name = some_bags[0]
         if cbag[0]:
@@ -21,7 +20,7 @@ for line in input.split("\n"):
         cbag[0] = bag_name
         bag_list.append(cbag)
         continue
-    if "Coin Purse" in line and baglib.use_coin_purse(bagsLoaded):
+    if "Coin Purse" in line and bagsLoaded.use_coin_purse():
         if cbag[0]:
             cbag = ["", {}]
         continue

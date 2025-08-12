@@ -1,39 +1,40 @@
 embed <drac2>
 # load modules
 using(
-    baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c",
+    baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb",
     docgen="0c78c14b-4c61-469c-bac8-1886f26b2d9f"
 )
-a_bagType = {'name':'Type: a_bag', 'doc': """A two item list containing the bag_name and bag_contents\n:0 str bag_name: the bag's name\n:1 dict bag_contents: the bag's contents"""}
+BagType = {'name':'Type: Bag', 'doc': """A two item list containing the bag_name and bag_contents\n:0 str bag_name: the bag's name\n:1 dict bag_contents: the bag's contents"""}
+loaded_bags = LoadedBags(user_mode=False)
 
 functions = [
-        a_bagType,
-        baglib.load_bags,
-        baglib.save_bags,
-        baglib.get_bag,
-        baglib.new_bag,
-        baglib.modify_item,
-        baglib.modify_coins,
+        BagType,
+        baglib.LoadedBags,
+        {'name': "LoadedBags.save_bags", 'func': loaded_bags.save_bags},
+        {'name': "LoadedBags.get_bag", 'func': loaded_bags.get_bag},
+        {'name': "LoadedBags.new_bag", 'func': loaded_bags.new_bag},
+        {'name': "LoadedBags.modify_item", 'func': loaded_bags.modify_item},
+        {'name': "LoadedBags.modify_coins", 'func': loaded_bags.modify_coins},
         baglib.parsecoins,
         baglib.parse_items,
-        baglib.get_coins,
-        baglib.use_coin_purse,
-        baglib.find_bag_with_item,
+        {'name': "LoadedBags.get_coins", 'func': loaded_bags.get_coins},
+        {'name': "LoadedBags.use_coin_purse", 'func': loaded_bags.use_coin_purse},
+        {'name': "LoadedBags.find_bag_with_item", 'func': loaded_bags.find_bag_with_item},
         baglib.find_valid_name,
-        baglib.rename_bag,
-        baglib.swap_pos,
-        baglib.delete_bag,
+        {'name': "LoadedBags.rename_bag", 'func': loaded_bags.rename_bag},
+        {'name': "LoadedBags.swap_pos", 'func': loaded_bags.swap_pos},
+        {'name': "LoadedBags.delete_bag", 'func': loaded_bags.delete_bag},
         baglib.set_custom_weight,
         baglib.get_item_weight,
         baglib.weigh_bag,
         baglib.display_bag,
-        baglib.display_coins,
-        baglib.create_display,
-        baglib.carried_weight,
-        baglib.save_state,
+        {'name': "LoadedBags.display_coins", 'func': loaded_bags.display_coins},
+        {'name': "LoadedBags.create_display", 'func': loaded_bags.create_display},
+        {'name': "LoadedBags.carried_weight", 'func': loaded_bags.carried_weight},
+        {'name': "LoadedBags.update_saved_state", 'func': loaded_bags.update_saved_state},
         baglib.round_nicely
     ]
 body = docgen.get_embed(functions, &ARGS&)
-footer = " -footer ＂baglib gvar: 4119d62e-6a98-4153-bea9-0a99bb36da2c＂"
+footer = " -footer ＂baglib gvar: 5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb＂"
 return body + footer
 </drac2>

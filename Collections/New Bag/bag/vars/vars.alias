@@ -1,5 +1,5 @@
 <drac2>
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c", bagcmds="7a4e5193-0eeb-4dae-a3ac-16786000e27b")
+using(bagcmds="7a4e5193-0eeb-4dae-a3ac-16786000e27b")
 
 text = bagcmds.default_text(color, ctx)
 bagcmds.vars(text, ctx, name)

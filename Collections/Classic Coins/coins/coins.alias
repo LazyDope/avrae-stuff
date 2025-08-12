@@ -1,21 +1,21 @@
 embed <drac2>
-using(baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c")
+using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
     
 ch = character()
-bagsLoaded = baglib.load_bags()
-old_coins = baglib.get_coins(bagsLoaded)[1].copy()
+bagsLoaded = baglib.LoadedBags()
+old_coins = bagsLoaded.get_coins()[1].copy()
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
 delta, coin_error = baglib.parsecoins("&*&")
 focus = None
-error = coin_error
+bagsLoaded.error |= coin_error
 cmd = ctx.prefix + ctx.alias
 title = f"{name} looks inside"
 positive = False
 if delta:
-    focus, error = baglib.modify_coins(bagsLoaded, autoCoins=autoCoins, delta = delta)
-    if not error:
+    focus = bagsLoaded.modify_coins(autoCoins=autoCoins, delta = delta)
+    if not bagsLoaded.error:
         delta = list(delta.items())
         delta.sort(key=lambda x: x[1], reverse=True)
         if delta[0][1]>0:
@@ -24,31 +24,31 @@ if delta:
         else:
             title = f"{name} removes"
 
-if not error:
+if not bagsLoaded.error:
     for idx, cointup in enumerate(delta):
         coin, quantity = cointup
         title += f"{'' if idx == 0 else ',' if (positive and quantity>0) or (not positive and quantity<0) else ', and removes'} {baglib.round_nicely(abs(quantity))} {coin}"
         if positive and quantity<0:
             positive = False
         
-bag_name = "Coin Purse" if baglib.use_coin_purse(bagsLoaded) else baglib.coinPouchName
+bag_name = "Coin Purse" if bagsLoaded.use_coin_purse() else baglib.coinPouchName
 if delta:
     title += f" to their {bag_name}" if positive else f" from their {bag_name}"
 else:
     title += f" their {bag_name}"
     
 if not focus:
-    baglib.get_coins(bagsLoaded)
+    bagsLoaded.get_coins()
 
-if bagsLoaded:
-    success = baglib.save_bags(bagsLoaded, error)
+if bagsLoaded.internal_bag_data:
+    success = bagsLoaded.save_bags()
 else:
-    success = -1 if error else 1
+    success = -1 if bagsLoaded.error else 1
     
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
 elif openMode != 'none':
-    display = ' '.join(baglib.display_coins(bagsLoaded, compact, old_coins))
+    display = ' '.join(bagsLoaded.display_coins(compact, old_coins))
 else:
     display = ""
 
