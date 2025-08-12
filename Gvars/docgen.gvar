@@ -4,15 +4,8 @@
 # Discord: Byronius#0001; GitHub: LazyDope; Ko-Fi: alazydope
 
 def _get_docs(func: _Function|dict) -> str:
-    if typeof(func) == '_Function':
-        docs = func.doc
-        f_name = func.name
-    else:
-        if typeof(func.doc) == '_Function':
-            docs = func.doc.doc
-        else:
-            docs = func.doc if 'doc' in func else 'Unknown'
-        f_name = func.name if 'name' in func else 'unknown'
+    docs = func.doc
+    f_name = func.name
     docs = docs.split('\n')
     args = []
     kwargs = []
@@ -65,6 +58,12 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
     """
     newline = "\n"
     cmd = ctx.prefix + ctx.alias
+    functions = [
+        {
+            'name': v.name if typeof(v) == '_Function' or 'name' in v else 'unknown',
+            'doc': doc.doc if typeof(doc := v.doc) == '_Function' else doc if typeof(v) == '_Function' or 'doc' in v else "Unknown"
+        } for v in functions
+    ]
     func_names = [x.name for x in functions]
     if typeof(args) == 'SafeList':
         args = ' '.join(args)
