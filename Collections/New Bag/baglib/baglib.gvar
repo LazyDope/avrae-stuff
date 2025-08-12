@@ -434,7 +434,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         """
         # check if we are using coin purse or not
         if autoCoins:
-            pouch, _ = modify_coins(autoCoins=autoCoins)
+            pouch = modify_coins(autoCoins=autoCoins)
         elif use_coin_purse():
             cname = "Coin Purse"
             purse = ch.coinpurse
