@@ -63,7 +63,7 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
     functions = [
         {
             'name': v.name if typeof(v) == '_Function' or 'name' in v else 'unknown',
-            'doc': doc.doc if typeof(doc := v.doc) == '_Function' else doc if typeof(v) == '_Function' or 'doc' in v else "Unknown"
+            'doc': (doc.doc if typeof(doc := v.doc) == '_Function' else doc) if typeof(v) == '_Function' or 'doc' in v else "Unknown"
         } for v in functions
     ]
     func_names = [x.name for x in functions]
