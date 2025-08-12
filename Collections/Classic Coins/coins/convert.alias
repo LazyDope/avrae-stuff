@@ -3,12 +3,11 @@ ch = character()
 using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
 
 bagsLoaded = baglib.LoadedBags()
-old_coins = bagsLoaded.get_coins()[1].copy()
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
 focus = bagsLoaded.get_coins(autoCoins=True)
 success = bagsLoaded.save_bags()
-display = ' '.join(bagsLoaded.display_coins(compact, old_coins)) if openMode != 'none' else ''
+display = ' '.join(bagsLoaded.display_coins(compact)) if openMode != 'none' else ''
 return f"-title ＂{name} converts their coins to save space!＂ {display}"
 </drac2> -thumb https://i.imgur.com/auM9MBe.png
 -footer ＂{{get('coinFooter') or get_svar('coinFooter', f"View '{ctx.prefix}help {ctx.alias}' for more help")}}＂

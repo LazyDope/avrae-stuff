@@ -3,7 +3,6 @@ using(baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb")
     
 ch = character()
 bagsLoaded = baglib.LoadedBags()
-old_coins = bagsLoaded.get_coins()[1].copy()
 autoCoins = baglib.settings.get('autoCoins',get("autocoins","0")=="1")
 compact = baglib.settings.get('compactCoins',get("compactcoins","0")=="1")
 openMode = baglib.settings.get('openMode','all').lower()
@@ -48,7 +47,7 @@ else:
 if coin_error:
     display = '-f ＂`&*&` contained invalid coins＂'
 elif openMode != 'none':
-    display = ' '.join(bagsLoaded.display_coins(compact, old_coins))
+    display = ' '.join(bagsLoaded.display_coins(compact))
 else:
     display = ""
 

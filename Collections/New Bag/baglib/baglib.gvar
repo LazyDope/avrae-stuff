@@ -524,7 +524,6 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
 
     def display_coins(
         compact: bool = settings.get('compactCoins', get("compactcoins", "0") == "1"),
-        old_coins: dict = None
     ) -> list:
         """
         Creates the field(s) to display coins in an embed.
@@ -540,6 +539,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         item_messages = []
         old_total = None
         coin_total = None
+        old_coins = loaded_bags.original_coin_data[1].copy()
         if compact:
             old_total = sum(old_coins[coin]/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in old_coins) if old_coins else None
             coin_total = sum(bag[1][coin]/COIN_RATES[coin] for coin in COIN_TYPES if coin.lower() in bag[1]) if bag[1] else 0.0
@@ -627,7 +627,7 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         :rtype: list
         """
         loaded_bags['original_bag_data'] = _deep_copy(bag_data)
-        loaded_bags['original_coin_data'] = [get_coins()] if use_coin_purse() else []
+        loaded_bags['original_coin_data'] = get_coins() if use_coin_purse() else _deep_copy(get_coins())
 
     def create_display(
         focus: Bag = None,
@@ -649,7 +649,10 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
         text = []
         weightTracking = settings.get('weightTracking', 'Off').lower() == 'on'
         ignoreBags = settings.get('weightlessBags', ["bag of holding", "handy haversack", "heward's handy haversack"])
-        old_bags = _as_dict(loaded_bags.original_bag_data + loaded_bags.original_coin_data)
+        old_bags = _as_dict(
+            loaded_bags.original_bag_data
+            + ([loaded_bags.original_coin_data] if use_coin_purse() else [])
+        )
 
         # define loop based on what mode we're in
         match openMode:
