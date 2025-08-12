@@ -1,39 +1,40 @@
 embed <drac2>
 # load modules
 using(
-    baglib="4119d62e-6a98-4153-bea9-0a99bb36da2c",
+    baglib="5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb",
     docgen="0c78c14b-4c61-469c-bac8-1886f26b2d9f"
 )
-a_bagType = {'name':'Type: a_bag', 'doc': """A two item list containing the bag_name and bag_contents\n:0 str bag_name: the bag's name\n:1 dict bag_contents: the bag's contents"""}
+BagType = {'name':'Type: Bag', 'doc': """A two item list containing the bag_name and bag_contents\n:0 str bag_name: the bag's name\n:1 dict bag_contents: the bag's contents"""}
+loaded_bags = LoadedBags(user_mode=False)
 
 functions = [
-        a_bagType,
-        baglib.load_bags,
-        baglib.save_bags,
-        baglib.get_bag,
-        baglib.new_bag,
-        baglib.modify_item,
-        baglib.modify_coins,
+        BagType,
+        baglib.LoadedBags,
+        loaded_bags.save_bags,
+        loaded_bags.get_bag,
+        loaded_bags.new_bag,
+        loaded_bags.modify_item,
+        loaded_bags.modify_coins,
         baglib.parsecoins,
         baglib.parse_items,
-        baglib.get_coins,
-        baglib.use_coin_purse,
-        baglib.find_bag_with_item,
+        loaded_bags.get_coins,
+        loaded_bags.use_coin_purse,
+        loaded_bags.find_bag_with_item,
         baglib.find_valid_name,
-        baglib.rename_bag,
-        baglib.swap_pos,
-        baglib.delete_bag,
+        loaded_bags.rename_bag,
+        loaded_bags.swap_pos,
+        loaded_bags.delete_bag,
         baglib.set_custom_weight,
         baglib.get_item_weight,
         baglib.weigh_bag,
         baglib.display_bag,
-        baglib.display_coins,
-        baglib.create_display,
-        baglib.carried_weight,
-        baglib.save_state,
+        loaded_bags.display_coins,
+        loaded_bags.create_display,
+        loaded_bags.carried_weight,
+        loaded_bags.update_saved_state,
         baglib.round_nicely
     ]
 body = docgen.get_embed(functions, &ARGS&)
-footer = " -footer ＂baglib gvar: 4119d62e-6a98-4153-bea9-0a99bb36da2c＂"
+footer = " -footer ＂baglib gvar: 5f1ffcbf-3f59-4396-b402-1ca0f02d6bbb＂"
 return body + footer
 </drac2>
