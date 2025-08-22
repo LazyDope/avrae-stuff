@@ -13,7 +13,7 @@ success, focus, openMode = bagcmds.view(text, bagsLoaded, success, args, name)
 if success == -1:
     bagsLoaded.undo_changes()
 
-bagcmds.finalize(text, bagsLoaded, focus, openMode, old_bags)
+bagcmds.finalize(text, bagsLoaded, focus, openMode)
 character().set_cvar('bagSettings', dump_json(baglib.settings))
 return ' '.join(text)
 </drac2>

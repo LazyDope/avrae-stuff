@@ -14,6 +14,6 @@ success, focus = bagcmds.add_item(text, bagsLoaded, success, args, name, "+")
 if success == -1:
     bagsLoaded.undo_changes()
 
-bagcmds.finalize(text, bagsLoaded, focus, old_bags=old_bags)
+bagcmds.finalize(text, bagsLoaded, focus)
 return ' '.join(text)
 </drac2>
