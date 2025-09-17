@@ -6,7 +6,6 @@ text = bagcmds.default_text(color, ctx)
 success = -1
 focus = None
 bagsLoaded = baglib.LoadedBags()
-old_bags = baglib.save_state(bagsLoaded)
 
 # subcommand specific function
 success, focus = bagcmds.add_item(text, bagsLoaded, success, args, name, ".")
