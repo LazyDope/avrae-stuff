@@ -83,8 +83,14 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
         possible_func = functions
     elif previous_funcs:
         possible_func = [func for func in functions if any([func_name == func.name for func_name in previous_funcs])]
+    elif args:
+        possible_func = [func for func in functions if args == func.name]
+        if not possible_func:
+            possible_func = [func for func in functions if args.lower() == func.name.lower()]
+        if not possible_func:
+            possible_func = [func for func in functions if args.lower() in func.name.lower()]
     else:
-        possible_func = args and [func for func in functions if args in func.name]
+        possible_func = []
     if args.isdecimal() and previous_funcs:
         index = max(int(args)-1,0)
         if len(previous_funcs)>index:
