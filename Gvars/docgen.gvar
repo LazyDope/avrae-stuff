@@ -64,7 +64,7 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
     functions = [
         {
             'name': v.name if (is_func1 := typeof(v) == '_Function') or 'name' in v else 'unknown',
-            'doc': (doc.doc if (is_func2 := typeof(doc := v.doc) == '_Function') else doc) if is_func1 or 'doc' in v else "Unknown",
+            'doc': (doc.doc if (is_func2 := typeof(v.doc) == '_Function') else v.doc) if is_func1 or 'doc' in v else "Unknown",
             'is_func': is_func1 or bool(get("is_func2")),
         } for v in functions
     ]
@@ -81,8 +81,6 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
         
     if len(functions) == 1:
         possible_func = functions
-    elif previous_funcs:
-        possible_func = [func for func in functions if any([func_name == func.name for func_name in previous_funcs])]
     elif args:
         possible_func = [func for func in functions if args == func.name]
         if not possible_func:
@@ -91,6 +89,7 @@ def get_embed(functions: list=[get_embed], args: list|str = '', subcmd: str='') 
             possible_func = [func for func in functions if args.lower() in func.name.lower()]
     else:
         possible_func = []
+
     if args.isdecimal() and previous_funcs:
         index = max(int(args)-1,0)
         if len(previous_funcs)>index:
