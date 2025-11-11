@@ -620,11 +620,8 @@ def LoadedBags(ch=character(), cvar="bags", *, user_mode=True) -> LoadedBags:
 
     def update_saved_state():
         """
-        Returns a copy of internal bag state that won't be modified.
-        Useful for old_bags in create_display
+        Updates the internal original state of the bags for generating diff in create_display
         :self LoadedBags: the loaded bags
-        :return: a copy of bag_data, plus the coin pouch if appropriate
-        :rtype: list
         """
         loaded_bags['original_bag_data'] = _deep_copy(bag_data)
         loaded_bags['original_coin_data'] = get_coins() if use_coin_purse() else _deep_copy(get_coins())
